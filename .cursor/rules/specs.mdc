@@ -1,0 +1,14 @@
+---
+description: Product spec is source of truth for this repo. Layer specs reuse the same IDs and must not contradict it.
+globs: docs/spec/**
+alwaysApply: false
+---
+
+# Specs
+
+- `docs/spec/product-spec.md` is the product source of truth.
+- `docs/spec/frontend-spec.md` and `docs/spec/backend-spec.md` reuse `R-*` / `SCR-*` / `FLO-*`. Do not add screens.
+- Do not invent requirements that contradict `docs/spec/product-spec.md`.
+- GDPR / legal is **out of MVP**. Default price is **600 UAH**.
+- Do not implement the app while filling specs.
+- When writing a layer spec, follow the project skill **write-layer-spec**.
