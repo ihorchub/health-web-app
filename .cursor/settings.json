@@ -1,0 +1,10 @@
+{
+  "plugins": {
+    "paper-desktop": {
+      "enabled": true
+    },
+    "superpowers": {
+      "enabled": true
+    }
+  }
+}
