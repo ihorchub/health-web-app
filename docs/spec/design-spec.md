@@ -1,9 +1,20 @@
-# Likaro — Calm Clinical Design Specification
-**For Paper UI. Content source of truth: `docs/spec/frontend-spec.md`. Do not invent product behaviour.**
+# Design Specification (Calm Clinical)
 
-Artboard size: **1440×900**. Ukrainian on all default artboards. One English proof: **SCR-02**. Draw **Light and Dark** for every listed artboard. Each of the **9 required SCR screens** is a separate artboard. Do not decide modal vs popup vs drawer vs page.
+**Brand / chrome / typeface (26 Aug 2026):** **Medicly** + **Manrope**. Older **Likaro** / **IBM Plex Sans** locks below are **superseded** — see [ia-chrome-decision.md](./ia-chrome-decision.md).  
+**For drawing now:** use `ia-chrome-decision.md` as the shell + page brief.
 
-**Visual production order (do not skip ahead):** Foundation in Paper → Lika mascot system → Likaro logo → SCR-01 → … → SCR-09. This spec is the source of truth. Do not copy Figma v0 screens. Do not crop, trace, or reuse pixels from the mascot reference sheet.
+**Component library:** designs must follow **MUI** component shapes/styles (cards, fields, buttons, menus, dialogs, alerts, **DatePicker / DateCalendar** for booking calendar). Theme Medicly on top of MUI — do not invent non-MUI control chrome.  
+**Icons:** [Tabler Icons](https://tabler.io/icons) (stroke, 24 viewBox) — no ad-hoc icon shapes when a Tabler glyph fits.  
+**Responsive:** draw **desktop + mobile** for every screen from the start (stack columns, swipe months, etc. per ia-chrome).
+
+**Content product rules:** `product-spec.md` + IA overlay. Do not invent product behaviour.  
+**27 Aug:** ratings ★★★★★, reviews, variable + promo prices are **in MVP** for drawing — older “no ratings / no reviews / fixed 600” lines below are **superseded** by [ia-chrome-decision.md](./ia-chrome-decision.md).
+
+Artboard sizes: desktop **1440** wide + mobile (~**390**). Ukrainian on default artboards. Draw **Light and Dark**. Booking = modal wizard; success = small alert/snackbar.
+
+**Visual production order:** Foundation (Medicly, Manrope, MUI theme) → mascot → logo → ~~public SCR-02~~ **(Paper FINAL 27 Aug 2026)** → cabinets SCR-06/08 → wizard → remaining SCRs.
+
+**SCR-02 Paper lock:** page **04 · SCR-02 - Search and results** in https://app.paper.design/file/01M0D5RXPB3F6XJZ814DFZDMEZ is the visual source of truth (Guest matrix + Patient Default Light/Dark UK). Do not redesign unless explicitly reopened — see [ia-chrome-decision.md](./ia-chrome-decision.md) § SCR-02.
 
 ---
 
@@ -12,14 +23,15 @@ Artboard size: **1440×900**. Ukrainian on all default artboards. One English pr
 | Item | Value |
 |---|---|
 | Product | Likaro |
-| Visual direction | Calm Clinical only |
+| Visual direction | Calm Clinical only (client-approved). Accent pair: **green + soft pink** |
 | Primary language | Ukrainian |
 | Secondary language | English (switch visible; EN proof = SCR-02) |
 | Font | IBM Plex Sans (Latin + Cyrillic) |
 | Logo | Likaro wordmark + compact Lika-head mark (§1.2) |
-| Mascot | Lika — one original owl character (§4). Reference sheet = direction only |
-| Themes | Light + Dark, both fully designed |
+| Mascot | Lika — keep and use across the product (§4). Reference sheet = direction only |
+| Themes | Light + Dark, both fully designed; green + pink must work in both |
 | Starting point | This spec. Existing Figma Foundation hex/type/radius are approved values, not layouts to copy |
+| Client iteration | Redesign SCR-02 filters/cards/discovery and SCR-03 stats + on-profile availability (keep booking honesty; no new SCR IDs) |
 
 ### 1.1 Brand / color hierarchy (locked)
 
@@ -27,7 +39,7 @@ Artboard size: **1440×900**. Ukrainian on all default artboards. One English pr
 |---|---|---|---|---|
 | **Brand / base** | Navy | `#163E52` | `#0F2A38` | Not the primary UI accent. Not CTA fill. |
 | **Primary UI accent** | Green | `#2EB191` | `#3EC4A3` | — |
-| **Secondary UI accent** | Soft pink | `#E8C5C0` | `#C9A39E` | Never page bg. Never primary button. |
+| **Secondary UI accent** | Soft pink | `#E8C5C0` | `#C9A39E` | Never page bg. Never primary button. Must stay visible as the Calm Clinic pair with green. |
 | Character only | Amber | beak / feet on Lika | same | Not a UI token. No extra accent palette. |
 | Character only | Warm brown | Lika eyes | same | Not a UI token. |
 
@@ -79,8 +91,8 @@ Hex values below are unchanged. Names are semantic roles only.
 
 **Where to use what**
 - **Navy:** wordmark, auth left panel, profile CTA bar, calendar footer, compact-mark navy feathers. Not primary buttons.
-- **Green:** primary buttons, selected dates, free/selected slots, success, focus, active filters, Upcoming badge outline, Lika medallion.
-- **Soft pink:** selective UI only — photo rings (SCR-03), specialty chip inactive wash, meta wells, “today” captions, card hover wash, empty-state wash, unread pip, Reschedule Pending badge, optional tints. Rare blush on Lika only. Never page background, never primary button, never instead of navy blocks.
+- **Green:** primary buttons, selected dates, free/selected slots, success, focus, active filters / selected specialty cards, Upcoming badge outline, Lika medallion.
+- **Soft pink:** visible secondary accent (Calm Clinic pair with green) — specialty card washes, filter-category soft fills, photo rings (SCR-03), meta wells, “today” captions, card hover wash, empty-state wash, unread pip, Reschedule Pending badge. Rare blush on Lika only. Never page background, never primary button, never instead of navy blocks. Do not starve pink to near-invisible chips only.
 
 ### 2.2 Typography — IBM Plex Sans
 
@@ -162,7 +174,7 @@ Placeholder = secondary text.
 
 ### 2.8 Cards
 
-Radius 20. Padding generous; one elevation level for list/profile cards.
+Radius 20. Padding generous. Doctor result cards may use clearer elevation / spacing hierarchy than a flat list row (still one elevation family — no stacked shadow noise).
 
 | State | Light | Dark |
 |---|---|---|
@@ -210,19 +222,30 @@ Right, in order: UK | EN switch (active = filled green chip), theme toggle (sun/
 SCR-01: no bell, no role nav — only language + theme.
 
 **Search field**  
-Full-width in filter bar. Magnifying glass left. Placeholder: `Спеціальність, лікар або клініка`.
+Full-width in the filter panel. Magnifying glass left. Placeholder: `Спеціальність, лікар або клініка`.
 
-**Filter block**  
-One surface card: search | city select | clinic select | date | format segmented **Офлайн | Онлайн**. Active filter = green. Result count under bar: `N лікарів знайдено`.
+**Filter panel (SCR-02)**  
+Larger, structured filter experience — not a single cramped row of tiny controls.  
+- **Surface:** one elevated filter card (or stacked category blocks) with clear groups: Search · Location (city + clinic) · Date · Format · Specialty.  
+- **Controls:** city select, clinic select, date, format segmented **Офлайн | Онлайн**. Active filter = green. Soft-pink wash allowed on inactive category headers / specialty cards.  
+- **Specialty:** four **visual specialty cards** (icon + label) — сімейний лікар, кардіолог, дерматолог, педіатр — not tiny text-only chips. Selected = green selected token.  
+- **Sorting:** compact sort control near the result count (e.g. default / nearest time). Visual only; do not invent sort keys beyond what product allows.  
+- **Developed filters:** filter panel may expand / open a fuller filter state (same SCR-02 artboard — block or overlay chrome type undecided). Same parameters as above; easier multi-parameter selection.  
+- Result count under panel: `N лікарів знайдено`.
 
 **Doctor card (SCR-02)**  
-No photo (photo is SCR-03 only). Row: name (H3) + `specialty · clinic` + pin + `city · N років досвіду` | **nearest available time required** (`Найближчий час:` + clock + localized datetime) | **two actions**: secondary `Профіль` → SCR-03; primary `Записатися` → SCR-04. No price. No ratings.
+No photo (photo is SCR-03 only). **Keep** nearest available time and quick book.  
+- **Required content:** name (H3) + `specialty · clinic` + pin + `city · N років досвіду` | **nearest available time** (`Найближчий час:` + clock + localized datetime) | **two actions**: secondary `Профіль` → SCR-03; primary `Записатися` → SCR-04.  
+- **Visual:** redesign for modern hierarchy — clearer spacing, soft elevation, scannable blocks (identity / time / actions). Experiment within Calm Clinical tokens; do not flatten into a plain table row. No price. No ratings.
 
-**Specialty chip (not a home grid)**  
-Four chips only: сімейний лікар, кардіолог, дерматолог, педіатр. Inactive may use a light pink wash; active = green selected token.
+**Specialty visual cards**  
+Four cards only (icon + short label). Soft-pink inactive wash; active = green. Used in SCR-02 filter / discovery. Not a separate marketplace home screen.
+
+**Discovery sections (SCR-02)**  
+Optional content above or around the result list, inspired by client reference: e.g. **Топ спеціалістів** (row of specialty visual cards) and **Лікарі поруч** (or home-clinic-first doctor cards). Same doctor-card rules. No ratings, favorites, or promo banners.
 
 **Date selector**  
-Horizontal 14-day strip. Selected = green fill. Past / beyond 14 days = disabled. Day off = muted, not selectable. `Сьогодні` caption may use soft pink.
+Horizontal 14-day strip. Selected = green fill. Past / beyond 14 days = disabled. Day off = muted, not selectable. `Сьогодні` caption may use soft pink. Reused on SCR-03 availability block and SCR-04.
 
 **Notifications (SCR-10 on existing screens, not a 10th required screen)**  
 Bell with unread pip (pink allowed). Open list: unread items only; **Прочитати все**. Click item = read and item disappears. Empty list: short copy + Lika Message pose. No read-history.
@@ -268,7 +291,7 @@ Transparent background on every pose. Same visual language at all sizes.
 |---|---|---|---|
 | 1 | Welcome / Registration | wing raised, friendly greeting | SCR-01 brand panel |
 | 2 | Searching | magnifying glass | SCR-02 empty search |
-| 3 | Availability / Calendar | calendar / available-appointment context | SCR-04 default / availability context (with slots) |
+| 3 | Availability / Calendar | calendar / available-appointment context | SCR-03 availability block (optional), SCR-04 default / availability context (with slots) |
 | 4 | Loading | looking at a wristwatch / clock | loading on any screen |
 | 5 | Success | wings slightly open + subtle **green** confirmation/check | document only; **no** success SCR; **no** extra screen |
 | 6 | Empty Calendar | calendar; calm / sympathetic | SCR-04 empty day, SCR-06 empty list, SCR-08 empty day |
@@ -303,24 +326,31 @@ Each of the 9 IDs below is a separate Paper artboard set. Do not decide chrome t
 - **Light/Dark:** Full split card both themes; no white flash on dark.
 
 ### SCR-02 — Search and results
-- **Layout:** Page bg. Header. Title `Пошук лікаря` + subtitle. Filter card. Count. Vertical doctor cards.
-- **Header:** Full logged-in patient header.
-- **Main:** Filters per §3 (city/clinic default = patient home). Specialty chips optional row. 4–6 doctor rows. Each card: identity + **nearest available time** + `Профіль` + `Записатися`. **No doctor photo.**
-- **Components:** header, search, filters, specialty chips, doctor cards.
-- **Actions:** `Профіль` / identity → SCR-03. `Записатися` → SCR-04. Nav to SCR-06, SCR-07. Bell.
-- **States:** default list; loading skeletons; empty (Lika + no matches); error.
-- **Mascot:** Header compact mark; empty = Searching pose. Not on every result row.
-- **Light/Dark:** Both. Also **one EN Light** duplicate of default list.
+
+**Status: Paper FINAL (27 Aug 2026).** Visual SoT = Paper page **04 · SCR-02**; IA overlay in [ia-chrome-decision.md](./ia-chrome-decision.md). Older bullets below that conflict with the Paper lock (e.g. “no doctor photo”, title-only search chrome) are **superseded** by the locked artboards.
+
+- **Layout:** Page bg. Guest or patient header. Inset hero banner (composite PNG + 3 steps). Search row + popular chips. Specialty cards. Doctor results + desktop filter sidebar (mobile: filter button / bottom sheet). Result count + sort. Compact doctor cards with photo, format badges, nearest slot, price/promo, rating, heart, Book.
+- **Header:** Guest = language + theme + Log in / Sign up (mobile: account icon). Patient = **«Знайти лікаря»** + bell + theme + avatar (no standalone UK\|EN).
+- **Main:** Filters per IA (city/clinic prefill when logged in). Specialty as **visual cards**. Doctor cards: identity + nearest available + Book (+ guest login hint). Light card shadow per §2.5.
+- **Components:** header, hero, search, filters, specialty cards, doctor cards, sort, show-more / expand.
+- **Actions:** specialty / filter narrows list. Card / Book → wizard step 1 (SCR-03). Guest Book disabled → SCR-01. Bell → SCR-10.
+- **States (Guest):** default; loading skeletons; empty (Lika Searching); error; mobile filters open. **Patient:** Default Light/Dark UK only this pass.
+- **Light/Dark / EN:** Guest full matrix as drawn; Patient UK Default Light+Dark desktop+mobile. EN guest proof boards exist.
+- **Do not redraw** without explicit reopen.
 
 ### SCR-03 — Doctor profile
-- **Layout:** Header. Back `До результатів пошуку`. Two columns: photo + format badges | identity + stats + bio + CTA bar.
+- **Layout:** Header. Back `До результатів пошуку`. Two columns: photo + format badges | identity + **icon stats** + bio. Below (or in column): **availability block**. Navy CTA bar.
 - **Header:** Patient logged-in.
-- **Main:** Photo (rounded square; pink ring allowed) — **this is where the doctor photo lives**. Name H1. `specialty · clinic`. Stats: experience, price **600 грн** (unless seed says otherwise), address text + pin (**no map**). Format badges read-only (Both = two badges, not toggles). Bio short. Navy bar: nearest time + primary `Відкрити календар`.
-- **Components:** tags, stats card, primary button, back link.
-- **Actions:** open SCR-04; back to SCR-02.
-- **States:** default; loading; not found.
-- **Mascot:** header compact mark only.
-- **Light/Dark:** both. Dark CTA bar = brand navy fill, green button.
+- **Main:** Photo (rounded square; pink ring allowed) — **this is where the doctor photo lives**. Name H1. `specialty · clinic`.  
+  - **Stats:** Experience / Appointment price (**600 грн** unless seed says otherwise) / Address — **three visually separated blocks with icons** (easier to scan; not a plain text strip). Address = text + pin (**no map**).  
+  - Format badges read-only (Both = two badges, not toggles). Bio short.  
+  - **Availability on profile:** compact **14-day date selector** + free slot pills for the selected day (same slot tokens as SCR-04). Patient can see when the doctor is free without leaving the page. Selecting a free slot (or primary CTA) continues to **SCR-04** with that context (full calendar / confirm path) — do not invent a new SCR or skip honesty rules.  
+  - Navy bar: nearest time + primary `Відкрити календар` (or `Записатися` if a slot is already selected — same destination SCR-04 / then SCR-05).
+- **Components:** photo, format badges, icon-supported stats, bio, date selector, slot grid (compact), primary button, back link.
+- **Actions:** pick day/slot preview; open SCR-04; back to SCR-02.
+- **States:** default; loading; not found; day with no free slots (explicit empty message).
+- **Mascot:** header compact mark only; Availability pose optional near empty availability.
+- **Light/Dark:** both. Dark CTA bar = brand navy fill, green button. Pink/green accents on stats wells and selected day.
 
 ### SCR-04 — Calendar
 - **Layout:** Header. Back to profile. H1 `Оберіть дату та час`. Meta: 14 days; format chosen on next step. Doctor name · specialty. Date strip. Legend. Slot grid. Bottom navy bar.
@@ -397,7 +427,7 @@ Draw **two** artboards (same ID): Patient | Doctor.
 | Cards | white + Light card shadow | `#143445` + border; Dark shadows only on overlays |
 | Brand navy blocks (auth left, profile CTA, calendar footer) | `#163E52` | `#0F2A38` |
 | Primary accent buttons | `#2EB191` | `#3EC4A3` |
-| Soft pink | selective tints/rings/washes | muted `#C9A39E` tints; never full-page pink |
+| Soft pink | specialty cards, filter washes, rings, meta wells — pair must read with green | muted `#C9A39E` tints; never full-page pink; keep pair visible |
 | Text | navy on grey/white; `#F3F7F8` on navy blocks | off-white on dark surfaces; `#D7E4EA` icons on navy |
 | Theme control | visible, persisted | same |
 | First paint | — | no white flash (dark surfaces from first frame) |
@@ -415,7 +445,7 @@ Every screen in §5 gets Light + Dark unless noted (SCR-02 extra EN Light).
 Do **not** draw:
 
 - Warm Human Care or Smart Care System styles, palettes, or layouts
-- Ratings, reviews, hearts-as-favorites, marketplace home
+- Ratings, reviews, hearts-as-favorites, promo/marketplace banners (discovery sections on SCR-02 are allowed; ratings are not)
 - Payments, checkout, insurance
 - Maps / map view (address is text + pin only)
 - Medical records, prescriptions, video links
@@ -431,4 +461,6 @@ Do **not** draw:
 - Navy as primary button fill
 - Extra accent palette; amber or brown as UI colors
 - Cropping/tracing the mascot reference; scarf/collar; laptop/processing owl; extra owl designs per screen
-- Lika / logo / screens in Paper before this spec is approved and before the production order
+- Replacing Lika with the client’s pink blob reference mascot
+- Tiny text-only specialty chips as the final specialty UI (use visual specialty cards)
+- Flat “table-row” doctor cards that hide nearest time or drop `Записатися`

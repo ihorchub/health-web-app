@@ -1,13 +1,17 @@
 # Specs
 
-Product and (later) technical specifications for the digital healthcare booking platform.
+Product and technical specifications for the digital healthcare booking platform.
 
-| File                                   | Purpose                                           | When                     |
-| -------------------------------------- | ------------------------------------------------- | ------------------------ |
-| [product-spec.md](./product-spec.md)   | One product specification. What the product does. | Source of truth — filled |
-| [frontend-spec.md](./frontend-spec.md) | UI per screen ID                                  | After product spec       |
-| [backend-spec.md](./backend-spec.md)   | Server / API per screen ID                        | After product spec       |
+| File | Purpose | Priority |
+| --- | --- | --- |
+| [product-spec.md](./product-spec.md) | Base product rules (R / SCR / FLO) | Default source of truth |
+| [ia-chrome-decision.md](./ia-chrome-decision.md) | Agreed IA / chrome / dashboards / wizard / horizon (26 Aug 2026) | **Wins on its override map** — use this for drawing those areas |
+| [frontend-spec.md](./frontend-spec.md) | UI per screen ID | After product + IA overlay |
+| [backend-spec.md](./backend-spec.md) | Server / API per screen ID | After product + IA overlay |
+| [design-spec.md](./design-spec.md) | Visual system | Older Likaro chrome superseded where IA decision says so |
 
-Frontend and backend specs **must** reuse the same IDs (`SCR-01`, `FLO-01`, …) and matching **Contract** blocks. Skill: `write-layer-spec`.
+**Drawing:** open `ia-chrome-decision.md` first (incl. **MUI + responsive** rules); use `product-spec.md` for honesty rules and anything not overridden.
 
-Suggested git split: two branches from the same commit; one edits only `frontend-spec.md`, the other only `backend-spec.md`.
+**Paper visual locks:** **SCR-02 Search and results** — FINAL (27 Aug 2026). File: https://app.paper.design/file/01M0D5RXPB3F6XJZ814DFZDMEZ (page 04). Next draw: SCR-06 / SCR-08.
+
+Frontend/backend must reuse the same IDs and matching **Contract** blocks. Skill: `write-layer-spec`.

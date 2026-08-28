@@ -1,8 +1,9 @@
 # Frontend specification
 
-**Status:** Frame  
-**Source of truth:** [product-spec.md](./product-spec.md)  
-**Pair file:** [backend-spec.md](./backend-spec.md) — **Contract** blocks must match.
+**Status:** Frame (chrome/layout partially outdated vs 26 Aug IA)  
+**Source of truth (product behaviour):** [product-spec.md](./product-spec.md)  
+**IA / chrome overlay:** [ia-chrome-decision.md](./ia-chrome-decision.md) — **wins** on its Overrides map (header/footer, guest search, cabinets SCR-06/08, wizard, calendar UI, rolling month, favourites, SCR-07 view/edit, success alert). Where this file conflicts with that decision, **follow the decision** until a layer pass rewrites the SCR sections below.  
+**Pair file:** [backend-spec.md](./backend-spec.md) — **Contract** blocks must match (horizon/window wording may still say “2 weeks” here — treat as rolling bookable month per decision / R-13 overlay).
 
 This file describes **UI**: layout, states, i18n, what the screen shows and submits. It does not decide database, transactions, or route implementation.
 

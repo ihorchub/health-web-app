@@ -4,7 +4,9 @@
 **Audience:** Team 04 (Ihor, Maryna) and the client  
 **Sources:** client brief (`docs/briefihormaryna.pdf`); client confirmations after discussion  
 
-This is the **one product spec**. It describes *what* the product does. It does not decide stack details, database schema, slot storage, or API shape.
+This is the **base product spec**. It describes *what* the product does. It does not decide stack details, database schema, slot storage, or API shape.
+
+**Overlay (26–27 Aug 2026):** [ia-chrome-decision.md](./ia-chrome-decision.md) is **higher priority** for the topics in its **Overrides map** (Medicly/Manrope, chrome, cabinets, search layout, wizard, rolling bookable month, favourites, profile view/edit, Privacy/Terms pages, **variable/promo prices, 5★ ratings & reviews**). On those points, follow the decision file if it conflicts with text below (including older “reviews out” / “default 600 UAH as the only price story”). A full rewrite of this document is **not** required before drawing.
 
 How to fill it: go section by section. Mark each item as one of:
 

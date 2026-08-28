@@ -1,12 +1,12 @@
 {
   "plugins": {
-    "paper-desktop": {
-      "enabled": true
-    },
     "superpowers": {
       "enabled": true
     },
     "figma": {
+      "enabled": true
+    },
+    "paper-desktop": {
       "enabled": true
     }
   }
