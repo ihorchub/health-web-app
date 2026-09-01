@@ -338,7 +338,7 @@ SCR-12 = pending decision — still required (UI pass later).
 ## Spec follow-up
 
 1. ~~`ia-chrome-decision.md`~~ (this file)  
-2. `product-spec.md` — apply horizon, homes, dashboards, wizard, chrome, favourites, profile view/edit  
+2. `product-spec.md` — **folded** (31 Aug 2026)  
 3. `frontend-spec.md` / `design-spec.md` / `backend-spec.md` — layer pass (Medicly, Manrope, contracts)  
 4. **Next visual screen after SCR-02 lock:** cabinets **SCR-06 / SCR-08** (then wizard SCR-03…05)
 
