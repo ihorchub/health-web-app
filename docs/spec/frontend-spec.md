@@ -100,6 +100,7 @@ Patient or Doctor — the user picks first (`auth.rolePatient`, `auth.roleDoctor
 |---|---|---|---|
 | First name | text | — | `auth.firstName` |
 | Last name | text | — | `auth.lastName` |
+| Date of birth | date picker | Step 3 (Профіль) | `auth.dob` |
 | City | dropdown | Values from seed cities | `auth.city` |
 | Clinic | dropdown | Disabled until city is selected; shows only clinics in the chosen city | `auth.clinic` |
 | Specialty | dropdown | 4 options: family doctor, cardiologist, dermatologist, paediatrician | `auth.specialty` |
@@ -119,6 +120,17 @@ Patient or Doctor — the user picks first (`auth.rolePatient`, `auth.roleDoctor
 
 Action: **Sign up** button (`auth.signupButton`) — disabled until both consent boxes checked.
 
+**Sign-up wizard (Paper, 4 steps — 7 Sep 2026)**
+
+| Step | Screen | Notes |
+|---|---|---|
+| 1 | Дані | Role, name, email, password, **password confirm** (must match; client-only), consent checkboxes |
+| 2 | Email | “Check your inbox” UI — **no verification API in MVP**; user continues to step 3 |
+| 3 | Профіль | Role-specific fields below; **doctor includes DOB** |
+| 4 | Готово | Success → redirect |
+
+Single `POST /register/*` after step 3. **No SMS** steps.
+
 ### Client-side checks
 
 | Check | Rule |
@@ -126,6 +138,7 @@ Action: **Sign up** button (`auth.signupButton`) — disabled until both consent
 | All fields | Required / non-empty |
 | Email | Valid format (client hint) |
 | Password | Min 8 characters |
+| Password confirm | Must match password (sign-up step 1) |
 | Date of birth | Must be in the past |
 | License file | Present; picture or PDF (R-01) |
 | Years of practice | Integer ≥ 0 |
@@ -153,7 +166,7 @@ Server is the source of truth for all validation. Client checks are for UX only.
 ### Open questions
 
 - Phone number format / mask.
-- SCR-01 multi-step onboarding artboards in Paper vs single form — layout only; same payload to API.
+- SCR-01 multi-step onboarding artboards in Paper — **4 steps** (no SMS); same payload to API after step 3.
 
 ---
 
@@ -234,7 +247,7 @@ Full specialty list beyond four defaults — **Open**.
 ### Contract
 
 - In: `doctorId`; optional `toggle_favourite` (logged-in patient)
-- Out: profile fields + `base_price`, `promo_price`, `rating_average`, `review_count`, `reviews[]` (list), `is_favourite`, supported `format`
+- Out: profile fields + `base_price`, `promo_price`, `rating_average`, `review_count`, `consultation_count` (computed), `bio`, `languages[]`, `reviews[]` (list), `is_favourite`, supported `format`
 - Errors: `DOCTOR_NOT_FOUND`, `DOCTOR_FORBIDDEN` (rare)
 - Auth: **public** read. Favourite toggle: patient only
 
@@ -244,10 +257,11 @@ Full specialty list beyond four defaults — **Open**.
 
 1. Photo, name, specialty, **heart** (favourite)
 2. Clinic, city, address, experience
-3. **Price** — base + promo (struck base when active)
-4. Format badges (read-only)
-5. **★ rating** + **reviews list / section** (read-only averages; not write entry)
-6. CTA **Choose time** → wizard step 2 (SCR-04)
+3. **About** (bio), **Languages** (consultation languages list)
+4. **Price** — base + promo (struck base when active)
+5. Format badges (read-only)
+6. **★ rating** + **reviews list / section** (read-only averages; not write entry)
+7. CTA **Choose time** → wizard step 2 (SCR-04)
 
 **FLO-02 Move:** skip this step; read-only doctor header only.
 
@@ -628,6 +642,7 @@ Patient city/clinic:
 
 - First name
 - Last name
+- **Date of birth** (doctor)
 - Phone
 - Email
 - City
@@ -635,6 +650,10 @@ Patient city/clinic:
 - Specialty
 - Years of medical practice
 - License/certificate is on file
+- **About** (bio)
+- **Languages**
+- **Education & certificates** (list)
+- **Consultation count** (read-only; from server)
 
 **Editable**
 
@@ -645,9 +664,13 @@ Patient city/clinic:
 - City
 - Clinic
 - Photo (add or replace the public doctor-card photo)
+- **About** (bio)
+- **Languages**
+- **Education & certificates** (add / edit / remove rows)
 
 **Not edited here**
 
+- Date of birth (set at sign-up; show only)
 - Specialty
 - Years of medical practice
 - License file / re-upload

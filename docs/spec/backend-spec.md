@@ -24,7 +24,8 @@ How to fill: shared model first (below), then one `SCR-*` at a time. Approve bef
 |---|---|
 | `users` | `id`, `email` (unique), `password_hash`, `role` (`patient` \| `doctor`), `created_at` |
 | `patient_profiles` | `user_id`, names, `dob`, `phone`, `home_city_id`, `home_clinic_id`, `language`, `theme` |
-| `doctor_profiles` | `user_id`, names, `phone`, `city_id`, `clinic_id`, `specialty`, `years_practice`, `visit_duration_minutes`, `photo_url`, `license_file_url`, `language`, `theme` |
+| `doctor_profiles` | `user_id`, names, `dob`, `phone`, `city_id`, `clinic_id`, `specialty`, `years_practice`, `visit_duration_minutes`, `photo_url`, `license_file_url`, `bio`, `languages` (text[]), `language`, `theme` |
+| `doctor_education` | `id`, `doctor_user_id`, `kind` (`university` \| `certificate` \| `training`), `title`, `subtitle` (optional), `year_from`, `year_to` (optional) |
 | `sessions` | Server-side session row: random `session_id` in an **HTTP-only cookie** (see below) |
 
 **Session — how login persists (plain language)**
@@ -356,7 +357,7 @@ Auth: …
 | Method | Path | Auth | Body / notes |
 |---|---|---|---|
 | `POST` | `/api/v1/auth/register/patient` | public | `firstName`, `lastName`, `cityId`, `clinicId`, `dob`, `email`, `password`, `phone`, `acceptedPrivacy`, `acceptedTerms`, optional `language`, `theme` |
-| `POST` | `/api/v1/auth/register/doctor` | public | patient fields minus `dob` + `specialty`, `yearsPractice`, `visitDurationMinutes` (20\|30\|45), `licenseFile` (multipart), consent flags |
+| `POST` | `/api/v1/auth/register/doctor` | public | Same as patient fields + **`dob`**, `specialty`, `yearsPractice`, `visitDurationMinutes` (20\|30\|45), **`licenseFile` (multipart, required)**, consent flags |
 | `POST` | `/api/v1/auth/login` | public | `email`, `password` |
 | `POST` | `/api/v1/auth/logout` | session | — |
 | `GET` | `/api/v1/auth/me` | optional | Returns `null` or `{ id, role, email, firstName, redirectTo, language, theme }` |
@@ -377,6 +378,7 @@ Auth: …
 - Password ≥ 8 chars.
 - `cityId` / `clinicId` / `specialty` must exist in seed reference data.
 - Session cookie: `HttpOnly`, `Secure` in production, `SameSite=Lax`.
+- **Multi-step sign-up UI** (4 steps in Paper): client collects all fields; **one** `POST /register/*` at end. Password confirm is client-only. **No** SMS OTP; **no** email-verification API in MVP (step 2 is UI copy only).
 
 ### Errors
 
@@ -384,7 +386,7 @@ Shared auth codes (see Accounts section). Field-level validation returns `AUTH_V
 
 ### Out of scope
 
-Forgot password, social login, license verification, email verification flow.
+Forgot password, social login, license verification, **SMS/phone OTP**, **email verification API**.
 
 ### Open questions
 
@@ -485,7 +487,7 @@ Full specialty list beyond four — **Open** (product).
 | `DELETE` | `/api/v1/patients/me/favourites/:doctorId` | patient | Remove favourite |
 | `POST` | `/api/v1/patients/me/recently-viewed/:doctorId` | patient | Upsert; keep last **10** unique (**R-16** / SCR-06) |
 
-**Profile `Out` fields:** `id`, names, `photoUrl`, `specialty`, `clinic`, `city`, `address`, `yearsPractice`, `supportedFormats`, `basePrice`, `promoPrice`, `ratingAverage`, `reviewCount`, `reviews[]` (`id`, `rating`, `text`, `patientDisplayName`, `createdAt` — no private patient id), `isFavourite`.
+**Profile `Out` fields:** `id`, names, `photoUrl`, `specialty`, `clinic`, `city`, `address`, `yearsPractice`, `bio`, `languages[]`, `supportedFormats`, `basePrice`, `promoPrice`, `ratingAverage`, `reviewCount`, `consultationCount` (computed completed visits), `reviews[]` (`id`, `rating`, `text`, `patientDisplayName`, `createdAt` — no private patient id), `isFavourite`.
 
 Opening profile (patient) should call `recently-viewed` once per navigation.
 
@@ -707,7 +709,9 @@ Whether proposed time shown on list row vs SCR-12 only — **Open** (frontend).
 
 **Patient PATCH:** `firstName`, `lastName`, `phone`, `email`, `dob`, `homeCityId`, `homeClinicId`, `language`, `theme`.
 
-**Doctor PATCH:** `firstName`, `lastName`, `phone`, `email`, `cityId`, `clinicId`, `photo` (optional file), `language`, `theme`. Not specialty, years, license, hours, price.
+**Doctor PATCH:** `firstName`, `lastName`, `phone`, `email`, `cityId`, `clinicId`, `bio`, `languages[]`, `education[]` (replace list: `{ id?, kind, title, subtitle?, yearFrom, yearTo? }`), `photo` (optional file), `language`, `theme`. Not specialty, years, license, hours, price.
+
+**Doctor GET `Out`:** above fields + read-only `specialty`, `yearsPractice`, `licenseFileUrl`, `dob`, `consultationCount` (computed).
 
 ### Invariants
 
