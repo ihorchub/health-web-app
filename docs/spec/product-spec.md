@@ -1185,6 +1185,17 @@ If already logged in, this screen is skipped.
 
 **Modes:** Log in | Sign up. User picks one.
 
+**Sign-up wizard (Confirmed, Paper + team 7 Sep 2026)** — **4 steps**, no SMS:
+
+| Step | UI label | Content |
+|---|---|---|
+| 1 | Дані | Role (patient \| doctor); first/last name; email; password; **password confirm** (client-only); Privacy + Terms checkboxes |
+| 2 | Email | **Separate step** — “check your inbox” / resend copy. **MVP:** UI only; **no** email-verification API (same as no SMS). Final register still one server submit after step 3 |
+| 3 | Профіль | Role-specific fields below (incl. **doctor DOB**) |
+| 4 | Готово | Success → redirect SCR-06 / SCR-08 |
+
+Phone is collected on step 3 (plain text), **not** verified by SMS (**R-01**, SMS out of MVP).
+
 **Log in fields**
 
 - Email
@@ -1207,13 +1218,14 @@ Forgot password: **Out** of MVP (**R-01**). No link, or a disabled “not in thi
 **Sign up — Doctor (all required)**
 
 - First name, last name
+- **Date of birth**
 - City (from seed)
 - Clinic (from clinics in the chosen city)
 - Specialty: family doctor, cardiologist, dermatologist, paediatrician only
 - Years of medical practice
 - Visit duration: **20 / 30 / 45 minutes** only; **default 30 minutes** (**R-05**)
 - Email, password, phone
-- License/certificate **file** — picture or PDF, required, **not** verified
+- License/certificate **file** — picture or PDF, **required**, **not** verified
 
 **Empty / error / success**
 
@@ -1242,7 +1254,7 @@ None on this screen (no booking event yet).
 
 ### Out of scope on this screen
 
-**Out:** forgot password; social login; license verification; dual-role; creating clinics; photo upload at sign-up (placeholder until **SCR-07**).
+**Out:** forgot password; social login; license verification; dual-role; creating clinics; photo upload at sign-up (placeholder until **SCR-07**); **SMS / phone OTP**; **email verification API** (step 2 is UI-only in MVP).
 
 ### Open questions (SCR-01)
 
@@ -1346,6 +1358,8 @@ Read who the doctor is, where they work, what it costs, and what others say — 
 
 - Photo (seed = real; new doctor = placeholder until **SCR-07**)
 - Name, specialty, **heart**, clinic, city, address, experience
+- **About** — short bio text (**R-16** / Paper)
+- **Languages** — consultation languages (e.g. Ukrainian, English); display list, not i18n switcher
 - **Price:** variable **base** + **promo** (struck base when active) (**R-13**)
 - Format supported (**R-04**)
 - **★ rating** (average) + **reviews list / section** (**R-14**)
@@ -1703,16 +1717,22 @@ Doctor **hours / duration / supported format / price** are **not** edited here �
 **Doctor — shown**
 
 - First name, last name
+- **Date of birth**
 - Phone, email
 - City, clinic (workplace; from seed)
 - Specialty, years of medical practice
 - License/certificate is on file (required at sign-up, not verified)
+- **About** (bio), **languages**, **education & certificates** list
+- **Consultation count** — computed from completed visits (display only; seed may show realistic numbers)
 
 **Doctor — editable (Confirmed / Decision)**
 
 - First name, last name, phone, email
 - City and clinic — **editable** from seed lists (same rule as the patient: city/clinic after sign-up are not frozen)
 - **Photo** — they **add or replace** the public-card photo here. Sign-up uses a **placeholder**; this is where a real photo is set.
+- **About** (bio text)
+- **Languages** (multi-select or tag list; stored on profile)
+- **Education & certificates** — add / edit / remove rows (university, certificate, training); each row: title, subtitle optional, year or year range
 
 **Doctor — not edited here**
 
