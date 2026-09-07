@@ -1,12 +1,12 @@
 # Product Specification — Digital Healthcare Booking Platform
 
-**Status:** Product spec complete (opens resolved 17 Aug 2026)  
+**Status:** Product spec complete; **IA overlay folded in** (31 Aug 2026) from [ia-chrome-decision.md](./ia-chrome-decision.md)  
 **Audience:** Team 04 (Ihor, Maryna) and the client  
-**Sources:** client brief (`docs/briefihormaryna.pdf`); client confirmations after discussion  
+**Sources:** client brief (`docs/briefihormaryna.pdf`); client confirmations after discussion; ia-chrome decisions (26–27 Aug 2026)
 
-This is the **base product spec**. It describes *what* the product does. It does not decide stack details, database schema, slot storage, or API shape.
+This is the **product source of truth**. It describes *what* the product does. It does not decide stack details, database schema, slot storage, or API shape.
 
-**Overlay (26–27 Aug 2026):** [ia-chrome-decision.md](./ia-chrome-decision.md) is **higher priority** for the topics in its **Overrides map** (Medicly/Manrope, chrome, cabinets, search layout, wizard, rolling bookable month, favourites, profile view/edit, Privacy/Terms pages, **variable/promo prices, 5★ ratings & reviews**). On those points, follow the decision file if it conflicts with text below (including older “reviews out” / “default 600 UAH as the only price story”). A full rewrite of this document is **not** required before drawing.
+**IA overlay (folded 31 Aug 2026):** Chrome, Medicly/Manrope, guest search home, patient/doctor cabinets, rolling bookable month, wizard modal, favourites, reviews/ratings, variable/promo prices, Privacy/Terms pages, and profile view/edit are now written into this document. [ia-chrome-decision.md](./ia-chrome-decision.md) remains the dialogue record; on conflict **this file** wins after the fold.
 
 How to fill it: go section by section. Mark each item as one of:
 
@@ -36,6 +36,9 @@ How to fill it: go section by section. Mark each item as one of:
 - [R-11](#r-11-language-and-theme)
 - [R-12](#r-12-seed-data)
 - [R-13](#r-13-booking-horizon)
+- [R-14](#r-14-reviews-and-ratings)
+- [R-15](#r-15-favourites)
+- [R-16](#r-16-app-shell-and-public-entry)
 
 ### 0.2 Screens (client: nine required + later additions)
 
@@ -44,13 +47,13 @@ Original brief (nine screens):
 | ID | Screen | Who |
 |---|---|---|
 | SCR-01 | Sign up / Log in | Patient, doctor |
-| SCR-02 | Search and results | Patient |
+| SCR-02 | Search and results | Guest, patient |
 | SCR-03 | Doctor profile | Patient |
 | SCR-04 | Calendar | Patient |
 | SCR-05 | Confirm booking | Patient |
-| SCR-06 | My appointments | Patient |
+| SCR-06 | My appointments (patient cabinet) | Patient |
 | SCR-07 | My profile | Patient, doctor |
-| SCR-08 | Doctor’s day | Doctor |
+| SCR-08 | Doctor’s day (doctor cabinet) | Doctor |
 | SCR-09 | Doctor’s working hours | Doctor |
 
 Added after client discussion (not in the original nine):
@@ -118,11 +121,15 @@ Six steps the product is measured by:
 
 **Confirmed / Decision (after discussion):** in-app notifications; reschedule pending; bulk cancellation with confirmation; doctor and patient registration; Offline/Online as appointment type only.
 
+**Confirmed (IA overlay, folded 31 Aug 2026):** guest browsable search home (`/` = SCR-02); patient and doctor **cabinet** dashboards (SCR-06 / SCR-08); booking **wizard** modal (SCR-03→04→05); **favourites**; **5★ ratings and reviews** (read on cards/profile; write from SCR-06 Past visits); **variable per-doctor prices** and **promo prices** (display only); public **Privacy Policy** and **Terms of Use** pages + sign-up consent checkboxes; brand **Medicly** + typeface **Manrope** (**R-11**, **R-16**).
+
 ### Out of scope
 
-**Out (brief):** medical records, test results, prescriptions, referrals; payments (prices shown, never charged); family profiles / booking on behalf of someone else; reviews; insurance / state registries; clinic-administrator role; rooms, equipment, queues; native mobile app.
+**Out (brief):** medical records, test results, prescriptions, referrals; **payments / checkout** (prices shown, never charged); family profiles / booking on behalf of someone else; insurance / state registries; clinic-administrator role; rooms, equipment, queues; native mobile app.
 
-**Out (after discussion):** real clinic registration/management; real license verification; real video consultations; SMS; mobile push; no-show; complex service catalog; production-ready hospital system; **doctor completion-rate / performance scoring** (revisit after MVP); **GDPR / privacy / legal compliance** (out of this MVP/demo). Forgot password — not in MVP; may be added later.
+**Out (after discussion):** real clinic registration/management; real license verification; real video consultations; SMS; mobile push; no-show; complex service catalog; production-ready hospital system; **doctor completion-rate / performance scoring** (revisit after MVP); **broader GDPR programme** (out of MVP/demo). Forgot password — not in MVP; may be added later.
+
+**Not out:** public Privacy Policy + Terms of Use pages (**R-16**); in-app ratings/reviews (**R-14**). Legal **copy** is written later — **Open**.
 
 ---
 
@@ -386,7 +393,7 @@ A slot is offered to a patient only if **all** of these are true:
 - It is not on a day off or in a blocked break (lunch, etc.).
 - It is not already **taken** or **reserved** (see below).
 - Its **start** is not in the past. Past times are never offered, including earlier today.
-- For a **patient**, it is also inside the **2-week** booking window (**R-13**).
+- For a **patient**, it is also inside the **rolling bookable window (Zone A)** (**R-13**).
 
 ### What “taken” and “reserved” mean
 
@@ -567,8 +574,8 @@ Every bookable slot has a length. Patients do not pick a duration. The doctor’
 - The doctor **may change duration later** on **SCR-09**.
 - Already-booked visits keep the length they were booked with.
 - Duration may be changed only for **days that are not booked**.
-- The doctor **cannot change duration inside the patient booking window** (next **2 weeks** from today). See **R-13**.
-- After that 2-week window, the doctor may change duration (and, on that farther calendar: working hours, vacation, price — details **R-08** / **SCR-09**).
+- The doctor **cannot change duration inside Zone A** (rolling bookable window). See **R-13**.
+- After Zone A, in **Zone B**, the doctor may change duration (and on that farther calendar: working hours, vacation, price — details **R-08** / **SCR-09**).
 
 ### Out of scope for duration
 
@@ -578,31 +585,45 @@ Every bookable slot has a length. Patients do not pick a duration. The doctor’
 - Patient-chosen visit length
 - Different duration for Offline vs Online in this MVP
 - Changing duration on a day that already has a booking
-- Changing duration inside the next 2 weeks
+- Changing duration inside Zone A
 
 ### Open questions (R-05)
 
 None that block this section.
 
-Exact duration option list on SCR-01 (only 20/30/45, or more) → that screen. Doctor calendar length beyond 2 weeks → **R-13**.
+Exact duration option list on SCR-01 (only 20/30/45, or more) → that screen. Doctor calendar length beyond Zone A → **R-13**.
 
 ---
 
 ## R-13 Booking horizon
 
-**Status:** Approved  
-**Source:** Team answers 17 Aug 2026
+**Status:** Approved (updated 31 Aug 2026 — rolling bookable month folded from ia-chrome)  
+**Source:** Team answers 17 Aug 2026 + ia-chrome decision (26 Aug 2026)
 
 ### Purpose
 
-Patients only book the near future. Doctors plan further ahead. The next 2 weeks stay stable for duration, hours, and the profile price. Vacation is the exception for empty days.
+Patients only book the near future. Doctors plan further ahead. **Zone A** (the rolling bookable window) stays stable for duration, hours, and **base** price. Vacation is the exception for empty days.
+
+### Rolling bookable window (replaces fixed “14 days / 2 weeks”)
+
+**Confirmed (26 Aug 2026)**
+
+From **today** through the calendar day **one month later minus one day**.
+
+Example: today **10 Aug** → active **10 Aug … 9 Sep** inclusive. From **10 Sep** onward is outside the patient bookable window.
+
+- **Patient** may only book, move, or accept proposal slots **inside this window**.
+- **Doctor Zone A** (frozen hours, duration, base price; bookings exist) = **the same rolling window**.
+- **Zone B:** after Zone A ends, up to **3 months** from today — **no bookings**; doctor may plan hours, duration, vacation, and price.
+
+SCR-04, SCR-06 mini-calendar, and patient bookable grids respect this window.
 
 ### Patient
 
 **Confirmed**
 
-- A patient can see at most **2 weeks** of active slots, counted from **today**.
-- They cannot book beyond that window. **No appointments exist after those 2 weeks.**
+- A patient can see and book only inside the **rolling bookable window (Zone A)**.
+- They cannot book beyond that window. **No appointments exist after Zone A ends.**
 - This sits on top of **R-03** (no past times, taken/reserved not offered).
 
 ### Doctor
@@ -610,29 +631,128 @@ Patients only book the near future. Doctors plan further ahead. The next 2 weeks
 **Confirmed**
 
 - The doctor sees **3 months** of their schedule.
-- **Inside the next 2 weeks** the doctor cannot change **duration**, **working hours**, or **price**.
-- **Vacation** inside those 2 weeks **is allowed**, but **only on days with no bookings**.
-- **After** the 2-week window (up to 3 months) there are **no bookings**. The doctor may change duration, working hours, vacation, and price on that empty calendar (**R-08**).
+- **Inside Zone A** the doctor cannot change **duration**, **working hours**, or **base price**.
+- **Vacation** inside Zone A **is allowed**, but **only on days with no bookings**.
+- **Zone B** (after Zone A, up to 3 months): **no bookings**. The doctor may change duration, working hours, vacation, and price on that empty calendar (**R-08**).
 
 ### Price
 
 **Confirmed**
 
-- There is **one price** on the doctor profile. Not a different price per week.
-- Prices are shown, never charged (brief).
-
-**Confirmed (17 Aug 2026, SCR-09)**
-
-- There is **one** consultation price (not per week). Shown, never charged.
-- The next **2 weeks** are **frozen**.
-- Doctor **may** edit price; the new price applies from **day 15** at the earliest.
-- New doctors have a **default** price of **600 UAH**. They change it later on **SCR-09**.
+- **Base price** is **per doctor**, **variable** (not one platform fee for all doctors). Shown on cards / profile / confirm. Never charged (brief).
+- **Base price frozen in Zone A.** Doctor **may** edit; new base applies from **first day after Zone A** at the earliest.
+- **Promo / акційні prices** are **in MVP**: UI shows **promo** as primary amount + **struck base** when active. Checkout still **out**.
+- Seed / new doctor may start from a **default** (e.g. **600 UAH**) until edited on **SCR-09** — onboarding default only, not a fixed market price.
 
 ### Open questions (R-13)
 
-None that block this section.
+- Promo price setup UX on SCR-09 (date-ranged override?) — **Open**.
 
-Profile-price: frozen 2 weeks; edit from day 15; default **600 UAH** → **SCR-09**.
+Profile / card price display → **SCR-02**, **SCR-03**. Price edit rules → **SCR-09**.
+
+---
+
+## R-14 Reviews and ratings
+
+**Status:** Approved (31 Aug 2026 — folded from ia-chrome)  
+**Source:** ia-chrome decision (27 Aug 2026)
+
+### Purpose
+
+Patients can read doctor ratings and reviews on discovery surfaces. Patients can write **one review per Past visit**. Payments still out.
+
+### Rules
+
+**Confirmed**
+
+- **Rating:** **5-star** scale; **average** (+ review count) on SCR-02 compact cards and SCR-03 full profile.
+- **Reviews list** on SCR-03 (wizard step 1).
+- **Write a review:** patient only; after any **Past** visit (`Completed`, `Cancelled`, `Rescheduled`); **one review per Past visit** (not one per doctor).
+- Entry: **SCR-06** Past row CTA → **modal** (★ required + optional text). After submit: show read state on that row. Guest cannot write.
+- SCR-02 / SCR-03 star displays are **read-only** averages — not write entry points.
+- **Sort** on SCR-02: by **rating** and/or **nearest slot**. No opaque “popularity” without a defined metric.
+- **Filter** on SCR-02: **min rating**, **price range** (e.g. 0–5000 грн+) — implementable; payments still out.
+
+### Out of scope
+
+- Edit/delete after submit — **Open**
+- Moderation — **Open**
+
+### Open questions (R-14)
+
+- Edit/delete after submit; moderation.
+
+---
+
+## R-15 Favourites
+
+**Status:** Approved (31 Aug 2026)  
+**Source:** ia-chrome decision (26 Aug 2026)
+
+### Purpose
+
+Logged-in patients can save doctors with a heart for quick return.
+
+### Rules
+
+**Confirmed**
+
+- Heart on SCR-02 cards and SCR-03 profile.
+- Stored on the **patient account**.
+- Carousel section on **SCR-06** cabinet.
+- **Guest** cannot favourite without login (heart → SCR-01 or disabled + hint).
+
+### Open questions (R-15)
+
+None.
+
+---
+
+## R-16 App shell and public entry
+
+**Status:** Approved (31 Aug 2026)  
+**Source:** ia-chrome decision (26 Aug 2026)
+
+### Brand
+
+- Product name: **Medicly**.
+- Typeface: **Manrope** (**R-11**).
+
+### Public entry and homes
+
+**Confirmed**
+
+- `/` = **SCR-02 Search** — browsable **without login** (guest).
+- Guest **Book** on cards / wizard: **disabled** (+ short hint) → **SCR-01**. After login, return to the same doctor / wizard step when practical.
+- **Post-login patient** → **SCR-06** cabinet (not SCR-02).
+- **Post-login doctor** → **SCR-08** cabinet.
+
+### Header (summary)
+
+- **Guest:** logo → SCR-02; Log in; Sign up; theme; language UK | EN (no bell, no avatar).
+- **Logged-in:** logo → role home (SCR-06 / SCR-08); patient primary CTA → SCR-02 («Знайти лікаря» / mobile «Знайти»); bell; theme; avatar menu (cabinet, profile, schedule for doctor, language, log out). Language not standalone in bar when logged in.
+
+### Footer and legal
+
+**Confirmed**
+
+- Footer row: **Privacy Policy · Terms of Use · © Medicly** (public, EN + UK).
+- Full legal pages **in MVP**. Copy written later — **Open**.
+- Sign-up: **two required checkboxes** with links; register disabled until both checked (when SCR-01 updated).
+
+### Booking wizard
+
+**Confirmed**
+
+- SCR-03 → SCR-04 → SCR-05 as **one modal** wizard.
+- **Success:** small **alert / toast** (not a full wizard step) → then **SCR-06**.
+- Concurrent refusal: error on step 3; stay in modal; return to step 2. Slot not held while confirm open (**R-03**).
+- **FLO-02 Move:** skip wizard step 1; read-only doctor header; start at calendar.
+
+### Open questions (R-16)
+
+- Privacy/Terms SCR IDs vs static public routes — **Open**
+- Doctor header primary CTA label / whether shown — **Open**
 
 ---
 
@@ -650,7 +770,7 @@ A booked visit can be called off. The calendar becomes free again. The appointme
 **Confirmed**
 
 - **Patient** and **doctor** can both cancel.
-- There is **no time restriction** (they may cancel inside the 2-week window). Changing hours/duration is not the same as cancelling a visit (**R-13**).
+- There is **no time restriction** (they may cancel inside Zone A). Changing hours/duration is not the same as cancelling a visit (**R-13**).
 - `Cancelled` is **final**. It cannot be reopened.
 - The cancelled appointment **stays visible**, marked cancelled (patient **SCR-06**; doctor **SCR-08**).
 - The UI **shows who cancelled** (patient or doctor).
@@ -707,7 +827,7 @@ A visit can be moved to another real free time with the **same** doctor. The cal
 - Patient can move to another **available** slot with the **same** doctor.
 - Patient **cannot** change doctor.
 - Patient **may** switch Offline ↔ Online if that doctor currently supports the new format (**R-04**).
-- New time must be a real free slot (**R-03**) inside the patient’s **2-week** window (**R-13**).
+- New time must be a real free slot (**R-03**) inside the **rolling bookable window (Zone A)** (**R-13**).
 - Original appointment becomes `Rescheduled` (final for that record).
 - A **new** appointment is created with status `Upcoming`.
 - History / link between old and new is kept.
@@ -737,7 +857,7 @@ A visit can be moved to another real free time with the **same** doctor. The cal
 - One timeline per doctor (**R-03**).
 - Doctor cannot change the format of an already-booked visit in MVP (**R-04**). Patient may change format only via **their** reschedule, and only to a format the doctor supports.
 - Proposed time must itself be free/reservable (not taken, not another reservation, not past, not a day off).
-- The proposed time **must** be inside the patient’s **2-week** window. The doctor **cannot** propose a time after those 2 weeks, even though they can see 3 months.
+- The proposed time **must** be inside the patient’s **rolling bookable window (Zone A)**. The doctor **cannot** propose a time after Zone A ends, even though they can see 3 months.
 
 ### While a doctor proposal is pending
 
@@ -746,7 +866,7 @@ A visit can be moved to another real free time with the **same** doctor. The cal
 - The patient **cannot** start a separate “reschedule on my own” flow.
 - The patient can only:
   - **Accept** the proposed time,
-  - **Pick another** available slot with the same doctor **from that proposal flow** (still inside 2 weeks), or
+  - **Pick another** available slot with the same doctor **from that proposal flow** (still inside Zone A), or
   - **Cancel**.
 
 ### Out of scope for rescheduling
@@ -757,7 +877,7 @@ A visit can be moved to another real free time with the **same** doctor. The cal
 - Pending expiry / timeout
 - Doctor silently moving the time without patient confirmation
 - Video/link for “Online”
-- Doctor proposing a time outside the patient’s 2-week window
+- Doctor proposing a time outside the rolling bookable window (Zone A)
 - Patient starting an independent reschedule while `Reschedule Pending`
 
 ### Open questions (R-07)
@@ -769,11 +889,11 @@ None that block this section.
 ## R-08 Doctor schedule changes
 
 **Status:** Approved  
-**Source:** Brief (working hours generate slots) + client confirmation (explicit cancel, no silent cancel) + R-13 (2-week bookable window) + team answers 17 Aug 2026
+**Source:** Brief (working hours generate slots) + client confirmation (explicit cancel, no silent cancel) + R-13 (rolling bookable window) + team answers 17 Aug 2026
 
 ### Purpose
 
-The doctor’s working hours, duration, days off, and vacation are what patients book against. Patients can only hold bookings in the next **2 weeks**. After that, the doctor’s farther calendar has **no bookings**, so it can be planned freely.
+The doctor’s working hours, duration, days off, and vacation are what patients book against. Patients can only hold bookings in **Zone A** (rolling bookable window). After Zone A, the doctor’s farther calendar has **no bookings**, so it can be planned freely.
 
 ### Two zones
 
@@ -781,31 +901,31 @@ The doctor’s working hours, duration, days off, and vacation are what patients
 
 | Zone | Bookings? | What the doctor may do |
 |---|---|---|
-| Next **2 weeks** (patient bookable window) | Yes — this is the only place appointments exist | Hours, duration, and price are **frozen**. Doctor may **cancel** visits (one visit, **all visits in a day at once**, rest of day, rest of week, or a **custom date range**). After a day has **no** bookings left, they may mark **vacation**. |
-| After 2 weeks, up to **3 months** | **None.** Max booking horizon is 2 weeks. | Doctor may change **price**, mark **vacation**, and change **working hours** / duration. No bulk-cancel-of-appointments is needed here because there are no appointments. |
+| **Zone A** — rolling bookable window (same as patient bookable window) | Yes — this is the only place appointments exist | Hours, duration, and **base price** are **frozen**. Doctor may **cancel** visits (one visit, **all visits in a day at once**, rest of day, rest of week, or a **custom date range**). After a day has **no** bookings left, they may mark **vacation**. |
+| **Zone B** — after Zone A, up to **3 months** | **None.** Max booking horizon is Zone A. | Doctor may change **base price**, **promo price** (SCR-09), mark **vacation**, and change **working hours** / duration. No bulk-cancel needed — no appointments. |
 
-There is no “shorten hours after 2 weeks and cancel pending visits” path. `Reschedule Pending` only exists inside the 2-week window (**R-07**).
+There is no “shorten hours after Zone A and cancel pending visits” path. `Reschedule Pending` only exists inside Zone A (**R-07**).
 
-### Cancelling visits inside the 2 weeks (not a silent hours edit)
+### Cancelling visits inside Zone A (not a silent hours edit)
 
 **Confirmed**
 
 - Doctor may cancel **one** visit (**R-06**).
 - Doctor may cancel **all times in one day in one action** (not only one-by-one).
-- Doctor may cancel a **period**: rest of day, rest of week, or a **custom range** (e.g. 1–15 Sep) **within the 2-week window**.
+- Doctor may cancel a **period**: rest of day, rest of week, or a **custom range** (e.g. 1–15 Sep) **within Zone A**.
 - The doctor **confirms** before those visits become `Cancelled`. Nothing is cancelled silently.
 - Each cancelled patient gets an in-app message; UI shows the doctor as who cancelled (**R-06**).
 - Those slots become free (**R-03**).
-- `Reschedule Pending` visits in that period are cancelled too; the reserved proposed slot is released (they only exist inside 2 weeks).
+- `Reschedule Pending` visits in that period are cancelled too; the reserved proposed slot is released (they only exist inside Zone A).
 - After the day has no remaining bookings, the doctor **may mark vacation** for that day.
 
-Hours/duration stay frozen for the remaining 2-week days that still have (or could have) bookings. Clearing a day via cancel is how they free it for vacation.
+Hours/duration stay frozen for the remaining Zone A days that still have (or could have) bookings. Clearing a day via cancel is how they free it for vacation.
 
-### After 2 weeks (plan the empty calendar)
+### Zone B (plan the empty calendar)
 
 **Confirmed**
 
-- Doctor can change working hours, duration, vacation, and the **one profile price**.
+- Doctor can change working hours, duration, vacation, **base price**, and **promo price** (SCR-09).
 - No existing patient bookings to protect in this zone.
 
 ### Out of scope for schedule changes
@@ -815,14 +935,14 @@ Hours/duration stay frozen for the remaining 2-week days that still have (or cou
 - Silent auto-cancel
 - Rooms / equipment
 - Changing booked duration or format in place
-- Appointments beyond 2 weeks
+- Appointments beyond Zone A
 - Doctor performance score (**R-09** out of MVP)
 
 ### Open questions (R-08)
 
 None that block this section.
 
-Default hours template and exact SCR-09 edit UI → **SCR-09**. Price: frozen 2 weeks, edit from day 15 → **SCR-09**.
+Default hours template and exact SCR-09 edit UI → **SCR-09**. Base price: frozen in Zone A; edit from first day after Zone A → **SCR-09**.
 
 ---
 
@@ -937,11 +1057,12 @@ The product should feel calm and local. Every screen, including errors and empty
 
 **Confirmed**
 
-- One deliberate custom font, not browser default / Arial.
+- Product brand: **Medicly** (**R-16**).
+- Typeface: **Manrope** — deliberate custom font, not browser default / Arial.
 - Self-hosted with the product (not a third-party CDN at page load).
 - Must support **Latin and Cyrillic**.
 - No layout shift while the font loads.
-- Which font: team choice later; must be explainable as trustworthy for health. Not specified here.
+- Must be explainable as trustworthy for health information.
 
 ### Mascot
 
@@ -988,12 +1109,13 @@ The demo runs on a real database with enough fake-but-believable data. There is 
 - About **5–10 doctors** per clinic.
 - **Specialties only:** family doctor, cardiologist, dermatologist, paediatrician. No extra specialties in seed.
 - **Decision (you said “up to you”):** **25 seed patients**, with a mix of past and upcoming appointments, plus the live demo user who signs up. Enough for two-browser booking conflict.
-- **Default working hours** (seed doctors and new doctor sign-up, until they edit beyond the 2-week rules): **Monday–Friday 09:00–18:00**, **lunch 13:00–14:00**. Weekend off unless a seed doctor is given a different pattern for demo variety (full day / day off in the client script).
+- **Default working hours** (seed doctors and new doctor sign-up, until they edit beyond Zone A rules): **Monday–Friday 09:00–18:00**, **lunch 13:00–14:00**. Weekend off unless a seed doctor is given a different pattern for demo variety (full day / day off in the client script).
 - That is more than the brief’s “20+ doctors” minimum — good.
 - **No clinic registration** flow.
 - Doctors who **sign up later** are added to the same list as seed doctors (**R-01**).
 - Seed doctors have photos on **SCR-03**. New self-registered doctors use a **placeholder** until they add a photo on **SCR-07**.
-- Seed / new-doctor default consultation price: **600 UAH** until edited on **SCR-09**.
+- Seed doctors have **variable base prices**; new doctors may start from a **default** (e.g. **600 UAH**) until edited on **SCR-09** (**R-13**).
+- Seed should include sample **ratings/reviews** on doctor surfaces (**R-14**) and a mix of **promo prices** where useful for demo.
 
 **Confirmed (brief acceptance / demo)**
 
@@ -1001,7 +1123,7 @@ The demo runs on a real database with enough fake-but-believable data. There is 
 - Doctors have **real working hours** (not a decorative grid): days, hours, duration, lunch, days off.
 - Mix of **Offline only / Online only / Both** (most can default Offline only per **R-04**).
 - **Past and future** appointments so Upcoming vs Past lists are not empty.
-- Upcoming appointments only inside the **2-week** window (**R-13**).
+- Upcoming appointments only inside **Zone A** (rolling bookable window) (**R-13**).
 - Some days: free times, a full day, a day off (client demo).
 - At least some patients besides the person who signs up live in the demo, so double-booking can be shown with two browsers.
 
@@ -1045,10 +1167,15 @@ Patient or doctor. One screen. Role is chosen at **sign-up**, not mixed on one a
 
 **Exit after log in / sign up**
 
-- **Patient** → **SCR-02** Search (home of the patient side).
-- **Doctor** → **SCR-08** Doctor’s day.
+- **Patient** → **SCR-06** patient cabinet (**R-16**). Not SCR-02.
+- **Doctor** → **SCR-08** doctor cabinet.
 
 If already logged in, this screen is skipped.
+
+**Sign-up consent (R-16)**
+
+- Two **required checkboxes** with links to Privacy Policy and Terms of Use.
+- Register disabled until both are checked (when SCR-01 form is updated).
 
 ### UI
 
@@ -1127,124 +1254,116 @@ Mascot name / personality → later visual design. Doctor photo at sign-up = pla
 
 ## SCR-02 Search and results
 
-**Status:** Approved  
-**Source:** Brief (search specialty/doctor/clinic, filters, nearest free time, combinable filters) + R-01 (home clinic first) + R-03 + R-04 + R-13 + team answers 17 Aug 2026
+**Status:** Approved (updated 31 Aug 2026 — guest home, ratings, filters, Paper FINAL)  
+**Source:** Brief + R-01 + R-03 + R-04 + R-13 + R-14 + R-15 + R-16 + team answers 17 Aug 2026
 
 ### Purpose
 
-The patient finds a doctor without calling anyone. Results are real people with a real next free time, not a decorative list.
+Find a doctor without calling. Results are real people with honest nearest free time, price, and rating — not a decorative list. **Public home:** `/` = this screen for guests and patients.
 
 ### Who
 
-**Patient.** Doctors do not use this screen (they land on **SCR-08**).
+**Guest** (browse without login) and **logged-in patient**. Doctors do not use this screen (they land on **SCR-08**).
 
 ### Entry / exit
 
-**Entry.** After patient login/sign-up; or from the patient header/home.
+**Entry.** Site root `/`; guest or patient. Logged-in patient also from header CTA («Знайти лікаря») or cabinet CTA.
 
-**Exit.** Open a result → **SCR-03** Doctor profile. (Calendar may also be reachable from the profile — **SCR-04**.)
+**Exit.** Card click or Book → booking wizard **step 1** (**SCR-03** in modal). Guest Book disabled → **SCR-01**; after login, return to same doctor/wizard when practical.
 
-Header on this screen: language, theme, bell (**R-10**, **R-11**), way to **My appointments** / **My profile** (exact chrome on later screens).
+**Chrome (R-16).** Guest header: logo, Log in, Sign up, theme, language. Patient header: «Знайти лікаря», bell, theme, avatar (language in menu). Footer: Privacy · Terms · © Medicly.
 
 ### UI
 
-**Confirmed (brief)**
+**Confirmed (brief + IA overlay)**
 
-- Search by **specialty**, **doctor name**, or **clinic**.
-- Filters, combinable: **city / clinic**, **format** (Offline / Online), **date**.
-- **First load:** city and clinic filters are **pre-set to the patient’s home city and home clinic**. The patient may clear or change filters to browse others.
-- **Browse allowed:** an empty search box with filters only is valid (no required query).
-- Result **cards** show the **nearest free time**.
-- Searching a specialty returns **only** that specialty, not the whole list.
-- Two filters together **narrow** the list; they must not “break” into an empty list when matches exist.
+- **Promo banner** — 3 steps (find → time → book); not a data dashboard.
+- **Search row** — name / clinic / specialty; popular query chips under search.
+- **Filters** — desktop **right sidebar** (always visible): city, clinic, specialty, format, availability, **min rating**, **price range** (e.g. 0–5000 грн+); reset all. Mobile: filter drawer.
+- **Specialty category cards** — short default set + «Усі спеціальності» expands inline. Full specialty list — **Open**.
+- **Results** — found count + **sort** (by **rating** and/or **nearest slot**); **show more**.
+- **Doctor cards (compact):** photo, name, specialty, clinic, format, **nearest free** (Zone A), **price** (base + **promo** with struck base when active), **★ rating + review count**, **favourite heart**, Book.
+- Guest: Book **disabled** + hint; heart → login or disabled.
+- Logged-in patient: home city + clinic **prefill**; active Book + hearts.
 
 **Empty / error**
 
-- No matches: explicit empty state in both themes and both languages (not a blank page).
+- No matches: explicit empty in both themes and languages.
 - Loading: themed.
 
 ### Behavior / rules
 
 **Confirmed**
 
-- Home-clinic doctors appear **first** when several clinics are in the results. The patient may still book a doctor from another clinic (**R-01**).
-- **Nearest free time** = the **earliest start** in the next **2 weeks** that is still free, after applying the active filters (including format and date if set).
-- Format filter: only doctors who **support** that format, and nearest time is a slot the patient could book in that format (**R-04**).
-- Date filter: doctors who have a free slot on that date (inside 2 weeks).
-- Clicking a card goes to the doctor, not straight to payment (no payments).
+- Home-clinic doctors **first** when several clinics in results (**R-01**). Patient may book other clinics.
+- **Nearest free time** = earliest free start in **rolling bookable window (Zone A)**, respecting active filters (format, date, rating, price).
+- Format filter: doctors who support that format; nearest time bookable in that format (**R-04**).
+- Date filter: free slot on that date inside Zone A.
+- Specialty search returns **only** that specialty.
+- Filters combinable; empty search + filters = valid browse.
+- **Favourites** toggle on heart (**R-15**). Read-only stars on cards (**R-14**).
 
 ### Data shown / submitted
 
-**On each card (brief + needed to choose)**
-
-- Doctor name, specialty, clinic (and city if useful)
-- Nearest free time
-- Not required here: full price list (that is **SCR-03**)
-
-Search string + filters are the query.
+Search string + filters + sort. Cards return doctor summary fields above.
 
 ### Notifications triggered
 
-None from search itself. Bell still present.
+None from search. Bell on patient header only.
 
 ### Out of scope on this screen
 
-**Out:** reviews, ratings, map, “book for a family member.”
+**Out:** map; “book for a family member”; **write** reviews (read ratings on cards only); payments/checkout.
 
 ### Open questions (SCR-02)
 
-None that block this section.
+- Full specialty list beyond four defaults — **Open**.
 
 ---
 
 ## SCR-03 Doctor profile
 
-**Status:** Approved  
-**Source:** Brief (specialty, clinic, experience, services + prices, address) + no Service entity (R-05) + one profile price (R-13) + team answers 17 Aug 2026
+**Status:** Approved (updated 31 Aug 2026 — wizard step 1, reviews, promo price)  
+**Source:** Brief + R-04 + R-05 + R-13 + R-14 + R-15 + R-16 + team answers 17 Aug 2026
 
 ### Purpose
 
-The patient reads who the doctor is, where they work, and what it costs — then goes to real times. Prices are shown, never charged.
+Read who the doctor is, where they work, what it costs, and what others say — then choose a time. **Wizard step 1** in the booking modal (**R-16**). Prices shown, never charged.
 
 ### Who
 
-**Patient.**
+**Guest** (read-only browse in wizard context) and **patient**. Not another patient’s private data.
 
 ### Entry / exit
 
-**Entry.** From a **SCR-02** result card.
+**Entry.** SCR-02 card / Book → wizard step 1. FLO-02 Move **skips** this step (read-only doctor header only).
 
-**Exit.** Continue to **SCR-04** Calendar (see times / book). Back to search.
+**Exit.** **Choose time** → wizard step 2 (**SCR-04**). Heart toggles favourite (**R-15**). Back → SCR-02.
 
 ### UI
 
-**Confirmed (brief), mapped to our rules**
+**Confirmed**
 
-- Name
-- **Photo** of the doctor — **required** on this card in MVP. **Seed** doctors have a real-looking photo. A **newly registered** doctor uses a **placeholder** until they add a photo on **SCR-07**.
-- Specialty (one of the four)
-- Clinic, city, **address** (clinic address)
-- Experience (years of practice)
-- **Price:** one price on this profile (**R-13**). Brief said “services + prices”; we do **not** have a Service catalog (**R-05**). Show a single consultation price (label in EN/UK), never a checkout.
-- **Format** the doctor supports: Offline only / Online only / Both (**R-04**) — so the patient knows before the calendar.
-- **Visit duration is not on this screen** — only on **SCR-04**.
+- Photo (seed = real; new doctor = placeholder until **SCR-07**)
+- Name, specialty, **heart**, clinic, city, address, experience
+- **Price:** variable **base** + **promo** (struck base when active) (**R-13**)
+- Format supported (**R-04**)
+- **★ rating** (average) + **reviews list / section** (**R-14**)
+- Visit duration **not** on this screen — **SCR-04**
+- CTA: **Choose time** → step 2
 
 **Empty / error**
 
-- If a doctor URL is not theirs to see / does not exist: refusal, not another doctor’s data (**R-01** isolation — patients may view public doctor profiles; they must not view other patients’ appointments via this page).
+- Invalid / missing doctor: refusal, not another person’s data (**R-01**).
 
 ### Behavior / rules
 
-**Confirmed**
-
-- Public **doctor** profile for logged-in patients. Not another patient’s private data.
-- No payment.
-- No reviews.
-- Primary action: **open this doctor’s calendar (SCR-04)**.
+- Public doctor profile. No payment. Stars here are **read-only**; write reviews from **SCR-06** Past rows (**R-14**).
+- Primary action: calendar step in wizard.
 
 ### Data shown / submitted
 
-Shown: fields above + nearest free time optional (already on the card). Submitted: none except navigation.
+Shown: fields above. Submitted: favourite toggle (logged-in patient); navigation.
 
 ### Notifications triggered
 
@@ -1252,52 +1371,47 @@ None.
 
 ### Out of scope on this screen
 
-**Out:** pay, reviews, medical records, video, service menu, editing the doctor (that is doctor **SCR-09** / profile).
+**Out:** pay; write review; medical records; video; service menu; patient editing doctor profile.
 
 ### Open questions (SCR-03)
 
 None that block this section.
 
-Photo: seed = photo; new doctor = placeholder until **SCR-07**.
-
 ---
 
 ## SCR-04 Calendar
 
-**Status:** Approved  
-**Source:** Brief (week view, free vs taken, empty day, day off, full day) + R-03 + R-04 + R-05 + R-13 + team answers 17 Aug 2026
+**Status:** Approved (updated 31 Aug 2026 — wizard step 2, two months + slots below)  
+**Source:** Brief + R-03 + R-04 + R-05 + R-13 + R-16 + team answers 17 Aug 2026
 
 ### Purpose
 
-Show this doctor’s **real** free times for the next **2 weeks**. What looks free is free. Taken and reserved times cannot be clicked. Duration is visible here as slot length.
+Show this doctor’s **real** free times inside **Zone A (rolling bookable window)**. **Wizard step 2** (**R-16**). Taken and reserved times cannot be clicked. Duration visible as slot length.
 
 ### Who
 
-**Patient**, looking at one doctor.
+**Patient**, one doctor. Guest only inside wizard after login from guest Book flow.
 
 ### Entry / exit
 
-**Entry.** Primary button on **SCR-03**. Also from reschedule flows (**SCR-06** / **SCR-12**) to pick another slot with the **same** doctor.
+**Entry.** Wizard step 2 from SCR-03; reschedule (**SCR-06** / **SCR-12**); FLO-02 starts here (step 1 skipped).
 
-**Exit.** Click a **free** slot → **SCR-05** Confirm booking. Back → profile or appointments.
+**Exit.** Free slot → wizard step 3 (**SCR-05**). Back within wizard.
 
 ### UI
 
-**Confirmed**
+**Confirmed (IA overlay)**
 
-- **Calendar with a day picker** (not a 14-day strip, not two separate “week pages” as the only model). The patient picks a **day**. Days **after 14 days from today** are **disabled**. Days in the past are not bookable. Today: past clock times on that day are not offered.
-- **Offline / Online is visible on the calendar** (which formats this doctor supports; which slots can be used for which format in MVP is still one timeline).
-- The patient **picks Offline or Online on SCR-05 confirm**, not by tapping the slot. Default Offline if the doctor supports both (**R-04**).
-- **Visit duration** is visible here (20/30/45 as that doctor’s slot length). Not on the profile.
-- Free slots are bookable. Taken slots are visibly not. **Reserved** proposed times are not bookable (**R-02**).
-- A **full** day, a **day off**, and a day with **no free times** are all explicit — empty day says so (brief + demo).
-- Past times today are not offered.
-- Other patients’ calendars **refresh by themselves** when a slot is taken (**R-03**). How is later.
-- Language, theme, bell on this screen.
+- **Two month grids** side by side (mobile: stacked or swipe). **Time slots below** months.
+- Days **outside rolling bookable window** / past: **disabled**. Day legend: bookable · full · day off · selected.
+- Only **free** slots as chips; duration = slot length.
+- Format **visible** (supported formats); chosen on **SCR-05**, not on slot (**R-04**).
+- Visit duration visible (20/30/45). Free / taken / reserved (**R-02**, **R-03**).
+- Full day, day off, empty: explicit messages. Calendars refresh when slots taken (**R-03**).
 
 **Empty / error**
 
-- No free times in the window: explicit empty, not a broken grid.
+- No free times in window: explicit empty, not broken grid.
 
 ### Behavior / rules
 
@@ -1321,7 +1435,7 @@ None until confirm succeeds.
 
 ### Out of scope on this screen
 
-**Out:** paying, booking past 2 weeks, parallel online/offline calendars, video.
+**Out:** paying, booking outside the rolling bookable window, parallel online/offline calendars, video.
 
 ### Open questions (SCR-04)
 
@@ -1351,7 +1465,7 @@ The patient sees what they are about to take — doctor, place, date, time — a
 
 **Exit without confirming.** Back to **SCR-04**. The slot is **not** held while this screen is open (**R-03**: no holding a slot without a booking). It stays free for others until confirm **succeeds**.
 
-**Exit after a successful confirm.** **Decision.** Go to **SCR-06 My appointments** only. There is **no** separate confirmation view on this screen. The list is the retrievable result (new book under Upcoming; after a reschedule, the new `Upcoming` visit is there and the old one is `Rescheduled` / past grouping — details **SCR-06** / **R-02**). This overrides the demo’s extra “land on a confirmation, then open My appointments” step.
+**Exit after a successful confirm.** Small **success alert / toast** in the wizard (**R-16**), then navigate to **SCR-06** patient cabinet. No separate confirmation view or wizard step. List is the retrievable result.
 
 **Exit after a refused confirm.** Stay able to pick another free time: back to **SCR-04** (client demo: 10:20 refused, then 10:40 succeeds). **R-03**.
 
@@ -1397,7 +1511,7 @@ Shown together, not split across extra steps:
 **Confirmed**
 
 - Confirm creates an `Upcoming` appointment for **this** patient, **this** doctor, **this** start time, **this** format, optional reason (**R-02**). Duration is the doctor’s duration for that slot (**R-05**).
-- The time must still be a real free slot at the moment of confirm: inside working hours, that duration, not lunch/day off, not taken, not reserved, start not in the past, inside the patient’s **2 weeks** (**R-03**, **R-13**). Stale calendar is not enough.
+- The time must still be a real free slot at the moment of confirm: inside working hours, that duration, not lunch/day off, not taken, not reserved, start not in the past, inside the patient’s rolling bookable window (Zone A) (**R-03**, **R-13**). Stale calendar is not enough.
 - **Two patients, same slot, same moment:** one confirm **succeeds**; the other is **refused** as above. A UI-only check is not enough. How the server enforces it is **postponed**.
 - After success, that time is **taken** and **disappears immediately** for everyone else. Other patients’ calendars **refresh by themselves** (**R-03**). How = later.
 - **No payment.**
@@ -1405,7 +1519,7 @@ Shown together, not split across extra steps:
 
 **Patient reschedule on this screen (FLO-02, R-07)**
 
-- Same doctor only. New time must be free and inside 2 weeks.
+- Same doctor only. New time must be free and inside Zone A.
 - Patient **may** change Offline ↔ Online here if the doctor supports the new format.
 - On success: old appointment → `Rescheduled`; **new** appointment → `Upcoming`. Old slot free; new slot taken. History/link kept (**R-07**). Doctor is notified (patient reschedule — **R-10**).
 - This screen is **not** the doctor-proposal decision (**SCR-12**). While `Reschedule Pending`, the patient cannot start a separate own-reschedule into this screen (**R-07**).
@@ -1430,7 +1544,7 @@ Exact notification wording → later (R-10 left copy to the triggering screens).
 
 ### Out of scope on this screen
 
-**Out:** payment; holding the slot while the form is open; family booking; Service catalog; video/link; picking duration; booking past 2 weeks; parallel Online/Offline calendars.
+**Out:** payment; holding the slot while the form is open; family booking; Service catalog; video/link; picking duration; booking outside the rolling bookable window; parallel Online/Offline calendars.
 
 ### Open questions (SCR-05)
 
@@ -1440,77 +1554,78 @@ Exact EN/UK strings for the concurrent refusal and the doctor’s bell message �
 
 ---
 
-## SCR-06 My appointments
+## SCR-06 My appointments (patient cabinet)
 
-**Status:** Approved  
-**Source:** Brief (upcoming vs past, move/cancel, cancelled stay visible) + R-01 + R-02 + R-06 + R-07 + R-10 + R-11 + SCR-05 (land here after confirm)
+**Status:** Approved (updated 31 Aug 2026 — dashboard layout, favourites, reviews)  
+**Source:** Brief + R-01 + R-02 + R-06 + R-07 + R-10 + R-11 + R-14 + R-15 + R-16 + SCR-05
 
 ### Purpose
 
-The patient finds their visits without calling. Upcoming and past are clearly separated. They can move or cancel from here. Cancelled visits stay on the list, marked cancelled.
+**Patient home after login** (**R-16**). Dashboard + appointment management: upcoming vs past, move/cancel, favourites, recently viewed, write reviews on Past visits.
 
 ### Who
 
-**Patient.** Only their own appointments (**R-01**). Doctors use **SCR-08**, not this screen.
+**Patient.** Own appointments only (**R-01**). Doctors use **SCR-08**.
 
 ### Entry / exit
 
 **Entry**
 
-- After a **successful** confirm on **SCR-05** (new book or patient reschedule) — this is the landing, not a separate confirmation view.
-- From the patient header (search / profile chrome — **SCR-02**).
-- From the bell, when a notification is about one of their visits (list still lives here; **SCR-10** is the bell, not a second appointments app).
+- **Default landing** after patient login (**R-16**).
+- After successful book/reschedule: success toast then here (**SCR-05**).
+- Header avatar «Мій кабінет»; bell when notification relates to a visit.
 
 **Exit**
 
-- **Move** (own reschedule, `Upcoming` only) → that doctor’s **SCR-04** → **SCR-05** (**FLO-02**). Same doctor only (**R-07**).
-- **Reschedule Pending** decision → **SCR-12** (accept / pick another slot / cancel). Not an independent Move (**R-07**).
-- **Cancel** stays on this screen (status becomes `Cancelled`; the row does not disappear).
-- Back to search (**SCR-02**) / profile (**SCR-07**).
+- Primary CTA → **SCR-02** search.
+- **Move** (`Upcoming`) → wizard calendar (**SCR-04** → **SCR-05**, **FLO-02**).
+- **Reschedule Pending** → **SCR-12** (not independent Move).
+- **Cancel** on this screen or via SCR-12.
+- **Write review** on Past row → modal (**R-14**).
+- Profile via avatar menu → **SCR-07**.
 
 ### UI
 
-**On this screen (and every screen — R-11):** language switch, theme toggle, bell (**R-10**).
+**Cabinet layout (IA overlay)**
 
-**Two groups, clearly separated (Confirmed, brief + R-02)**
+**Desktop:** greeting + metrics width → **left main** + **right widgets**.
 
-`Past` is **not** a stored status. It is grouping only.
+**Left main:**
 
-| Group | Statuses in it |
+1. Greeting + primary CTA → SCR-02  
+2. Pending banner if any `Reschedule Pending` → SCR-12  
+3. Next appointment (actions by status)  
+4. Mini-calendar for **rolling bookable window** (dots = this patient’s visits)  
+5. Upcoming list (overflow: show all on page)  
+6. **Favourites** carousel (**R-15**)  
+7. **Recently viewed** — last **10** unique doctor profile opens (hide if empty)  
+8. Specialty cards → SCR-02  
+9. **Past** appointments (compact) — row without review: CTA **Залишити відгук** → review modal (**R-14**); after submit: **Ваш відгук** on row (edit/delete — **Open**)
+
+**Right column:**
+
+1. **Reminder** widget — Upcoming **today or tomorrow** only (soft reminder; not R-10 history)  
+2. **New doctor** promo — one newest/random + Book → wizard  
+3. **Instruction** → SCR-02  
+
+**Mobile:** right column under greeting, then left content.
+
+**Appointment groups (R-02)**
+
+| Group | Statuses |
 |---|---|
 | **Upcoming** | `Upcoming` + `Reschedule Pending` |
 | **Past** | `Completed` + `Cancelled` + `Rescheduled` |
 
-Do not invent tabs vs stacked sections — either is fine as long as the two groups are obvious.
+Each row: doctor, place, date, time, status, format, reason; if `Cancelled`: who cancelled.
 
-**Each visit shows (Confirmed — demo + needed to recognise it)**
+**Actions by status** — same as before: Move only `Upcoming`; pending → SCR-12; final statuses no actions.
 
-- Doctor, place, date, time
-- Status (so cancelled / rescheduled / pending / completed are marked)
-- Format (Offline / Online) — same visit the doctor sees on **SCR-08**
-- Reason if the patient entered one
-- If `Cancelled`: **who cancelled** (patient or doctor) (**R-06**)
+**Empty / error**
 
-**`Reschedule Pending` on this list (Confirmed from R-02 / R-07 — this was the stub’s open)**
-
-- Lives in the **Upcoming** group, marked `Reschedule Pending` — not hidden, not in Past.
-- Shows the **original** time (still taken). The doctor’s **proposed** time is decided on **SCR-12**; this list must not treat pending as a normal `Upcoming` that can be Moved independently.
-- Actions on that row: the **SCR-12** decision (accept / pick another / cancel), **not** FLO-02 Move.
-
-**Actions by status**
-
-| Status | Move (FLO-02) | Cancel | Other |
-|---|---|---|---|
-| `Upcoming` | Yes — same doctor | Yes | — |
-| `Reschedule Pending` | **No** | Yes (via the pending decision) | **SCR-12** |
-| `Completed` / `Cancelled` / `Rescheduled` | No | No (already final) | — |
-
-**Empty / error / loading**
-
-- No appointments at all: explicit empty in both languages and both themes, not a blank page. Mascot here is **ideally** (**R-11**), required only on **SCR-01**.
-- Upcoming empty but past exists (or the reverse): that group says it is empty; the other group still shows.
-- Loading: themed.
-- Another patient’s appointments via URL: refusal, not their data (**R-01**).
+- Empty overall: CTA + specialties + copy; hide favourites/recent until data exists.
+- Group empty: explicit empty for that group.
+- Another patient’s data via URL: refusal (**R-01**).
 
 ### Behavior / rules
 
@@ -1519,7 +1634,7 @@ Do not invent tabs vs stacked sections — either is fine as long as the two gro
 - Isolation: this patient only. Hiding a row is not enough if the URL is changed.
 - After confirm from **SCR-05**, the new `Upcoming` visit is in the Upcoming group (demo: doctor / place / time).
 - **Cancel** (`Upcoming` or from pending): `Cancelled`, **final**, slot(s) free, row **stays** in Past, marked cancelled, who cancelled = this patient. Doctor is notified (**R-06**, **R-10**). No undo. No time-limit window.
-- **Move:** only `Upcoming`, same doctor, new slot inside 2 weeks (**R-07**). Completes on **SCR-05**. Old record becomes `Rescheduled` (Past); new `Upcoming` appears here.
+- **Move:** only `Upcoming`, same doctor, new slot inside Zone A (**R-07**). Completes on **SCR-05**. Old record becomes `Rescheduled` (Past); new `Upcoming` appears here.
 - While `Reschedule Pending`, the patient **cannot** start a separate own-reschedule from this list (**R-07**).
 - `Completed` appears here when the doctor marks it or after slot **end** (**R-02**) — this screen does not mark completed.
 - No-show is **Out**. No family booking.
@@ -1527,7 +1642,7 @@ Do not invent tabs vs stacked sections — either is fine as long as the two gro
 ### Data shown / submitted
 
 **Shown:** this patient’s appointments, grouped as above.  
-**Submitted:** cancel; start move (navigation); start pending decision. No payment.
+**Submitted:** cancel; start move; start pending decision; favourite toggle; submit review from Past modal (**R-14**). Recently viewed tracked on profile opens. No payment.
 
 ### Notifications triggered
 
@@ -1539,11 +1654,11 @@ Do not invent tabs vs stacked sections — either is fine as long as the two gro
 | Patient starts/completes own reschedule | — (they did it; complete is **SCR-05**) | Yes on success |
 | Viewing the list | Nobody | Nobody |
 
-Doctor-initiated cancel: patient is notified in the **bell**; this list shows the visit as `Cancelled`, who = doctor.
+Doctor-initiated cancel: patient notified in bell; list shows `Cancelled`, who = doctor.
 
 ### Out of scope on this screen
 
-**Out:** family / on-behalf; no-show; payment; doctor’s calendar; a separate confirmation page after book; inventing a detail screen beyond this list; changing doctor on move.
+**Out:** family / on-behalf; no-show; payment; doctor’s calendar; changing doctor on move; medical card, chat, prescriptions, invite-friends.
 
 ### Open questions (SCR-06)
 
@@ -1555,12 +1670,12 @@ Exact list layout (tabs vs stacked) and whether the proposed time is also printe
 
 ## SCR-07 My profile
 
-**Status:** Approved  
-**Source:** Brief (name, phone, email, DOB; editable and persistent; language/theme stored here) + R-01 + R-11 + team answers 17 Aug 2026 (doctor also has My profile; city/clinic editable; password change out)
+**Status:** Approved (updated 31 Aug 2026 — view/edit same page)  
+**Source:** Brief + R-01 + R-11 + R-16 + team answers 17 Aug 2026
 
 ### Purpose
 
-The signed-in person sees who they are in the product, can correct that, and finds it still there after log out. Language and theme choice are remembered here (switches also exist on every screen — **R-11**).
+Signed-in person views and edits identity. **Default = view**; **Edit** on same page → Save / Cancel back to view (**R-16**). Language and theme remembered (**R-11**).
 
 ### Who
 
@@ -1577,18 +1692,13 @@ Doctor **hours / duration / supported format / price** are **not** edited here �
 - **Patient:** from header (search / appointments — **SCR-02**, **SCR-06**).
 - **Doctor:** from header (day view / hours — **SCR-08**, **SCR-09**). After doctor login they land on **SCR-08**, not here.
 
-**Exit.** Back to that role’s home (**SCR-02** or **SCR-08**). Log out → **SCR-01**. Data still there on log in.
+**Exit.** Back to role home (**SCR-06** patient / **SCR-08** doctor). Log out → **SCR-01**.
 
 ### UI
 
-**On this screen (and every screen — R-11):** language switch, theme toggle, bell (**R-10**).
+**Default = view** (photo/avatar hero, name, role badge, read-only sections). **Edit** toggles inputs for allowed fields only; Save / Cancel returns to view (**R-16**).
 
-**Patient — shown and editable (Confirmed)**
-
-- First name, last name
-- Phone, email
-- Date of birth
-- Home **city** and home **clinic** — **editable**, still chosen from **seed** lists (sign-up does not create a city or clinic). Changing home clinic changes search ranking (**R-01**), not a booking lock.
+**Patient — editable:** first name, last name, phone, email, DOB, home city/clinic (seed lists).
 
 **Doctor — shown**
 
@@ -1637,7 +1747,7 @@ Must exist (**R-01**). This screen may offer it; header vs this page is layout. 
 - Email uniqueness still holds if email is changed.
 - Patient home city/clinic edits do not create clinics; lists are seed.
 - No medical records, family members, or payment details.
-- GDPR / privacy / legal: **out of this MVP**. Do not add legal/consent screens for this delivery.
+- GDPR programme / broad compliance — **Out**. Public Privacy + Terms pages are **in MVP** (**R-16**); copy **Open**.
 
 ### Data shown / submitted
 
@@ -1650,7 +1760,7 @@ None (profile edit is not an appointment event — **R-10**). Bell still present
 
 ### Out of scope on this screen
 
-**Out:** medical records; family; forgot password; **password change (later, not MVP)**; social login; clinic admin; doctor hours / duration / format / price (**SCR-09**); license re-check; GDPR/legal copy; reviews.
+**Out:** medical records; family; forgot password; password change; social login; clinic admin; doctor hours / duration / format / price (**SCR-09**); license re-check; **reviews write** (that is **SCR-06**).
 
 ### Open questions (SCR-07)
 
@@ -1660,18 +1770,18 @@ Specialty / years / license edits not in this MVP.
 
 ---
 
-## SCR-08 Doctor’s day
+## SCR-08 Doctor’s day (doctor cabinet)
 
-**Status:** Approved  
-**Source:** Brief (today / this week, time order, patient, service, format, reason) + R-01 + R-02 + R-06 + R-07 + R-08 + R-10 + R-13 + FLO-03 map + team answers 17 Aug 2026
+**Status:** Approved (updated 31 Aug 2026 — dashboard layout)  
+**Source:** Brief + R-01 + R-02 + R-06 + R-07 + R-08 + R-10 + R-13 + R-16 + FLO-03
 
 ### Purpose
 
-The doctor opens the day and sees who is coming — the same visits patients booked, in time order. They can complete, cancel one visit, or propose a new time. They never see a colleague’s calendar.
+**Doctor home after login** (**R-16**). Dashboard + day view: who is coming, in time order. Complete, cancel one, propose new time. Never a colleague’s calendar.
 
 ### Who
 
-**Doctor.** Only their own patients and times (**R-01**). Tampering with the URL to another doctor: **denied** (demo), not an empty or wrong list.
+**Doctor.** Own patients and times only (**R-01**).
 
 ### Entry / exit
 
@@ -1686,14 +1796,26 @@ The doctor opens the day and sees who is coming — the same visits patients boo
 
 ### UI
 
-**On this screen (and every screen — R-11):** language switch, theme toggle, bell (**R-10**). Way to hours and profile.
+**Cabinet layout (IA overlay)**
 
-**Day, in time order (Confirmed, brief)**
+**Top:** greeting + date · **four metrics** (full width): visits today · pending · free slots today · cancellations last **7 days**.
 
-- Lands on **today**.
-- Visits for the shown day are listed **in time order**.
-- Brief said “today and this week”. Appointments only exist inside the next **2 weeks** (**R-13**). **Decision:** the doctor can open other days **inside that 2-week window** so next week’s patients are not invisible. Days **after** 2 weeks have **no bookings** — that empty calendar is **SCR-09**, not this list.
-- A **full** day, a **day off**, and a day with **no visits** are explicit (not a blank crash).
+**Desktop:** **left main** + **right widgets**.
+
+**Left main:** day navigation (week strip **or** mini-calendar — **Open**) · **next visit** hero · time-ordered visit list · actions · overflow “show all”.
+
+**Right column:**
+
+1. Reminder — next / soon visit  
+2. Free windows today + link **SCR-09**  
+3. Pending patients awaiting reply (1–3 rows)  
+4. Quick links: My schedule · My profile  
+
+**Mobile:** right column under greeting, then left content.
+
+**Day visits (Zone A)**
+
+- Lands on **today**; other days inside **Zone A** (**R-13**). After Zone A ends: no bookings — plan on **SCR-09**.
 
 **Each visit shows (Confirmed, brief — “service” = format, no Service catalog)**
 
@@ -1718,7 +1840,7 @@ The doctor opens the day and sees who is coming — the same visits patients boo
 **Propose a new time (Confirmed, R-07)**
 
 - Same doctor (themselves). Patient does not change.
-- New time must be a real **free** slot inside the patient’s **2-week** window. Doctor **cannot** propose after those 2 weeks.
+- New time must be a real **free** slot inside the patient’s rolling bookable window (Zone A). Doctor **cannot** propose after Zone A ends.
 - On send: original → `Reschedule Pending`; proposed slot **reserved**; patient notified (**R-10**). Doctor is not notified (they did it).
 - How the free-slot picker looks is later — not a new screen ID, not **SCR-04** (that is the patient calendar).
 
@@ -1742,7 +1864,7 @@ The doctor opens the day and sees who is coming — the same visits patients boo
 
 ### Data shown / submitted
 
-**Shown:** this doctor’s visits for the selected day (inside 2 weeks).  
+**Shown:** this doctor’s visits for the selected day (inside Zone A).  
 **Submitted:** mark completed; cancel one upcoming visit; propose a new start time (and format stays the booked format — doctor cannot change format on an existing visit in MVP — **R-04**).
 
 ### Notifications triggered
@@ -1772,11 +1894,11 @@ Exact day-picker chrome and proposal slot-picker chrome → frontend later.
 ## SCR-09 Doctor’s working hours
 
 **Status:** Approved  
-**Source:** Brief (days, hours, duration, lunch, days off generate slots) + R-04 + R-05 + R-08 + R-12 + R-13 + FLO-05 + team answers 17 Aug 2026 (price: frozen 2 weeks, edit from day 15; default price, change later)
+**Source:** Brief (days, hours, duration, lunch, days off generate slots) + R-04 + R-05 + R-08 + R-12 + R-13 + FLO-05 + team answers 17 Aug 2026 (price: frozen in Zone A, edit from first day after Zone A; default price, change later)
 
 ### Purpose
 
-This is what patients book against. The doctor sets days, hours, lunch, duration, days off / vacation, supported format, and the one profile price. Inside the next **2 weeks** the calendar stays stable except cancel + vacation on emptied days. After that, up to **3 months**, the calendar is empty and can be planned.
+This is what patients book against. The doctor sets days, hours, lunch, duration, days off / vacation, supported format, and the one profile price. Inside the Zone A the calendar stays stable except cancel + vacation on emptied days. After that, up to **3 months**, the calendar is empty and can be planned.
 
 ### Who
 
@@ -1795,8 +1917,8 @@ This is what patients book against. The doctor sets days, hours, lunch, duration
 **Horizon (Confirmed, R-13)**
 
 - Doctor sees **3 months** of schedule.
-- **Zone A — next 2 weeks:** bookings can exist. Hours, duration, and price are **frozen**. Doctor may **cancel** visits (with confirm) and mark **vacation** only on days that then have **no** bookings.
-- **Zone B — after 2 weeks, up to 3 months:** **no** bookings. Doctor may change hours, duration, vacation, and price. **Earliest price-edit day is day 15** (see Price below).
+- **Zone A — rolling bookable window:** bookings can exist. Hours, duration, and **base price** are **frozen**. Doctor may **cancel** visits (with confirm) and mark **vacation** only on days that then have **no** bookings.
+- **Zone B — after Zone A, up to 3 months:** **no** bookings. Doctor may change hours, duration, vacation, and price. **Earliest base-price edit day is first day after Zone A** (see Price below).
 
 Exact calendar chrome (month grid vs list) is later. The two zones must be obvious.
 
@@ -1819,22 +1941,22 @@ Seed doctors may differ for demo (full day / day off in the client script) (**R-
 - **Supported format:** Offline only / Online only / Both (**R-04**) — an **edit** on this hours/calendar screen
 - **Price** — see below. Shown on **SCR-03**, never charged. Edited here (doctor schedule/price), not at sign-up. **SCR-07** stays identity; hours/duration/format/price stay this screen.
 
-**Price (Confirmed / Decision, 17 Aug 2026)**
+**Price (Confirmed / Decision, updated 31 Aug 2026)**
 
-- **One** consultation price (not a different price per week).
-- The next **2 weeks** are **frozen**. The doctor **cannot** change the price that applies inside that window.
-- They **may** edit price; the **earliest** day the new price applies is **day 15** from today (first day after the 2-week window).
-- **Default:** a new doctor (and seed until edited) starts at **600 UAH**. They can change it later under the rule above.
-- Public card (**SCR-03**) shows the price that applies to **bookable** slots (the frozen current 2-week price). No checkout.
+- **Base price** per doctor, **variable** (**R-13**). **Promo / акційні price** allowed — display promo + struck base when active. Checkout **out**.
+- **Base price frozen in Zone A.** New base applies from **first day after Zone A** at earliest.
+- **Default** for seed/new doctors: e.g. **600 UAH** until edited — not a fixed platform fee.
+- Public surfaces (**SCR-02**, **SCR-03**) show effective price for bookable slots.
+- **Open:** promo price setup UX (date-ranged override on SCR-09?).
 
 Do not invent rooms, equipment, per-slot format, or a Service catalog.
 
-**Bulk cancel inside 2 weeks (Confirmed, R-08, FLO-05)**
+**Bulk cancel inside Zone A (Confirmed, R-08, FLO-05)**
 
 Not a silent hours edit. Doctor **confirms** first. Nothing is cancelled silently.
 
 - All visits in **one day** in one action
-- **Rest of day**, **rest of week**, or a **custom date range** (e.g. 1–15 Sep) **within the 2-week window**
+- **Rest of day**, **rest of week**, or a **custom date range** (e.g. 1–15 Sep) **within the rolling bookable window (Zone A)**
 - `Reschedule Pending` in that period is cancelled too; reserved proposed slot released
 - Each affected patient gets an in-app message; who cancelled = doctor (**R-06**, **R-10**)
 - After a day has **no** bookings left, doctor **may mark vacation** for that day
@@ -1856,14 +1978,14 @@ One-visit cancel stays on **SCR-08**.
 - **Hours** change: only Zone B. No “shorten hours in Zone B and cancel visits” — there are no visits there.
 - **Format** capability may be changed later (**R-04**). Applies to **times that are not booked**. Already-booked visits keep their format. Not a second calendar. Video is **Out**.
 - **Vacation** in Zone A: only after that day has no bookings (cancel first if needed). Zone B: mark freely.
-- **Price:** frozen for the next 2 weeks; new value applies from **day 15** at the earliest. Default **600 UAH**.
+- **Price:** **base price** frozen in Zone A; new base applies from **first day after Zone A** at the earliest. Default **600 UAH** for seed/new doctors until edited.
 - Isolation: own schedule only.
 - No silent auto-cancel. No doctor score on this screen (**R-09** out).
 
 ### Data shown / submitted
 
 **Shown:** this doctor’s 3-month schedule, duration, format capability, price, lunch/days off.  
-**Submitted:** hours/duration/vacation/format (within zone rules); bulk-cancel confirmation; price for **day 15 onward** (not inside the frozen 2 weeks).
+**Submitted:** hours/duration/vacation/format (within zone rules); bulk-cancel confirmation; price for **first day after Zone A onward** (not inside frozen Zone A).
 
 ### Notifications triggered
 
@@ -1929,7 +2051,7 @@ The doctor proposed a new time. The patient must choose: take that time, pick an
 **Exit**
 
 - **Accept** → **SCR-06**. New visit is `Upcoming`; old is `Rescheduled` (Past).
-- **Pick another** → that doctor’s **SCR-04** (same doctor, inside 2 weeks), then confirm the new slot on **SCR-05** (same confirm as a move). Still the proposal flow, not a separate FLO-02 from a normal `Upcoming`.
+- **Pick another** → that doctor’s **SCR-04** (same doctor, inside Zone A), then confirm the new slot on **SCR-05** (same confirm as a move). Still the proposal flow, not a separate FLO-02 from a normal `Upcoming`.
 - **Cancel** → **SCR-06**; the visit is `Cancelled` (stays visible, marked).
 - Back without choosing: pending stays pending (no expiry in MVP).
 
@@ -1947,7 +2069,7 @@ The doctor proposed a new time. The patient must choose: take that time, pick an
 **Three actions (Confirmed, R-07)**
 
 1. **Accept** the proposed time
-2. **Pick another** available slot with the same doctor (2-week window)
+2. **Pick another** available slot with the same doctor (rolling bookable window (Zone A))
 3. **Cancel** the appointment
 
 No fourth action. No “move independently” while pending. No change of doctor.
@@ -1965,10 +2087,10 @@ No fourth action. No “move independently” while pending. No change of doctor
 - No expiry on pending in MVP.
 - While pending: original slot **taken**, proposed slot **reserved**; nobody else books either (**R-02**, **R-03**).
 - **Accept:** original → `Rescheduled`; **new** appointment → `Upcoming` at the proposed time. Old slot free; new slot taken (no longer only reserved). History/link kept (**R-07**). Doctor notified (**R-10**). Patient is not (they did it).
-- **Pick another:** replaces the proposal with the slot they confirm; that new appointment is `Upcoming`; original → `Rescheduled`. Old slot free; new taken; previous reserved proposal released if they picked a different time. Doctor notified (**R-10**: patient picks another slot in the proposal flow). Same doctor only. Inside 2 weeks. Format may change only if the doctor supports it.
+- **Pick another:** replaces the proposal with the slot they confirm; that new appointment is `Upcoming`; original → `Rescheduled`. Old slot free; new taken; previous reserved proposal released if they picked a different time. Doctor notified (**R-10**: patient picks another slot in the proposal flow). Same doctor only. Inside Zone A. Format may change only if the doctor supports it.
 - **Cancel:** original → `Cancelled`; proposed slot released; old slot free; stays visible, who cancelled = patient. Doctor notified (**R-10**). Final. No undo.
 - Patient **cannot** start FLO-02 from **SCR-06** while this is pending (**R-07**).
-- Proposed time was already required to be inside 2 weeks when the doctor proposed (**R-07**).
+- Proposed time was already required to be inside Zone A when the doctor proposed (**R-07**).
 
 ### Data shown / submitted
 
@@ -2014,21 +2136,21 @@ A logged-in patient takes one real free time with one doctor and can find that v
 
 ### Start / end
 
-**Start:** **SCR-02** Search (patient home after login).  
-**End:** **SCR-06** My appointments, new visit under Upcoming. No extra confirmation page (**SCR-05**).
+**Start:** **SCR-02** Search (guest or patient). Guest Book → **SCR-01** then resume wizard when practical.  
+**End:** Success **toast** → **SCR-06** cabinet. Wizard steps SCR-03 → SCR-04 → SCR-05 (**R-16**).
 
 ### Steps (Confirmed)
 
-1. **SCR-02** — Find a doctor (specialty / name / clinic; combinable filters). First load: home city + home clinic pre-set; they may change filters and book another clinic. Result cards show **nearest free time** in the next **2 weeks**. Open a card.
+1. **SCR-02** — Find a doctor (specialty / name / clinic; combinable filters). First load: home city + home clinic pre-set; they may change filters and book another clinic. Result cards show **nearest free time** in the rolling bookable window (Zone A). Open a card.
 2. **SCR-03** — Read the doctor: photo, specialty, clinic, address, experience, **one price** (shown, never charged), supported format. Duration is **not** here. Primary action: open calendar.
-3. **SCR-04** — Pick a **day** (days after 14 days from today **disabled**; past times not offered). See real free vs taken vs reserved vs day off / full / empty. Duration visible as slot length. Format is **visible**, not chosen on the slot. Click a **free** slot.
+3. **SCR-04** — Pick a **day** (days outside the rolling bookable window **disabled**; past times not offered). See real free vs taken vs reserved vs day off / full / empty. Duration visible as slot length. Format is **visible**, not chosen on the slot. Click a **free** slot.
 4. **SCR-05** — One screen: doctor, place, date, time, optional reason, **one Confirm**. If the doctor supports **Both**, choose Offline/Online here (default **Offline**). If only one format, that format is used. The slot is **not** held while this screen is open.
 5. Confirm **succeeds** → appointment is `Upcoming`. Land on **SCR-06**. Doctor gets an in-app notification (**R-10**). Patient who booked does not. Other patients’ calendars **refresh by themselves** (**R-03**). How = later.
 6. Confirm **refused** (taken in the same moment) → plain-language refusal, not a crash. Pick another free time on **SCR-04** (demo: 10:20 then 10:40). Details: **FLO-06**.
 
 ### What must be true at confirm (R-03, R-05, R-13)
 
-The slot is still free: inside working hours, that doctor’s duration, not lunch/day off, not taken, not reserved, start not in the past, inside **2 weeks**. One doctor, **one timeline** — Offline and Online cannot double-book the same time (**R-04**).
+The slot is still free: inside working hours, that doctor’s duration, not lunch/day off, not taken, not reserved, start not in the past, inside the rolling bookable window (Zone A). One doctor, **one timeline** — Offline and Online cannot double-book the same time (**R-04**).
 
 ### Notifications
 
@@ -2036,7 +2158,7 @@ Doctor: yes, on success. Patient: no (they did it).
 
 ### Out of scope for this flow
 
-**Out:** payment; family booking; video; holding the slot on the confirm screen; booking past 2 weeks; guest booking.
+**Out:** payment; family booking; video; holding slot on confirm; booking outside rolling bookable window. **Guest** may browse SCR-02 but must log in to book.
 
 ### Open questions (FLO-01)
 
@@ -2067,7 +2189,7 @@ This is **not** the doctor-proposal path (**FLO-03** / **SCR-12**). While `Resch
 ### Steps (Confirmed)
 
 1. **SCR-06** — Patient chooses **Move** on an `Upcoming` row (not on pending, completed, cancelled, or rescheduled).
-2. **SCR-04** — That **same** doctor’s calendar only. Patient cannot change doctor. Pick a **free** slot inside **2 weeks** (same calendar rules as FLO-01). Original slot is still taken until confirm succeeds.
+2. **SCR-04** — That **same** doctor’s calendar only. Patient cannot change doctor. Pick a **free** slot inside the rolling bookable window (Zone A) (same calendar rules as FLO-01). Original slot is still taken until confirm succeeds.
 3. **SCR-05** — Confirm the **new** slot. Optional reason. Format: patient **may** switch Offline ↔ Online if that doctor **currently** supports the new format (**R-04**, **R-07**). Same Both / default Offline / single-format rules as a new book. Slot is **not** held while this screen is open.
 4. Confirm **succeeds** → old appointment `Rescheduled` (final); **new** appointment `Upcoming`. History/link kept. Old slot **free**; new slot **taken**. Other calendars refresh (**R-03**). Land on **SCR-06**. Doctor notified (**R-10**). Patient is not (they did it).
 5. Confirm **refused** (new slot taken in the same moment) → plain-language refusal. Original visit stays `Upcoming`. Pick another free time or back out. Details: **FLO-06**.
@@ -2082,7 +2204,7 @@ Doctor: yes, on success. Patient: no (they did it).
 
 ### Out of scope for this flow
 
-**Out:** changing doctor; starting this flow while `Reschedule Pending` (use **SCR-12**); silent doctor move; payment; video; booking past 2 weeks.
+**Out:** changing doctor; starting this flow while `Reschedule Pending` (use **SCR-12**); silent doctor move; payment; video; booking outside the rolling bookable window.
 
 ### Open questions (FLO-02)
 
@@ -2111,7 +2233,7 @@ The doctor offers a different real free time. The visit does **not** move until 
 ### Steps (Confirmed)
 
 1. **SCR-08** — Doctor chooses **Propose a new time** on `Upcoming` only. Not while already `Reschedule Pending`. Not on completed / cancelled / rescheduled. Format of the booked visit **does not change** here (**R-04**).
-2. Doctor picks another **free** slot of **their own**, inside the patient’s **2-week** window. They **cannot** propose after those 2 weeks. Picker chrome later — not **SCR-04** (patient calendar), not a new screen ID.
+2. Doctor picks another **free** slot of **their own**, inside the patient’s rolling bookable window (Zone A). They **cannot** propose after Zone A ends. Picker chrome later — not **SCR-04** (patient calendar), not a new screen ID.
 3. On send: original → `Reschedule Pending`; **original** slot stays **taken**; **proposed** slot is **reserved**. Nobody else can book either. Other calendars refresh (**R-03**). **No expiry** in MVP.
 4. **SCR-10** — Patient gets an in-app bell item (“doctor proposed a new time”). Doctor is not notified (they did it).
 5. **SCR-12** — Patient only:
@@ -2131,7 +2253,7 @@ While pending, the patient **cannot** start FLO-02 from **SCR-06**.
 
 ### Out of scope for this flow
 
-**Out:** silent move; changing doctor; proposing outside 2 weeks; pending expiry; doctor changing format of the booked visit; second proposal while one is pending; video.
+**Out:** silent move; changing doctor; proposing outside Zone A; pending expiry; doctor changing format of the booked visit; second proposal while one is pending; video.
 
 ### Open questions (FLO-03)
 
@@ -2212,7 +2334,7 @@ None that block this section.
 
 ### Purpose
 
-The doctor plans their calendar honestly. Inside 2 weeks they do not silently drop visits by editing hours. They **confirm** a bulk cancel first. After 2 weeks the calendar is empty and they can change hours, duration, vacation, and price (from day 15).
+The doctor plans their calendar honestly. Inside Zone A they do not silently drop visits by editing hours. They **confirm** a bulk cancel first. After Zone A the calendar is empty and they can change hours, duration, vacation, and price (from first day after Zone A).
 
 ### Who
 
@@ -2224,20 +2346,20 @@ The doctor plans their calendar honestly. Inside 2 weeks they do not silently dr
 
 ### Two zones (Confirmed)
 
-**Zone A — next 2 weeks** (bookings exist)
+**Zone A — rolling bookable window** (bookings exist)
 
 - Hours, duration, and the **current** price are **frozen**.
-- Doctor may **bulk-cancel** (with confirm): all visits in **one day**; **rest of day**; **rest of week**; or a **custom range** **inside those 2 weeks**.
+- Doctor may **bulk-cancel** (with confirm): all visits in **one day**; **rest of day**; **rest of week**; or a **custom range** **inside Zone A**.
 - `Reschedule Pending` in that period is cancelled too; reserved proposed slot released.
 - Each affected **patient** is notified. Who cancelled = doctor. Doctor is not notified (they did it).
 - Slots become **free**. Calendars refresh (**R-03**).
 - After a day has **no** bookings left, doctor **may mark vacation** for that day.
 - Nothing is cancelled silently (not by shortening hours).
 
-**Zone B — after 2 weeks, up to 3 months** (no bookings)
+**Zone B — after Zone A, up to 3 months** (no bookings)
 
 - Change working hours, lunch, duration (**20 / 30 / 45**), vacation.
-- Price: new value applies from **day 15** at the earliest (**SCR-09**).
+- Price: new value applies from **first day after Zone A** at the earliest (**SCR-09**).
 - No bulk-cancel of appointments here — there are none. No “shorten hours here and cancel pending visits.”
 
 ### Default until they edit Zone B
@@ -2246,7 +2368,7 @@ Mon–Fri 09:00–18:00, lunch 13:00–14:00, weekend off; duration from sign-up
 
 ### Out of scope for this flow
 
-**Out:** silent auto-cancel; rooms/equipment; changing booked duration or format in place; appointments beyond 2 weeks; doctor score; one-visit cancel (FLO-04).
+**Out:** silent auto-cancel; rooms/equipment; changing booked duration or format in place; appointments beyond Zone A; doctor score; one-visit cancel (FLO-04).
 
 ### Open questions (FLO-05)
 
@@ -2314,15 +2436,15 @@ Resolved in R-03: other patients’ calendars refresh by themselves (how is late
 
 Resolved in R-04: formats edited on SCR-09; new doctor Offline only; doctor may change formats later but **not** on already-booked times.
 
-Resolved in R-05: doctor may change duration later; booked days frozen; no duration change inside 2 weeks; new doctor picks duration at sign-up (default 30).
+Resolved in R-05: doctor may change duration later; booked days frozen; no duration change inside Zone A; new doctor picks duration at sign-up (default 30).
 
-Resolved in R-13: patient 2 weeks; doctor 3 months; inside 2 weeks freeze duration, hours, price; vacation OK on unbooked days inside 2 weeks; one profile price.
+Resolved in R-13: rolling bookable window (Zone A); doctor 3 months; Zone A freeze duration, hours, base price; variable + promo prices.
 
 Resolved in R-06: who cancelled is shown; each cancelled patient gets an in-app message; doctor rate is **out of MVP** (patient or doctor cancel does not score the doctor now).
 
-Resolved in R-07: while pending, patient only Accept / pick from proposal / Cancel; proposed time must be inside 2 weeks; doctor cannot propose beyond 2 weeks.
+Resolved in R-07: while pending, patient only Accept / pick from proposal / Cancel; proposed time must be inside Zone A; doctor cannot propose beyond Zone A.
 
-Resolved in R-08: bookings exist only inside 2 weeks; after 2 weeks the doctor plans an empty calendar (hours, vacation, price); inside 2 weeks doctor may cancel one visit, a whole day at once, rest of day/week, or a custom range, then mark vacation when the day is empty.
+Resolved in R-08: bookings exist only inside Zone A; after Zone A the doctor plans an empty calendar (hours, vacation, price); inside Zone A doctor may cancel one visit, a whole day at once, rest of day/week, or a custom range, then mark vacation when the day is empty.
 
 Resolved in R-10: doctor is notified on patient book/cancel/reschedule/accept; bell → list; Read all; click item = read; unread stay until read then they are gone.
 
@@ -2332,44 +2454,30 @@ Resolved in R-12: Ukrainian-style fictional names; only four specialties; **25**
 
 Resolved in SCR-01: login is email+password only; duration options 20/30/45; mascot name skipped for now.
 
-Resolved in SCR-02: first load pre-filters home city and home clinic; empty search + filters = browse; nearest free time = earliest free start in next 2 weeks matching filters.
+Resolved in SCR-02: guest + patient search home; filters, sort, ratings, price, favourites; Paper FINAL.
 
-Resolved in SCR-03: photo required; primary action opens calendar; duration only on the calendar.
+Resolved in SCR-03: wizard step 1; reviews; promo price.
 
-Resolved in SCR-04: calendar + day picker; days after 14 days disabled; Offline/Online **visible** on calendar, **chosen on SCR-05** (default Offline if Both).
+Resolved in SCR-04: wizard step 2; two months + slots below.
 
-Resolved in SCR-05: one-screen confirm; format chosen here; concurrent plain-language refusal; doctor notified; land on **SCR-06** only (no extra confirmation view).
+Resolved in SCR-05: wizard step 3; toast success → SCR-06.
 
-Resolved in SCR-06: Upcoming vs Past grouping; pending in Upcoming with no independent Move (**SCR-12**); cancelled stay visible with who cancelled; land here after **SCR-05**.
+Resolved in SCR-06: patient cabinet; favourites; recently viewed; write review from Past.
 
-Resolved in SCR-07: both roles have My profile; patient name/phone/email/DOB **and** home city/clinic editable (seed lists); doctor name/phone/email and city/clinic editable; password change **out** of MVP; hours/duration/format/price stay **SCR-09**.
+Resolved in SCR-07: view/edit same page; exit to SCR-06 / SCR-08.
 
-Resolved in SCR-08 (actions): mark completed on `Upcoming`; cancel one `Upcoming` visit; propose a new time (**FLO-03**). No-show out. Pending: no second proposal, no doctor single-cancel (patient / **SCR-09** bulk). Day list covers the **2-week** window (not only this calendar week).
+Resolved in SCR-08: doctor cabinet dashboard; mark completed; cancel one; propose (**FLO-03**); day list covers Zone A.
 
-Resolved in SCR-09: 3-month schedule; 2-week freeze on hours/duration; bulk cancel with confirm; vacation on emptied days; format edited here; price **frozen 2 weeks**, new price from **day 15**; default **600 UAH**.
+Resolved in SCR-09: 3-month schedule; Zone A freeze; bulk cancel; base + promo price; base edit from first day after Zone A.
 
-Resolved in SCR-12: Accept / Pick another (same doctor, **SCR-04** → **SCR-05**) / Cancel. No independent Move while pending. No expiry. Doctor notified on each of those three.
+Resolved in FLO-01: SCR-02 (guest browse) → wizard SCR-03→04→05 → toast → **SCR-06**.
 
-Resolved in FLO-01: Search → profile → calendar → confirm → **SCR-06**. Format on confirm. No hold. Success `Upcoming` + doctor notified.
+**Leftover opens (product level)**
 
-Resolved in FLO-02: Move from `Upcoming` only; same doctor; **SCR-06** → **SCR-04** → **SCR-05**; old `Rescheduled`, new `Upcoming`; not while pending.
-
-Resolved in FLO-03: Doctor proposes from **SCR-08**; pending holds old + reserved new; patient decides **SCR-12**; no silent move; no expiry.
-
-Resolved in FLO-04: One-visit cancel from **SCR-06** / **SCR-12** (patient) or **SCR-08** (doctor, `Upcoming` only). Stays visible; who cancelled; slot free; other person notified.
-
-Resolved in FLO-05: **SCR-09** two zones; bulk cancel with confirm inside 2 weeks; no silent hours-cancel; Zone B empty plan; price from day 15.
-
-Resolved in FLO-06: two patients, same slot → one `Upcoming`, the other **plain-language refusal**; demo 10:20 then 10:40; no hold on confirm; how the server enforces it is later.
-
-**Leftover opens (resolved 17 Aug 2026)**
-
-- GDPR / privacy / legal — **Out** of this MVP/demo.
-- Auto-complete uses slot **end**; `Reschedule Pending` does **not** auto-complete — **confirmed**.
-- New-doctor photo at sign-up — **placeholder**; they add a photo later on **SCR-07**. Seed doctors have photos.
-- Default price — **600 UAH**.
-
-Nothing remaining as Open at product level.
+- Privacy/Terms routes vs SCR IDs; legal copy; review moderation; promo UX on SCR-09; SCR-08 day nav chrome; doctor header CTA; full specialty list — **Open**
+- Broader GDPR programme — **Out** (public Privacy + Terms **in**)
+- Auto-complete at slot **end**; pending does not auto-complete — **confirmed**
+- New-doctor sign-up photo — **placeholder** until **SCR-07**
 
 ---
 
