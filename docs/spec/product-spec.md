@@ -2503,13 +2503,6 @@ Resolved in FLO-01: SCR-02 (guest browse) → wizard SCR-03→04→05 → toast 
 
 ## Postponed (not this document)
 
-Do not fill these here. They belong in architecture / `frontend-spec.md` / `backend-spec.md` later:
+**Moved to implementation specs (Sep 2026):** see `docs/spec/backend-spec.md` (slots, state machine, authz, schema, API per SCR) and `docs/spec/tech-stack.md` (monorepo, OpenAPI, Orval, uploads, sessions, promos).
 
-- Slot generation/storage strategy
-- Database mechanism preventing double booking
-- Date/time/timezone storage model
-- Authorization implementation
-- API structure
-- Database schema
-- Frontend/backend architecture
-- File storage for license uploads
+Product-level **Open** items remain in sections above (legal copy, specialty list, etc.).

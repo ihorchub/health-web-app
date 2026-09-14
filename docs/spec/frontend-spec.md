@@ -1,13 +1,41 @@
 # Frontend specification
 
-**Status:** Aligned with product-spec (31 Aug 2026)  
+**Status:** Aligned with product-spec (31 Aug 2026); implementation stack locked 14 Sep 2026  
 **Source of truth:** [product-spec.md](./product-spec.md) (IA overlay folded)  
 **IA / chrome:** [ia-chrome-decision.md](./ia-chrome-decision.md) — dialogue record; product-spec wins after fold.  
-**Pair file:** [backend-spec.md](./backend-spec.md) — **Contract** blocks must match.
+**Pair file:** [backend-spec.md](./backend-spec.md) — **Contract** blocks must match.  
+**Implementation:** [tech-stack.md](./tech-stack.md)
 
 This file describes **UI**: layout, states, i18n, what the screen shows and submits. It does not decide database, transactions, or route implementation.
 
-How to fill: one `SCR-*` at a time. Approve before the next. Use skill `write-layer-spec`.
+How to fill: one `SCR-*` at a time. Use skill `write-layer-spec`.
+
+---
+
+## Implementation stack (Medicly)
+
+| Area | Choice |
+|---|---|
+| App | **React** + **TypeScript**, **Vite** |
+| UI | **MUI** (Medicly theme / Manrope) |
+| Routing | **React Router** |
+| Server state | **TanStack React Query** |
+| API | **Orval**-generated client + hooks from **OpenAPI** |
+| Auth to API | `credentials: 'include'` (HTTP-only session cookie) |
+| Dev proxy | Vite proxies `/api` → Fastify (`tech-stack.md`) |
+
+**Defaults (implementation — not product):**
+
+| Topic | Decision |
+|---|---|
+| Phone field | Optional `+380` mask in UI; server: non-empty string |
+| Password confirm | Client-only on sign-up step 1 |
+| DOB | Date in the past (same as backend) |
+| Doctor photo | jpeg/png/webp, max 10 MB |
+| SCR-04 calendar refresh | React Query refetch **30s** while wizard open + on focus; invalidate after book |
+| API errors | Map `error.code` to i18n strings |
+
+Layout/chrome **Open** items (exact notification dropdown, SCR-12 panel vs page) are design polish — do not block API integration.
 
 ---
 
@@ -146,7 +174,7 @@ Single `POST /register/*` after step 3. **No SMS** steps.
 
 Server is the source of truth for all validation. Client checks are for UX only.
 
-**Open:** phone number format / mask; email format validation detail.
+Phone: optional `+380` mask; email: basic format hint (`tech-stack.md`).
 
 ### Theme / mascot notes
 
@@ -341,7 +369,7 @@ None.
 - One doctor, one timeline. Format does not create extra slots or a second calendar (R-03, R-04).
 - Clicking a free slot → wizard step 3 (**SCR-05**), carrying doctor + start time.
 - Clicking a taken/reserved slot does nothing.
-- Calendar must **auto-refresh** so other patients see taken slots disappear (R-03). **Open:** refresh mechanism (polling, live updates, etc.) — postponed to architecture.
+- Calendar must **auto-refresh** so other patients see taken slots disappear (R-03). **React Query** refetch interval **30s** while wizard step 2 is open + refetch on focus (`tech-stack.md`).
 
 ### Entry context
 
@@ -712,8 +740,7 @@ None — profile editing is not an appointment event. Bell is still present.
 - Patient and doctor city/clinic values come from seed lists.
 - Email uniqueness is enforced by the product; exact client-side validation rules are not defined here.
 
-**Open:** date of birth validation rules.
-**Open:** doctor photo file constraints (type, size, dimensions).
+DOB: must be in the past. Doctor photo: jpeg/png/webp, max 10 MB (`tech-stack.md`).
 
 ### Theme / bell notes
 

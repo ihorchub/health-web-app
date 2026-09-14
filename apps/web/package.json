@@ -1,5 +1,5 @@
 {
-  "name": "frontend",
+  "name": "@medicly/web",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -7,7 +7,10 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
+    "prettier:check": "prettier --check .",
+    "prettier:fix": "prettier --write .",
     "preview": "vite preview",
     "generate:api": "orval"
   },
