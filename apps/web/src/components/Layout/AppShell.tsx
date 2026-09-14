@@ -15,15 +15,17 @@ const Main = styled('main')({
 
 interface AppShellProps {
   header?: ReactNode;
+  footer?: ReactNode;
   children: ReactNode;
 }
 
-/** Minimal visual shell placeholder — full Paper chrome comes later. */
-export const AppShell = ({ header, children }: AppShellProps) => {
+/** Visual shell — Header/Footer chrome live here, not in route layouts. */
+export const AppShell = ({ header, footer, children }: AppShellProps) => {
   return (
     <Shell>
       {header}
       <Main>{children}</Main>
+      {footer}
     </Shell>
   );
 };

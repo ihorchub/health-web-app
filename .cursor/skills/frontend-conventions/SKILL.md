@@ -4,12 +4,12 @@ description: >-
   Enforces Medicly frontend conventions: folder structure, React patterns,
   forms, TypeScript, i18n, and data fetching with TanStack Query + Orval.
   ALWAYS use when writing, reviewing, or organizing frontend code under
-  frontend/ — components, modules, hooks, theme, routes, or i18n.
+  apps/web/ — components, modules, hooks, theme, routes, or i18n.
 ---
 
 # Frontend Conventions (Medicly)
 
-React + TypeScript + Vite + MUI. Data: **TanStack Query + Orval + Axios** (no Redux/RTK). Forms: **React Hook Form + Yup**. Package manager: **yarn**. Lint: **ESLint + Prettier**.
+React + TypeScript + Vite + MUI. Data: **TanStack Query + Orval + Axios** (no Redux/RTK). Forms: **React Hook Form + Yup**. Package manager: **pnpm** (monorepo `@medicly/web`). Lint: **ESLint + Prettier**.
 
 ## Reference files
 

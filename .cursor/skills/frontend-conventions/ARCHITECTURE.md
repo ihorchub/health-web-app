@@ -3,8 +3,9 @@
 ## Tree (Savvy-aligned)
 
 ```
-frontend/
+apps/web/
 ├── public/fonts/              # Manrope woff2
+├── public/brand/              # logos, Lika, hero, avatars
 ├── openapi/
 ├── orval.config.ts
 └── src/
@@ -74,6 +75,6 @@ Pages/components hold JSX. Extract logic into hooks/utils.
 
 ## Brand assets
 
-- Runtime source: `frontend/public/brand/` (`logo/`, `lika-poses/`, `hero/`, `doctor-avatars/`)
+- Runtime source: `apps/web/public/brand/` (`logo/`, `lika-poses/`, `hero/`, `doctor-avatars/`)
 - Reference via public URLs (e.g. `/brand/logo/medicly-logo-header-light@2x.png`) — not Vite `import` of brand PNGs
 - Do not regenerate Lika — use the PNGs from Paper (transparent RGBA)

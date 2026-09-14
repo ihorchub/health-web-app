@@ -35,7 +35,7 @@ https://app.paper.design/file/01M0D5RXPB3F6XJZ814DFZDMEZ
 
 ## Implementation order (project-level)
 
-1. Skeleton (`frontend/`: Vite, yarn, ESLint, deps)
+1. Skeleton (`apps/web/`: Vite, pnpm, ESLint, deps)
 2. Theme Light/Dark + Manrope
 3. Shared kit: `components/Layout`, `Text`, `Popups`, Header/Footer variants
 4. Screens (suggested): SCR-02 → cabinets SCR-06/08 → wizard SCR-03…05 → SCR-01/07/09
@@ -49,7 +49,7 @@ When implementing **one** screen, still reuse kit first — do not duplicate hea
 - [ ] Light + Dark (or note gap and ask)
 - [ ] All copy via i18n namespaces (UK default)
 - [ ] States: default, loading, empty, error (and success toast where Paper shows snackbar)
-- [ ] Mascot pose from `frontend/public/brand/lika-poses/` when Paper uses Lika
+- [ ] Mascot pose from `apps/web/public/brand/lika-poses/` when Paper uses Lika
 - [ ] Data via Orval/TanStack hooks — no fake `useEffect` fetch
 - [ ] Styles: `styled()` + theme; page-only styles in module; shared in `components/`
 - [ ] Popups via Popups context for modals
@@ -59,8 +59,8 @@ When implementing **one** screen, still reuse kit first — do not duplicate hea
 
 | Asset | Location |
 |-------|----------|
-| Lika poses | `frontend/public/brand/lika-poses/*.png` |
-| Logos | `frontend/public/brand/logo/*` |
+| Lika poses | `apps/web/public/brand/lika-poses/*.png` |
+| Logos | `apps/web/public/brand/logo/*` |
 | Font | Manrope self-host `public/fonts` |
 
 Do not regenerate Lika. Transparent RGBA only.

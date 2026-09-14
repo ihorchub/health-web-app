@@ -1,27 +1,32 @@
-# Medicly frontend
+# @medicly/web
 
-Vite + React + TypeScript scaffold for Medicly.
+Vite + React + TypeScript app for Medicly.
 
 ## Run
 
+From the **repo root** (pnpm workspace):
+
 ```bash
-cd frontend
-yarn install
-yarn dev
+pnpm install
+pnpm dev:web
 ```
 
-Open http://localhost:5173
+Or both API + web: `pnpm dev`
 
-## Scripts
+Open http://localhost:5173 — Vite proxies `/api` → `http://localhost:3000`.
 
-| Script              | Purpose                            |
-| ------------------- | ---------------------------------- |
-| `yarn dev`          | Local Vite server                  |
-| `yarn build`        | Typecheck + production build       |
-| `yarn lint`         | ESLint                             |
-| `yarn format`       | Prettier                           |
-| `yarn generate:api` | Orval codegen (needs real OpenAPI) |
+## Scripts (package)
+
+| Script | Purpose |
+| --- | --- |
+| `pnpm --filter @medicly/web dev` | Vite dev server |
+| `pnpm --filter @medicly/web build` | Typecheck + production build |
+| `pnpm --filter @medicly/web lint` | ESLint |
+| `pnpm --filter @medicly/web format` | Prettier |
+| `pnpm --filter @medicly/web generate:api` | Orval codegen (needs OpenAPI) |
 
 ## Stack
 
 MUI + Emotion, Tabler icons, TanStack Query, Axios, Orval, React Router, RHF + Yup, sonner, react-i18next.
+
+Brand assets: `public/brand/`.

@@ -12,8 +12,8 @@ No Redux, no RTK Query, no Apollo.
 
 ## Workflow
 
-1. Backend OpenAPI → `frontend/openapi/openapi.json` (or agreed path)
-2. `yarn generate:api` (Orval)
+1. Backend OpenAPI → `apps/web/openapi/openapi.json` (or agreed path)
+2. `pnpm --filter @medicly/web generate:api` (Orval)
 3. Use generated hooks from `src/api/`
 4. **Never hand-edit** `src/api/generated/`
 

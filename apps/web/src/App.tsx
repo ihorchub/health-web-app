@@ -2,6 +2,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { RouterProvider } from 'react-router-dom';
 import { Toaster } from 'sonner';
 
+import { AppPopups } from '@/components/Popups';
+import { PopupsProvider } from '@/context/PopupsContext';
 import { AppThemeProvider } from '@/context/ThemeContext';
 import { router } from '@/routes';
 
@@ -18,8 +20,11 @@ export const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <AppThemeProvider>
-        <RouterProvider router={router} />
-        <Toaster richColors position="top-center" />
+        <PopupsProvider>
+          <RouterProvider router={router} />
+          <AppPopups />
+          <Toaster richColors position="top-center" />
+        </PopupsProvider>
       </AppThemeProvider>
     </QueryClientProvider>
   );
