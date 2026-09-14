@@ -49,7 +49,7 @@ When implementing **one** screen, still reuse kit first — do not duplicate hea
 - [ ] Light + Dark (or note gap and ask)
 - [ ] All copy via i18n namespaces (UK default)
 - [ ] States: default, loading, empty, error (and success toast where Paper shows snackbar)
-- [ ] Mascot pose from `docs/brand/lika-poses/` when Paper uses Lika
+- [ ] Mascot pose from `frontend/public/brand/lika-poses/` when Paper uses Lika
 - [ ] Data via Orval/TanStack hooks — no fake `useEffect` fetch
 - [ ] Styles: `styled()` + theme; page-only styles in module; shared in `components/`
 - [ ] Popups via Popups context for modals
@@ -59,8 +59,8 @@ When implementing **one** screen, still reuse kit first — do not duplicate hea
 
 | Asset | Location |
 |-------|----------|
-| Lika poses | `docs/brand/lika-poses/*.png` → app `src/assets/` |
-| Logos | `docs/brand/logo/*` → app `src/assets/` |
+| Lika poses | `frontend/public/brand/lika-poses/*.png` |
+| Logos | `frontend/public/brand/logo/*` |
 | Font | Manrope self-host `public/fonts` |
 
 Do not regenerate Lika. Transparent RGBA only.

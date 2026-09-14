@@ -9,7 +9,7 @@ frontend/
 ├── orval.config.ts
 └── src/
     ├── api/                   # Orval generated + mutator (do not hand-edit generated/)
-    ├── assets/                # Lika, logos (source also in docs/brand/)
+    ├── assets/                # optional local imports; brand PNGs live in public/brand/
     ├── components/            # Shared UI kit
     │   ├── Layout/            # Visual shell: Header, Footer, page wrappers, onboarding chrome
     │   ├── Popups/            # Shared modals + AppPopups registry
@@ -74,6 +74,6 @@ Pages/components hold JSX. Extract logic into hooks/utils.
 
 ## Brand assets
 
-- Design source: `docs/brand/lika-poses/`, `docs/brand/logo/`
-- App runtime copies/imports under `frontend/src/assets/`
+- Runtime source: `frontend/public/brand/` (`logo/`, `lika-poses/`, `hero/`, `doctor-avatars/`)
+- Reference via public URLs (e.g. `/brand/logo/medicly-logo-header-light@2x.png`) — not Vite `import` of brand PNGs
 - Do not regenerate Lika — use the PNGs from Paper (transparent RGBA)

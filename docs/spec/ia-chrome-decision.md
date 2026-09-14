@@ -158,7 +158,7 @@ Sign-up: **two required checkboxes** with links to those pages; register disable
 
 **Locked deltas vs Guest:** patient header = **«Знайти лікаря»** + bell + theme + avatar (no UK\|EN in bar; language in avatar menu); active Book + favourite hearts; city/clinic filter prefill (e.g. Київ / Добробут). Mobile patient CTA may shorten to **«Знайти»** for width. Light cards use design-spec card shadow; Dark uses surface + border (no Light shadow).
 
-**Hero asset:** `docs/brand/hero/scr02-hero-doctor-lika.png` · doctor avatars: `docs/brand/doctor-avatars/`.
+**Hero asset:** `frontend/public/brand/hero/scr02-hero-doctor-lika.png` · doctor avatars: `frontend/public/brand/doctor-avatars/`.
 
 Structure top → bottom:
 
@@ -331,7 +331,7 @@ SCR-12 = pending decision — still required (UI pass later).
 - Review authorship rules + moderation  
 - Promo price setup UX on SCR-09  
 
-~~Banner final art/copy on SCR-02~~ — locked with Paper SoT + `docs/brand/hero/scr02-hero-doctor-lika.png` (27 Aug 2026).
+~~Banner final art/copy on SCR-02~~ — locked with Paper SoT + `frontend/public/brand/hero/scr02-hero-doctor-lika.png` (27 Aug 2026).
 
 ---
 

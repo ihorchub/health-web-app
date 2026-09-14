@@ -1,0 +1,9 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Medicly API (placeholder)",
+    "version": "0.0.0",
+    "description": "Placeholder OpenAPI document. Replace with the real backend spec before running yarn generate:api."
+  },
+  "paths": {}
+}

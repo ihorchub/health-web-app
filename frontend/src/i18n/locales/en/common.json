@@ -1,0 +1,12 @@
+{
+  "appName": "Medicly",
+  "themeOk": "Theme OK",
+  "stubTitle": "Medicly · theme OK",
+  "stubSubtitle": "Frontend skeleton is ready. Check light/dark and uk/en.",
+  "toggleTheme": "Theme",
+  "toggleLanguage": "Language",
+  "themeLight": "Light",
+  "themeDark": "Dark",
+  "languageUk": "UK",
+  "languageEn": "EN"
+}

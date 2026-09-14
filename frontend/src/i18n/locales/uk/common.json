@@ -1,0 +1,12 @@
+{
+  "appName": "Medicly",
+  "themeOk": "Тема OK",
+  "stubTitle": "Medicly · theme OK",
+  "stubSubtitle": "Каркас фронтенду готовий. Перевір light/dark і uk/en.",
+  "toggleTheme": "Тема",
+  "toggleLanguage": "Мова",
+  "themeLight": "Світла",
+  "themeDark": "Темна",
+  "languageUk": "UK",
+  "languageEn": "EN"
+}
