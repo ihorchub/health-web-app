@@ -15,21 +15,25 @@ Digital healthcare booking platform — patients search doctors, book honest slo
 
 ## Technology stack (summary)
 
-- **Monorepo:** pnpm — `apps/api` (scaffolded), `apps/web` (next)
+- **Monorepo:** pnpm — `apps/api`, `apps/web`
 - **API:** Fastify, TypeScript, PostgreSQL, Drizzle, TypeBox, OpenAPI
 - **Web:** React, Vite, MUI, React Router, React Query, Orval
 - **Auth:** Server-side sessions, HTTP-only cookies
 
 See [docs/spec/tech-stack.md](docs/spec/tech-stack.md) for upload limits, promo pricing, sessions, and dev setup conventions.
 
-## Run from zero (API)
+## Run from zero
 
 ```text
 pnpm install
 cp apps/api/.env.example apps/api/.env   # set DATABASE_URL (+ DIRECT_URL for migrations)
-pnpm dev
-curl http://localhost:3000/api/v1/health
+pnpm dev                                 # API :3000 + web :5173 (Vite proxies /api)
 ```
+
+- API: http://localhost:3000/api/v1/health  
+- Web: http://localhost:5173 (home page checks API via proxy)
+
+Frontend-only: `pnpm dev:web`. API-only: `pnpm dev:api`.
 
 PostgreSQL is **Supabase** (hosted). Use the **transaction pooler** URI (`DATABASE_URL`, port 6543) for the API; use **direct** (`DIRECT_URL`, port 5432) for `pnpm db:migrate` when needed.
 
