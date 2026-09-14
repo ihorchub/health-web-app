@@ -9,6 +9,7 @@
     "start": "pnpm --filter @medicly/api start",
     "db:generate": "pnpm --filter @medicly/api db:generate",
     "db:migrate": "pnpm --filter @medicly/api db:migrate",
+    "db:seed": "pnpm --filter @medicly/api db:seed",
     "db:studio": "pnpm --filter @medicly/api db:studio",
     "test": "pnpm --filter @medicly/api test",
     "lint": "pnpm --filter @medicly/web lint",
