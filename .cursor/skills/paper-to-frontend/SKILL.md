@@ -50,7 +50,7 @@ When implementing **one** screen, still reuse kit first — do not duplicate hea
 - [ ] All copy via i18n namespaces (UK default)
 - [ ] States: default, loading, empty, error (and success toast where Paper shows snackbar)
 - [ ] Mascot pose from `apps/web/public/brand/lika-poses/` when Paper uses Lika
-- [ ] Data via Orval/TanStack hooks — no fake `useEffect` fetch
+- [ ] Data via TanStack hooks: **real API** where `apps/api` already exposes the route (auth/register after merge); otherwise **mock hooks** shaped like Orval (see DATA-FETCHING.md) — no fake `useEffect` fetch in components
 - [ ] Styles: `styled()` + theme; page-only styles in module; shared in `components/`
 - [ ] Popups via Popups context for modals
 - [ ] QA against Paper screenshot after meaningful UI
