@@ -1,28 +1,18 @@
-import { StrictMode } from "react";
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
 
-import { createRoot } from "react-dom/client";
+import { App } from '@/App';
+import '@/i18n';
+import '@/index.css';
 
-import "@fontsource/manrope/400.css";
-import "@fontsource/manrope/500.css";
-import "@fontsource/manrope/600.css";
-import "@fontsource/manrope/700.css";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+const rootElement = document.getElementById('root');
 
-import { ThemedApp } from "@/ThemedApp";
+if (!rootElement) {
+  throw new Error('Root element #root not found');
+}
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      refetchOnWindowFocus: true,
-    },
-  },
-});
-
-createRoot(document.getElementById("root")!).render(
+createRoot(rootElement).render(
   <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <ThemedApp />
-    </QueryClientProvider>
+    <App />
   </StrictMode>,
 );
