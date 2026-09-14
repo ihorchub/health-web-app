@@ -38,11 +38,12 @@
     "sortRating": "By rating",
     "sortNearest": "By nearest slot",
     "showMore": "Show more doctors",
-    "loading": "Loading doctors…",
+    "loadingBadge": "Loading…",
+    "errorBadge": "Failed to load",
     "emptyTitle": "No doctors found",
-    "emptyBody": "Try changing filters or your search query.",
+    "emptyBody": "Try changing the specialty, city, or visit format.",
     "errorTitle": "Could not load results",
-    "errorBody": "Check your connection and try again.",
+    "errorBody": "Check your connection and try again",
     "retry": "Try again"
   },
   "filters": {

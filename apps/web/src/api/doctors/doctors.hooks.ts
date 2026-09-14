@@ -1,16 +1,21 @@
 import { useQuery } from '@tanstack/react-query';
 
 import type {
+  DoctorCalendarParams,
+  DoctorCalendarResponse,
   DoctorProfile,
   DoctorsSearchParams,
   DoctorsSearchResponse,
 } from '@/api/doctors/types';
+import { mockGetDoctorCalendar } from '@/api/mocks/doctorCalendar';
 import { mockGetDoctorById, mockSearchDoctors } from '@/api/mocks/doctorsSearch';
 
 export const doctorsQueryKeys = {
   search: (params: DoctorsSearchParams, roleKey: string) =>
     ['doctors', 'search', roleKey, params] as const,
   byId: (doctorId: string, roleKey: string) => ['doctors', doctorId, roleKey] as const,
+  calendar: (doctorId: string, params: DoctorCalendarParams) =>
+    ['doctors', doctorId, 'calendar', params] as const,
 };
 
 interface UseGetDoctorsSearchOptions {
@@ -57,10 +62,37 @@ export const useGetDoctorById = (
   });
 };
 
+interface UseGetDoctorCalendarOptions {
+  enabled?: boolean;
+  /** Frontend-spec: refetch while SCR-04 wizard is open. */
+  refetchIntervalMs?: number | false;
+}
+
+/** Orval-shaped — GET /api/v1/doctors/:doctorId/calendar */
+export const useGetDoctorCalendar = (
+  doctorId: string | undefined,
+  params: DoctorCalendarParams,
+  options: UseGetDoctorCalendarOptions = {},
+) => {
+  return useQuery<DoctorCalendarResponse>({
+    queryKey: doctorsQueryKeys.calendar(doctorId ?? '', params),
+    queryFn: () => mockGetDoctorCalendar(doctorId!, params),
+    enabled: Boolean(doctorId) && (options.enabled ?? true),
+    refetchInterval: options.refetchIntervalMs ?? false,
+    refetchOnWindowFocus: true,
+    placeholderData: (previous) => previous,
+  });
+};
+
 export type {
   DoctorsSearchParams,
   DoctorsSearchResponse,
   DoctorSearchCard,
   DoctorProfile,
   DoctorReview,
+  DoctorCalendarParams,
+  DoctorCalendarResponse,
+  CalendarSlot,
+  CalendarDaySummary,
+  DayAvailabilityFlag,
 } from '@/api/doctors/types';

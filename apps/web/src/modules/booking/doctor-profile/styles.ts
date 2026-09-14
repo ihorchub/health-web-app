@@ -5,12 +5,18 @@ export const ProfileDialog = styled(Dialog)(({ theme }) => ({
     backgroundColor: 'rgba(22, 62, 82, 0.45)',
   },
 
+  '& .MuiDialog-container': {
+    alignItems: 'center',
+  },
+
   '& .MuiDialog-paper': {
+    display: 'flex',
+    flexDirection: 'column',
     margin: theme.spacing(2),
     width: '100%',
     maxWidth: 920,
-    maxHeight: 'calc(100% - 32px)',
-    borderRadius: theme.shape.borderRadius * 2.5,
+    maxHeight: 'calc(100dvh - 32px)',
+    borderRadius: 20,
     overflow: 'hidden',
     boxShadow: '0px 1px 2px rgba(22, 62, 82, 0.06), 0px 24px 64px rgba(22, 62, 82, 0.2)',
   },
@@ -19,8 +25,11 @@ export const ProfileDialog = styled(Dialog)(({ theme }) => ({
 export const DialogShell = styled('div')({
   display: 'flex',
   flexDirection: 'column',
-  maxHeight: 'inherit',
+  flex: '1 1 auto',
+  minHeight: 0,
+  maxHeight: '100%',
   width: '100%',
+  overflow: 'hidden',
 });
 
 export const DialogHeader = styled('div')(({ theme }) => ({
@@ -29,7 +38,7 @@ export const DialogHeader = styled('div')(({ theme }) => ({
   justifyContent: 'space-between',
   gap: theme.spacing(2),
   flexShrink: 0,
-  padding: theme.spacing(2.5, 3.5),
+  padding: theme.spacing(2, 3),
   borderBottom: `1px solid ${theme.palette.divider}`,
 }));
 
@@ -100,7 +109,7 @@ export const Photo = styled('img')(({ theme }) => ({
   height: 140,
   flexShrink: 0,
   objectFit: 'cover',
-  borderRadius: theme.shape.borderRadius * 2.5,
+  borderRadius: 20,
   backgroundColor: theme.palette.action.hover,
 }));
 
@@ -145,12 +154,12 @@ export const SpecialtyText = styled('div')(({ theme }) => ({
   color: theme.palette.text.secondary,
 }));
 
-export const ClinicBlock = styled('div')(({ theme }) => ({
+export const ClinicBlock = styled('div')({
   display: 'flex',
   flexDirection: 'column',
   gap: 2,
   width: '100%',
-}));
+});
 
 export const FieldLabel = styled('div')(({ theme }) => ({
   ...theme.typography.overline,
@@ -186,13 +195,13 @@ export const FactsRow = styled('div')(({ theme }) => ({
   },
 }));
 
-export const FactCell = styled('div')(({ theme }) => ({
+export const FactCell = styled('div')({
   display: 'flex',
   flexDirection: 'column',
   gap: 2,
   flexGrow: 1,
   minWidth: 0,
-}));
+});
 
 export const FactValue = styled('div')(({ theme }) => ({
   ...theme.typography.body1,
@@ -355,7 +364,7 @@ export const DialogFooter = styled('div')(({ theme }) => ({
   justifyContent: 'space-between',
   gap: theme.spacing(2),
   flexShrink: 0,
-  padding: theme.spacing(2, 3.5),
+  padding: theme.spacing(1.5, 3),
   borderTop: `1px solid ${theme.palette.divider}`,
 }));
 

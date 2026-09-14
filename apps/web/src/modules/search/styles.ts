@@ -670,14 +670,112 @@ export const StateBox = styled('div')(({ theme }) => ({
   flexDirection: 'column',
   alignItems: 'center',
   justifyContent: 'center',
-  gap: theme.spacing(1.5),
-  minHeight: 240,
-  padding: theme.spacing(4),
+  gap: theme.spacing(2),
+  minHeight: 360,
+  padding: theme.spacing(6, 3),
   textAlign: 'center',
   borderRadius: 16,
   backgroundColor: theme.palette.background.paper,
   border: `1px solid ${theme.palette.divider}`,
 }));
+
+export const StateMascot = styled('img')({
+  width: 120,
+  height: 120,
+  objectFit: 'contain',
+  flexShrink: 0,
+});
+
+export const StateTitle = styled('div')(({ theme }) => ({
+  fontFamily: theme.typography.fontFamily,
+  fontSize: 20,
+  lineHeight: '28px',
+  fontWeight: 700,
+  color: theme.palette.text.primary,
+}));
+
+export const StateBody = styled('div')(({ theme }) => ({
+  fontFamily: theme.typography.fontFamily,
+  fontSize: 15,
+  lineHeight: '22px',
+  fontWeight: 500,
+  color: theme.palette.text.secondary,
+  maxWidth: 360,
+}));
+
+export const StatusBadge = styled('span')<{ $tone: 'loading' | 'error' }>(
+  ({ theme, $tone }) => ({
+    display: 'inline-flex',
+    alignItems: 'center',
+    height: 28,
+    paddingInline: 12,
+    borderRadius: 999,
+    fontFamily: theme.typography.fontFamily,
+    fontSize: 13,
+    lineHeight: '16px',
+    fontWeight: 700,
+    color: $tone === 'loading' ? theme.palette.primary.main : theme.palette.error.main,
+    backgroundColor: $tone === 'loading' ? '#E8F7F2' : '#FCEAEA',
+
+    ...(theme.palette.mode === 'dark'
+      ? {
+          backgroundColor:
+            $tone === 'loading' ? 'rgba(46, 177, 145, 0.18)' : 'rgba(196, 92, 92, 0.22)',
+        }
+      : null),
+  }),
+);
+
+export const TitleRow = styled('div')(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  flexWrap: 'wrap',
+  gap: theme.spacing(1.25),
+}));
+
+export const SkeletonCard = styled('div')(({ theme }) => ({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 14,
+  padding: 16,
+  borderRadius: 12,
+  backgroundColor: theme.palette.background.paper,
+  border: `1px solid ${theme.palette.divider}`,
+  boxSizing: 'border-box',
+  minHeight: 280,
+}));
+
+export const SkeletonRow = styled('div')(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  gap: theme.spacing(1.5),
+}));
+
+export const SkeletonCircle = styled('div')(({ theme }) => ({
+  width: 64,
+  height: 64,
+  flexShrink: 0,
+  borderRadius: 999,
+  backgroundColor: theme.palette.action.disabledBackground,
+}));
+
+export const SkeletonStack = styled('div')(({ theme }) => ({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: theme.spacing(1),
+  flexGrow: 1,
+  minWidth: 0,
+}));
+
+export const SkeletonBar = styled('div')<{ $width?: string; $height?: number }>(
+  ({ theme, $width = '100%', $height = 12 }) => ({
+    width: $width,
+    height: $height,
+    flexShrink: 0,
+    borderRadius: 6,
+    backgroundColor: theme.palette.action.disabledBackground,
+  }),
+);
 
 export const FiltersDrawer = styled(Drawer)(({ theme }) => ({
   '& .MuiDrawer-paper': {

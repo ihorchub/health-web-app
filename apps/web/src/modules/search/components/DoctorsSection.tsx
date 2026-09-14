@@ -35,16 +35,30 @@ import {
   RatingRow,
   SectionTitle,
   ShowMoreButton,
+  SkeletonBar,
+  SkeletonCard,
+  SkeletonCircle,
+  SkeletonRow,
+  SkeletonStack,
   SortSelect,
   SpecialtyText,
   Stars,
+  StateBody,
   StateBox,
+  StateMascot,
+  StateTitle,
+  StatusBadge,
   StruckPrice,
+  TitleRow,
   FilterMenuItem,
   ResultsWrap,
 } from '@/modules/search/styles';
 import { AppRole } from '@/types/role';
 import { AppRoute, doctorProfilePath } from '@/utils/routeUtils/routes';
+
+const LIKA_EMPTY = '/brand/lika-poses/lika4.png';
+const LIKA_ERROR = '/brand/lika-poses/lika5.png';
+const SKELETON_COUNT = 6;
 
 const formatNearest = (iso: string | null, locale: string, fallback: string) => {
   if (!iso) {
@@ -68,6 +82,21 @@ const reviewKey = (count: number) => {
     return 'card.reviews_few';
   }
   return 'card.reviews_many';
+};
+
+const foundKey = (count: number, language: string) => {
+  if (language.startsWith('en')) {
+    return count === 1 ? 'results.foundOne' : 'results.found';
+  }
+  const mod10 = count % 10;
+  const mod100 = count % 100;
+  if (mod10 === 1 && mod100 !== 11) {
+    return 'results.foundOne';
+  }
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) {
+    return 'results.foundFew';
+  }
+  return 'results.found';
 };
 
 interface DoctorCardProps {
@@ -208,6 +237,23 @@ export const DoctorCard = ({
   );
 };
 
+const DoctorCardSkeleton = () => (
+  <SkeletonCard aria-hidden>
+    <SkeletonRow>
+      <SkeletonCircle />
+      <SkeletonStack>
+        <SkeletonBar $width="70%" $height={14} />
+        <SkeletonBar $width="45%" $height={12} />
+        <SkeletonBar $width="55%" $height={12} />
+      </SkeletonStack>
+    </SkeletonRow>
+    <SkeletonBar $width="50%" />
+    <SkeletonBar $width="80%" />
+    <SkeletonBar $width="40%" $height={20} />
+    <SkeletonBar $width="100%" $height={40} />
+  </SkeletonCard>
+);
+
 interface DoctorsSectionProps {
   role: AppRole;
   items: DoctorSearchCard[];
@@ -237,7 +283,7 @@ export const DoctorsSection = ({
   onShowMore,
   onRetry,
 }: DoctorsSectionProps) => {
-  const { t } = useTranslation('search');
+  const { t, i18n } = useTranslation('search');
   const navigate = useNavigate();
 
   const openProfile = (doctor: DoctorSearchCard) => {
@@ -249,6 +295,10 @@ export const DoctorsSection = ({
   };
 
   const handleBook = (doctor: DoctorSearchCard) => {
+    if (role === AppRole.GUEST) {
+      goLogin(doctorProfilePath(doctor.id));
+      return;
+    }
     openProfile(doctor);
   };
 
@@ -266,53 +316,71 @@ export const DoctorsSection = ({
     openProfile(doctor);
   };
 
+  const showResults = !isLoading && !isError && items.length > 0;
+  const showEmpty = !isLoading && !isError && items.length === 0;
+
   return (
     <ResultsWrap>
       <DoctorsHeader>
         <div>
-          <SectionTitle>{t('results.title')}</SectionTitle>
+          <TitleRow>
+            <SectionTitle>{t('results.title')}</SectionTitle>
+            {isLoading ? (
+              <StatusBadge $tone="loading">{t('results.loadingBadge')}</StatusBadge>
+            ) : null}
+            {isError ? (
+              <StatusBadge $tone="error">{t('results.errorBadge')}</StatusBadge>
+            ) : null}
+          </TitleRow>
           {!isLoading && !isError ? (
-            <FoundText>{t('results.found', { count: total })}</FoundText>
+            <FoundText>{t(foundKey(total, i18n.language), { count: total })}</FoundText>
           ) : null}
         </div>
-        <SortSelect
-          select
-          size="small"
-          value={sort}
-          onChange={(event) => {
-            onSortChange(event.target.value as SearchSort);
-          }}
-          label={t('results.sortLabel')}
-        >
-          <FilterMenuItem value="rating">{t('results.sortRating')}</FilterMenuItem>
-          <FilterMenuItem value="nearest_slot">{t('results.sortNearest')}</FilterMenuItem>
-        </SortSelect>
+        {!isError ? (
+          <SortSelect
+            select
+            size="small"
+            value={sort}
+            onChange={(event) => {
+              onSortChange(event.target.value as SearchSort);
+            }}
+            label={t('results.sortLabel')}
+            disabled={isLoading}
+          >
+            <FilterMenuItem value="rating">{t('results.sortRating')}</FilterMenuItem>
+            <FilterMenuItem value="nearest_slot">{t('results.sortNearest')}</FilterMenuItem>
+          </SortSelect>
+        ) : null}
       </DoctorsHeader>
 
-      {isLoading && items.length === 0 ? (
-        <StateBox>
-          <SectionTitle>{t('results.loading')}</SectionTitle>
-        </StateBox>
+      {isLoading ? (
+        <DoctorGrid aria-busy aria-label={t('results.loadingBadge')}>
+          {Array.from({ length: SKELETON_COUNT }).map((_, index) => (
+            <DoctorCardSkeleton key={index} />
+          ))}
+        </DoctorGrid>
       ) : null}
 
       {isError ? (
-        <StateBox>
-          <SectionTitle>{t('results.errorTitle')}</SectionTitle>
-          <HintText>{t('results.errorBody')}</HintText>
+        <StateBox role="alert">
+          <StateMascot src={LIKA_ERROR} alt="" />
+          <StateTitle>{t('results.errorTitle')}</StateTitle>
+          <StateBody>{t('results.errorBody')}</StateBody>
           <Button variant="contained" color="primary" onClick={onRetry}>
             {t('results.retry')}
           </Button>
         </StateBox>
       ) : null}
 
-      {!isLoading && !isError && items.length === 0 ? (
+      {showEmpty ? (
         <StateBox>
-          <SectionTitle>{t('results.emptyTitle')}</SectionTitle>
-          <HintText>{t('results.emptyBody')}</HintText>
+          <StateMascot src={LIKA_EMPTY} alt="" />
+          <StateTitle>{t('results.emptyTitle')}</StateTitle>
+          <StateBody>{t('results.emptyBody')}</StateBody>
         </StateBox>
       ) : null}
 
-      {items.length > 0 ? (
+      {showResults ? (
         <>
           <DoctorGrid>
             {items.map((doctor) => (

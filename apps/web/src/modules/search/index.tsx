@@ -176,7 +176,7 @@ export const SearchPage = () => {
               sort={sort}
               cityNameById={cityNameById}
               clinicNameById={clinicNameById}
-              isLoading={doctorsQuery.isLoading || doctorsQuery.isFetching}
+              isLoading={doctorsQuery.isLoading && !doctorsQuery.data}
               isError={doctorsQuery.isError}
               hasMore={Boolean(doctorsQuery.data?.nextCursor)}
               onSortChange={changeSort}

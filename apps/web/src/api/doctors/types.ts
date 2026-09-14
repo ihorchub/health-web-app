@@ -83,3 +83,12 @@ export interface DoctorProfile {
   isFavourite: boolean;
   reviews: DoctorReview[];
 }
+
+export type {
+  CalendarDaySummary,
+  CalendarSlot,
+  DayAvailabilityFlag,
+  DoctorCalendarParams,
+  DoctorCalendarResponse,
+  SlotStatus,
+} from '@/api/doctors/calendar.types';
