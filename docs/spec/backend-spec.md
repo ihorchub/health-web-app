@@ -1,12 +1,14 @@
 # Backend specification
 
-**Status:** In progress — SCR-01…SCR-12 + FLO walkthroughs filled (1 Sep 2026); shared model approved  
-**Source of truth:** [product-spec.md](./product-spec.md) (IA overlay folded 31 Aug 2026)  
+**Status:** In progress — API contracts aligned to **Paper design priority** (14 Sep 2026); product rules still from [product-spec.md](./product-spec.md) where design is silent  
+**Source of truth (behaviour):** [product-spec.md](./product-spec.md) · **API shape / fields on screens:** Paper file (design wins on UI conflicts; this file is updated to match)  
 **Pair file:** [frontend-spec.md](./frontend-spec.md) — **Contract** blocks must match.
 
 Server behaviour: authz, appointment lifecycle, slot honesty, seed, API contracts per screen. Layout belongs in the frontend spec.
 
 **Stack (team choice):** Fastify (TypeScript), PostgreSQL, Drizzle ORM, monorepo.
+
+**ID convention:** every resource `id` in requests/responses is a **`string`** (not a separate UUID type in the API layer).
 
 How to fill: shared model first (below), then one `SCR-*` at a time. Approve before the next. Skill `write-layer-spec`.
 
@@ -22,11 +24,12 @@ How to fill: shared model first (below), then one `SCR-*` at a time. Approve bef
 
 | Entity | Notes |
 |---|---|
-| `users` | `id`, `email` (unique), `password_hash`, `role` (`patient` \| `doctor`), `created_at` |
-| `patient_profiles` | `user_id`, names, `dob`, `phone`, `home_city_id`, `home_clinic_id`, `language`, `theme` |
-| `doctor_profiles` | `user_id`, names, `dob`, `phone`, `city_id`, `clinic_id`, `specialty`, `years_practice`, `visit_duration_minutes`, `photo_url`, `license_file_url`, `bio`, `languages` (text[]), `language`, `theme` |
-| `doctor_education` | `id`, `doctor_user_id`, `kind` (`university` \| `certificate` \| `training`), `title`, `subtitle` (optional), `year_from`, `year_to` (optional) |
-| `sessions` | Server-side session row: random `session_id` in an **HTTP-only cookie** (see below) |
+| `users` | `id` (`string`), `email` (unique), `password_hash`, `role` (`patient` \| `doctor`), `email_verified_at`, `created_at` |
+| `registrations` | Pending multi-step sign-up: `id` (`string` = `registrationId`), `role`, step-1 fields, `email_verify_token`, `email_verified`, `profile_completed`, expires |
+| `patient_profiles` | `user_id`, names, `dob`, `gender` (`female` \| `male`), `phone`, `photo_url`, `home_city_id`, `home_clinic_id`, `language`, `theme` |
+| `doctor_profiles` | `user_id`, names, `dob`, `phone`, `city_id`, `clinic_id`, `specialty`, `years_practice`, `visit_duration_minutes`, `photo_url`, `license_file_url` (optional), `bio`, `languages` (text[]), `language`, `theme` |
+| `doctor_education` | `id` (`string`), `doctor_user_id`, `kind` (`university` \| `certificate` \| `training`), `title`, `subtitle` (optional), `year_from`, `year_to` (optional) |
+| `sessions` | Server-side session row: random `session_id` (`string`) in an **HTTP-only cookie** (see below) |
 
 **Session — how login persists (plain language)**
 
@@ -47,33 +50,39 @@ One email → one `users` row → one role forever. No dual role.
 3. **Public read** (no session): doctor search, doctor profile, legal pages, seed city/clinic lists for SCR-01 dropdowns.
 4. Never rely on UI hiding alone.
 
-#### Registration validation (MVP defaults — product Open, propose for team)
+#### Registration validation (MVP defaults)
 
 | Field | Rule |
 |---|---|
-| Email | Valid format; unique |
-| Password | Min **8** characters (**Confirmed** 31 Aug 2026) |
-| Phone | Non-empty string (format Open) |
-| DOB (patient) | Must be in the past |
+| Email | Valid format; unique across users + open registrations |
+| Password | Min **8** characters (**Confirmed** 31 Aug 2026). Password confirm is **client-only** |
+| Phone | Collected on profile / later edit — format **Open** |
+| DOB | Must be in the past (patient + doctor on step 3) |
+| Gender (patient) | `female` \| `male` — **required** (Paper) |
 | Years of practice (doctor) | Integer ≥ 0 |
 | Visit duration | One of 20, 30, 45 |
-| License file | Required for doctor; accept image or PDF; store path/blob; not verified |
-| Sign-up consent | `accepted_privacy` + `accepted_terms` both true (**R-16**) |
+| License file | **Optional** (Paper); image or PDF if present; not verified |
+| Sign-up consent | `acceptedPrivacy` + `acceptedTerms` both true on step 1 (**R-16**) |
 
 #### Commands / endpoints (conceptual)
 
+Prefix: `/api/v1`. All ids are `string`.
+
 | Operation | Auth | Notes |
 |---|---|---|
-| `POST /auth/register/patient` | public | Creates patient + session; redirect hint `SCR-06` |
-| `POST /auth/register/doctor` | public | Creates doctor + default schedule template; redirect hint `SCR-08` |
+| `POST /auth/register/step-1` | public | Role + name + email + password + consent → `registrationId`; sends verify email |
+| `POST /auth/register/verify-email` | public | `{ registrationId, token }` → unlocks profile step |
+| `POST /auth/register/resend-email` | public | Resend verify link for open registration |
+| `POST /auth/register/step-3` | public (registration) | Role-specific profile fields; patient includes `gender`; doctor `licenseFile` optional |
+| `POST /auth/register/complete` | public (registration) | Creates user + session; redirect `SCR-06` / `SCR-08` |
 | `POST /auth/login` | public | Returns session + role + redirect hint |
 | `POST /auth/logout` | logged-in | Clears session |
-| `GET /auth/me` | optional / logged-in | Current user summary for chrome |
+| `GET /auth/me` | optional / logged-in | Current user summary for chrome; `null` if guest |
 | `GET /reference/cities` | public | Seed cities |
-| `GET /reference/clinics?cityId=` | public | Clinics in city |
+| `GET /reference/clinics?cityId=` | public | Clinics in city (`cityId`: `string`) |
 | `GET /reference/specialties` | public | Four specialties |
 
-#### Post-login redirect hints (R-16)
+#### Post-login / post-complete redirect hints (R-16)
 
 | Role | Default route |
 |---|---|
@@ -90,14 +99,22 @@ One email → one `users` row → one role forever. No dual role.
 | `AUTH_CONSENT_REQUIRED` | Privacy/Terms not accepted |
 | `AUTH_UNAUTHORIZED` | No/invalid session |
 | `AUTH_FORBIDDEN` | Session valid but not allowed for this resource |
+| `AUTH_INVALID_TOKEN` | Bad email-verify token |
+| `AUTH_TOKEN_EXPIRED` | Verify token expired |
+| `AUTH_REGISTRATION_NOT_FOUND` | Unknown or expired `registrationId` |
+| `AUTH_EMAIL_NOT_VERIFIED` | Step 3 before verify |
+| `AUTH_PROFILE_INCOMPLETE` | Complete before profile done |
+| `AUTH_ALREADY_VERIFIED` | Resend after verify |
+| `AUTH_RESEND_TOO_SOON` | Resend rate limit |
+| `AUTH_FORBIDDEN_STEP` | Wrong step order |
 
 #### Out of scope
 
-Forgot password, social login, license verification, dual role, clinic admin.
+Forgot password, social login, license **verification**, dual role, clinic admin, **SMS/phone OTP**.
 
 #### Open questions
 
-Phone format — **Open**.
+Phone format — **Open**. Verify-token TTL / resend cooldown — suggest 24h / 60s.
 
 ---
 
@@ -115,9 +132,9 @@ Phone format — **Open**.
 
 | Field | Notes |
 |---|---|
-| `id` | UUID |
-| `doctor_id` | |
-| `patient_id` | |
+| `id` | `string` |
+| `doctor_id` | `string` |
+| `patient_id` | `string` |
 | `start_at` | UTC `timestamptz` |
 | `duration_minutes` | Snapshot at book time |
 | `format` | `offline` \| `online` |
@@ -324,61 +341,123 @@ Auth: …
 
 **Product pointer:** [SCR-01](./product-spec.md#scr-01-sign-up--log-in), [R-01](./product-spec.md#r-01-accounts-and-roles), [R-05](./product-spec.md#r-05-appointment-duration), [R-11](./product-spec.md#r-11-language-and-theme), [R-16](./product-spec.md#r-16-app-shell-and-public-entry)
 
+**Design note:** Paper onboarding is **4 steps** — one primary endpoint per step (+ resend on email step). Design wins over older “single POST register / email UI-only” lines.
+
 ### Contract
 
-**Sign up**
+**Register — step 1 (Дані)**
 
-- In: `role` (`patient` | `doctor`) + role fields + `accepted_privacy` + `accepted_terms` (both `true`)
-- Out: session cookie set; `{ userId, role, redirectTo }` — patient → `SCR-06`, doctor → `SCR-08`
-- Errors: `AUTH_EMAIL_TAKEN`, `AUTH_VALIDATION_FAILED`, `AUTH_CONSENT_REQUIRED` (+ field keys in body)
+- In: `role`, `firstName`, `lastName`, `email`, `password`, `acceptedPrivacy`, `acceptedTerms` (both `true`); optional `language`, `theme`
+- Out: `{ registrationId: string, email, role, nextStep: "email" }`; send verify email; no app session yet
+- Errors: `AUTH_EMAIL_TAKEN`, `AUTH_VALIDATION_FAILED`, `AUTH_CONSENT_REQUIRED`
 - Auth: public
+
+**Register — step 2 (Email verify)**
+
+- In: `registrationId: string`, `token: string`
+- Out: `{ registrationId, emailVerified: true, role, nextStep: "profile" }`
+- Errors: `AUTH_INVALID_TOKEN`, `AUTH_TOKEN_EXPIRED`, `AUTH_REGISTRATION_NOT_FOUND`
+- Auth: public
+
+**Register — resend email (same step UI)**
+
+- In: `registrationId: string`
+- Out: `{ ok: true, sentTo: string }`
+- Errors: `AUTH_RESEND_TOO_SOON`, `AUTH_REGISTRATION_NOT_FOUND`, `AUTH_ALREADY_VERIFIED`
+- Auth: public
+
+**Register — step 3 (Профіль)**
+
+- In: `registrationId: string` + role-specific fields (see table). Patient: `gender` required. Doctor: `licenseFile` optional multipart
+- Out: `{ registrationId, profileCompleted: true, nextStep: "done" }`
+- Errors: `AUTH_EMAIL_NOT_VERIFIED`, `AUTH_VALIDATION_FAILED`, `AUTH_REGISTRATION_NOT_FOUND`, `AUTH_FORBIDDEN_STEP`
+- Auth: public (bound to registration)
+
+**Register — step 4 (Готово / complete)**
+
+- In: `registrationId: string`
+- Out: session cookie; `{ userId: string, role, redirectTo }` — patient → `SCR-06`, doctor → `SCR-08`
+- Errors: `AUTH_PROFILE_INCOMPLETE`, `AUTH_EMAIL_NOT_VERIFIED`, `AUTH_REGISTRATION_NOT_FOUND`
+- Auth: public (bound to registration)
 
 **Log in**
 
 - In: `email`, `password`
-- Out: session cookie; `{ userId, role, redirectTo }` as above
+- Out: session cookie; `{ userId: string, role, redirectTo }`
 - Errors: `AUTH_INVALID_CREDENTIALS`, `AUTH_VALIDATION_FAILED`
 - Auth: public
 
 **Log out**
 
 - In: session cookie
-- Out: session destroyed; `{ ok: true }`
+- Out: `{ ok: true }`
 - Errors: `AUTH_UNAUTHORIZED` (optional — idempotent logout OK)
 - Auth: logged-in (optional strict)
 
 ### Who is allowed
 
-- Anyone may register/login (one email, one role).
-- Authenticated user hitting SCR-01 routes → skip UI; server `GET /auth/me` returns role + redirect hint.
+- Anyone may start register / login (one email, one role).
+- Authenticated user hitting SCR-01 → skip UI; `GET /auth/me` returns role + redirect hint.
 
 ### Commands / queries
 
-| Method | Path | Auth | Body / notes |
+| Method | Path | Auth | Payload / response notes |
 |---|---|---|---|
-| `POST` | `/api/v1/auth/register/patient` | public | `firstName`, `lastName`, `cityId`, `clinicId`, `dob`, `email`, `password`, `phone`, `acceptedPrivacy`, `acceptedTerms`, optional `language`, `theme` |
-| `POST` | `/api/v1/auth/register/doctor` | public | Same as patient fields + **`dob`**, `specialty`, `yearsPractice`, `visitDurationMinutes` (20\|30\|45), **`licenseFile` (multipart, required)**, consent flags |
-| `POST` | `/api/v1/auth/login` | public | `email`, `password` |
-| `POST` | `/api/v1/auth/logout` | session | — |
-| `GET` | `/api/v1/auth/me` | optional | Returns `null` or `{ id, role, email, firstName, redirectTo, language, theme }` |
-| `GET` | `/api/v1/reference/cities` | public | — |
-| `GET` | `/api/v1/reference/clinics?cityId=` | public | — |
-| `GET` | `/api/v1/reference/specialties` | public | Four enum values |
-| `GET` | `/api/v1/legal/privacy?lang=` | public | Static EN/UK body (**Open:** copy) |
-| `GET` | `/api/v1/legal/terms?lang=` | public | Static EN/UK body |
+| `POST` | `/api/v1/auth/register/step-1` | public | Body: `{ role, firstName, lastName, email, password, acceptedPrivacy, acceptedTerms, language?, theme? }` → `{ registrationId: string, email, role, nextStep: "email" }` |
+| `POST` | `/api/v1/auth/register/verify-email` | public | Body: `{ registrationId: string, token: string }` → `{ registrationId, emailVerified: true, role, nextStep: "profile" }` |
+| `POST` | `/api/v1/auth/register/resend-email` | public | Body: `{ registrationId: string }` → `{ ok: true, sentTo: string }` |
+| `POST` | `/api/v1/auth/register/step-3` | public | See payloads below → `{ registrationId, profileCompleted: true, nextStep: "done" }` |
+| `POST` | `/api/v1/auth/register/complete` | public | Body: `{ registrationId: string }` → `{ userId: string, role, redirectTo }` + session cookie |
+| `POST` | `/api/v1/auth/login` | public | `{ email, password }` → `{ userId: string, role, redirectTo }` + session |
+| `POST` | `/api/v1/auth/logout` | session | → `{ ok: true }` |
+| `GET` | `/api/v1/auth/me` | optional | `null` or `{ id: string, role, email, firstName, redirectTo, language, theme }` |
+| `GET` | `/api/v1/reference/cities` | public | `{ items: Array<{ id: string, name: string }> }` |
+| `GET` | `/api/v1/reference/clinics?cityId=` | public | `{ items: Array<{ id: string, cityId: string, name: string }> }` |
+| `GET` | `/api/v1/reference/specialties` | public | `{ items: Specialty[] }` — four values |
+| `GET` | `/api/v1/legal/privacy?lang=` | public | `{ lang, title, body }` (**Open:** copy) |
+| `GET` | `/api/v1/legal/terms?lang=` | public | `{ lang, title, body }` |
 
-**Doctor register side effects:** create default schedule (Mon–Fri 09–18, lunch 13–14, weekend off, chosen duration, Offline only, default base price e.g. 600 UAH), placeholder photo, visible in search.
+**Step-3 patient body**
 
-**File upload:** `licenseFile` — image or PDF; max size **Open** (suggest 10 MB); store path in `doctor_profiles.license_file_url`.
+```ts
+{
+  registrationId: string;
+  dob: string; // YYYY-MM-DD
+  gender: "female" | "male";
+  cityId: string;
+  clinicId: string; // home clinic
+}
+```
+
+**Step-3 doctor body** (`multipart/form-data`)
+
+```ts
+{
+  registrationId: string;
+  dob: string;
+  cityId: string;
+  clinicId: string;
+  specialty: "family_doctor" | "cardiologist" | "dermatologist" | "paediatrician";
+  yearsPractice: number;
+  visitDurationMinutes: 20 | 30 | 45;
+  licenseFile?: File; // optional — Paper
+}
+```
+
+**Doctor complete side effects:** default schedule (Mon–Fri 09–18, lunch 13–14, weekend off, chosen duration, Offline only, default base price e.g. 600 UAH), placeholder photo, visible in search.
+
+**File upload:** `licenseFile` — image or PDF when present; max size **Open** (suggest 10 MB); store path in `doctor_profiles.license_file_url`.
 
 ### Invariants
 
-- Email unique across all users.
-- `acceptedPrivacy` and `acceptedTerms` must be true on register.
-- Password ≥ 8 chars.
+- Email unique across users and active registrations.
+- Consent required on step 1.
+- Password ≥ 8 chars; password confirm is client-only.
+- Steps must run in order: 1 → verify → 3 → complete.
+- Session is created only on **complete** (or login) — not on step 1–3.
 - `cityId` / `clinicId` / `specialty` must exist in seed reference data.
 - Session cookie: `HttpOnly`, `Secure` in production, `SameSite=Lax`.
-- **Multi-step sign-up UI** (4 steps in Paper): client collects all fields; **one** `POST /register/*` at end. Password confirm is client-only. **No** SMS OTP; **no** email-verification API in MVP (step 2 is UI copy only).
+- Optional `reg_session` cookie may mirror `registrationId` between steps.
 
 ### Errors
 
@@ -386,11 +465,11 @@ Shared auth codes (see Accounts section). Field-level validation returns `AUTH_V
 
 ### Out of scope
 
-Forgot password, social login, license verification, **SMS/phone OTP**, **email verification API**.
+Forgot password, social login, license verification, **SMS/phone OTP**.
 
 ### Open questions
 
-Phone format validation; max upload size for license file.
+Phone on which step after design (profile vs later SCR-07) — Paper step 3 patient has no phone; collect on SCR-07 if missing. Max license upload size.
 
 ---
 
@@ -420,7 +499,7 @@ Phone format validation; max upload size for license file.
 
 | Field | Source |
 |---|---|
-| `id`, `firstName`, `lastName`, `specialty` | `doctor_profiles` |
+| `id`, `firstName`, `lastName`, `specialty` | `doctor_profiles` (`id: string`) |
 | `clinicName`, `cityName`, `clinicId`, `cityId` | join |
 | `photoUrl` | placeholder or SCR-07 upload |
 | `supportedFormats` | `offline` \| `online` \| `both` |
@@ -482,12 +561,12 @@ Full specialty list beyond four — **Open** (product).
 
 | Method | Path | Auth | Notes |
 |---|---|---|---|
-| `GET` | `/api/v1/doctors/:doctorId` | public | Profile + reviews summary; optional session → `isFavourite` |
-| `POST` | `/api/v1/patients/me/favourites/:doctorId` | patient | Add favourite |
-| `DELETE` | `/api/v1/patients/me/favourites/:doctorId` | patient | Remove favourite |
+| `GET` | `/api/v1/doctors/:doctorId` | public | `doctorId: string`. Profile + reviews; optional session → `isFavourite` |
+| `POST` | `/api/v1/patients/me/favourites/:doctorId` | patient | Add favourite → `{ ok: true, isFavourite: true }` |
+| `DELETE` | `/api/v1/patients/me/favourites/:doctorId` | patient | Remove → `{ ok: true, isFavourite: false }` |
 | `POST` | `/api/v1/patients/me/recently-viewed/:doctorId` | patient | Upsert; keep last **10** unique (**R-16** / SCR-06) |
 
-**Profile `Out` fields:** `id`, names, `photoUrl`, `specialty`, `clinic`, `city`, `address`, `yearsPractice`, `bio`, `languages[]`, `supportedFormats`, `basePrice`, `promoPrice`, `ratingAverage`, `reviewCount`, `consultationCount` (computed completed visits), `reviews[]` (`id`, `rating`, `text`, `patientDisplayName`, `createdAt` — no private patient id), `isFavourite`.
+**Profile `Out` fields:** `id: string`, names, `photoUrl`, `specialty`, `clinic`, `city`, `address`, `yearsPractice`, `bio`, `languages[]`, `supportedFormats`, `visitDurationMinutes`, `basePrice`, `promoPrice`, `ratingAverage`, `reviewCount`, `consultationCount` (computed completed visits), `reviews[]` (`id: string`, `rating`, `text`, `patientDisplayName`, `createdAt` — no private patient id), `isFavourite`.
 
 Opening profile (patient) should call `recently-viewed` once per navigation.
 
@@ -519,12 +598,14 @@ Review list pagination size on profile — suggest 10 with “load more”.
 
 ### Contract
 
-- In: `doctorId`, `date` (ISO date, optional — default first bookable day or today); optional `contextAppointmentId` when rescheduling (validates same doctor)
+- In: `doctorId: string`, `date` (ISO date, optional — default first bookable day or today); optional `contextAppointmentId: string` when rescheduling (validates same doctor)
 - Out: `{ zoneAStart, zoneAEnd, visitDurationMinutes, supportedFormats[], days[]?, slots[] }` — for requested `date`, `slots[]`: `{ startAt, status }` where status = `free` \| `taken` \| `reserved` \| `past` \| `day_off`; optional per-day summary for two-month UI
-- Errors: `DOCTOR_NOT_FOUND`, `CALENDAR_FAILED`
-- Auth: **patient** for booking flows; **public** read optional for guest preview of slots (product: guest browses SCR-02 but books after login — calendar may require session for wizard)
+- Errors: `DOCTOR_NOT_FOUND`, `CALENDAR_FAILED`, `APPOINTMENT_FORBIDDEN`
+- Auth: **patient** for booking flows
 
 **Decision:** `GET calendar` requires **patient session** (booking wizard step 2). Guest must log in before wizard opens.
+
+**Design note (Paper):** format Offline/Online toggle is shown on **calendar step**; client holds `format` and sends it on confirm (`POST /appointments`). Response still exposes `supportedFormats` for the toggle.
 
 ### Who is allowed
 
@@ -535,7 +616,7 @@ Review list pagination size on profile — suggest 10 with “load more”.
 
 | Method | Path | Auth | Notes |
 |---|---|---|---|
-| `GET` | `/api/v1/doctors/:doctorId/calendar` | patient | `?date=YYYY-MM-DD`; optional `?month=` for two-month day summaries |
+| `GET` | `/api/v1/doctors/:doctorId/calendar` | patient | Query: `date?`, `month?`, `from?`, `to?`, `contextAppointmentId?: string` |
 
 **Slot computation:** shared Slots section (compute on read, Zone A, occupancy rules).
 
@@ -573,14 +654,14 @@ Polling interval — frontend architecture.
 
 **New book (FLO-01)**
 
-- In: `doctorId`, `startAt`, `format` (`offline`|`online`), `reason` (optional string, may be empty)
-- Out: `{ appointment }` status `Upcoming`; frontend shows toast → SCR-06
+- In: `doctorId: string`, `startAt`, `format` (`offline`|`online` — from wizard step 2 per Paper), `reason` (optional string, may be empty)
+- Out: `{ appointment }` status `Upcoming` (`appointment.id: string`); frontend shows toast → SCR-06
 - Errors: `SLOT_TAKEN`, `SLOT_OUTSIDE_WINDOW`, `SLOT_NOT_FREE`, `AUTH_VALIDATION_FAILED`
 - Auth: patient
 
 **Patient reschedule (FLO-02)**
 
-- In: `appointmentId`, `newStartAt`, `format`, optional `reason`
+- In: path `id: string`; body `newStartAt`, `format`, optional `reason`
 - Out: `{ oldAppointment, newAppointment }` — old `Rescheduled`, new `Upcoming`
 - Errors: same slot errors + `APPOINTMENT_INVALID_TRANSITION`, `APPOINTMENT_FORBIDDEN`
 - Auth: patient, owner only
@@ -634,8 +715,8 @@ EN/UK copy for `SLOT_TAKEN` — frontend i18n.
 
 ### Contract
 
-- In: session; actions on appointments; `POST` review from Past row
-- Out: cabinet aggregate — `upcoming[]`, `past[]`, `pendingBanner`, `nextAppointment`, `miniCalendar[]`, `favourites[]`, `recentlyViewed[]`, `metrics` (widget hints), per-row `canReview`, `existingReview`
+- In: session; actions on appointments; `POST` review from Past row; clear recently viewed
+- Out: cabinet aggregate — `upcoming[]`, `past[]`, `pendingBanner`, `nextAppointment`, `miniCalendar[]`, `favourites[]`, `recentlyViewed[]`, `myReviews: { leftCount, pendingCount }`, `metrics` (widget hints), per-row `canReview`, `existingReview` (all entity ids are `string`)
 - Errors: `APPOINTMENT_FORBIDDEN`, `APPOINTMENT_INVALID_TRANSITION`, `REVIEW_ALREADY_EXISTS`, `REVIEW_FORBIDDEN`, validation errors
 - Auth: patient, self only
 
@@ -647,18 +728,20 @@ EN/UK copy for `SLOT_TAKEN` — frontend i18n.
 
 | Method | Path | Auth | Notes |
 |---|---|---|---|
-| `GET` | `/api/v1/patients/me/cabinet` | patient | Aggregated dashboard (**preferred**) |
+| `GET` | `/api/v1/patients/me/cabinet` | patient | Aggregated dashboard (**preferred**) — includes `myReviews` counts for Paper widget |
+| `GET` | `/api/v1/patients/me/reviews` | patient | Optional detail for «Переглянути»: `{ left[], pending[] }` |
+| `DELETE` | `/api/v1/patients/me/recently-viewed` | patient | Clear all — Paper «Очистити» |
 | `GET` | `/api/v1/patients/me/appointments` | patient | Alternative: list only |
-| `POST` | `/api/v1/appointments/:id/cancel` | patient | `Upcoming` or pending via SCR-12 |
-| `GET` | `/api/v1/patients/me/favourites` | patient | Carousel data |
+| `POST` | `/api/v1/appointments/:id/cancel` | patient | `id: string`; `Upcoming` or pending via SCR-12 |
+| `GET` | `/api/v1/patients/me/favourites` | patient | Carousel data (if not using cabinet) |
 | `GET` | `/api/v1/patients/me/recently-viewed` | patient | Last 10 doctors |
-| `POST` | `/api/v1/reviews` | patient | `{ appointmentId, rating (1-5), text? }` |
+| `POST` | `/api/v1/reviews` | patient | `{ appointmentId: string, rating (1-5), text? }` |
 
-**Appointment row `Out`:** `id`, doctor, place, `startAt`, duration, `format`, `status`, `reason`, `cancelledBy`, `proposedStartAt` (if pending), `canMove`, `canCancel`, `pendingDecisionUrl` (SCR-12).
+**Appointment row `Out`:** `id: string`, doctor, place, `startAt`, duration, `format`, `status`, `reason`, `cancelledBy`, `proposedStartAt` (if pending), `canMove`, `canCancel`, `pendingDecisionUrl` (SCR-12).
 
 **Grouping:** Upcoming = `Upcoming` + `Reschedule Pending`; Past = `Completed` + `Cancelled` + `Rescheduled`.
 
-**Review rules (**R-14**):** one review per Past appointment; `canReview` true when Past status and no review yet.
+**Review rules (**R-14**):** one review per Past appointment; `canReview` true when Past status and no review yet. `myReviews.pendingCount` = Past rows with `canReview`.
 
 **Cancel:** `cancel` command; notify doctor; slot freed per **R-02**.
 
@@ -703,15 +786,15 @@ Whether proposed time shown on list row vs SCR-12 only — **Open** (frontend).
 | Method | Path | Auth | Notes |
 |---|---|---|---|
 | `GET` | `/api/v1/patients/me/profile` | patient | View |
-| `PATCH` | `/api/v1/patients/me/profile` | patient | Editable fields |
+| `PATCH` | `/api/v1/patients/me/profile` | patient | Editable fields + optional `photo` multipart (Paper) |
 | `GET` | `/api/v1/doctors/me/profile` | doctor | View |
 | `PATCH` | `/api/v1/doctors/me/profile` | doctor | Editable + `photo` multipart |
 
-**Patient PATCH:** `firstName`, `lastName`, `phone`, `email`, `dob`, `homeCityId`, `homeClinicId`, `language`, `theme`.
+**Patient PATCH:** `firstName`, `lastName`, `phone`, `email`, `dob`, `gender` (`female`\|`male`), `homeCityId: string`, `homeClinicId: string`, `photo?`, `language`, `theme`.
 
-**Doctor PATCH:** `firstName`, `lastName`, `phone`, `email`, `cityId`, `clinicId`, `bio`, `languages[]`, `education[]` (replace list: `{ id?, kind, title, subtitle?, yearFrom, yearTo? }`), `photo` (optional file), `language`, `theme`. Not specialty, years, license, hours, price.
+**Doctor PATCH:** `firstName`, `lastName`, `phone`, `email`, `cityId: string`, `clinicId: string`, `bio`, `languages[]`, `education[]` (replace list: `{ id?: string, kind, title, subtitle?, yearFrom, yearTo? }`), `photo` (optional file), `language`, `theme`. Not specialty, years, license, hours, price.
 
-**Doctor GET `Out`:** above fields + read-only `specialty`, `yearsPractice`, `licenseFileUrl`, `dob`, `consultationCount` (computed).
+**Doctor GET `Out`:** above fields + read-only `specialty`, `yearsPractice`, `licenseFileUrl` (`string | null`), `dob`, `consultationCount` (computed). All ids `string`.
 
 ### Invariants
 
@@ -749,15 +832,16 @@ Doctor photo max dimensions/size.
 | Method | Path | Auth | Notes |
 |---|---|---|---|
 | `GET` | `/api/v1/doctors/me/dashboard` | doctor | `?date=`; includes metrics |
-| `POST` | `/api/v1/appointments/:id/complete` | doctor | `Upcoming` → `Completed` |
+| `POST` | `/api/v1/appointments/:id/complete` | doctor | `id: string`; `Upcoming` → `Completed` |
 | `POST` | `/api/v1/appointments/:id/cancel` | doctor | One visit; `cancelledBy=doctor` |
-| `POST` | `/api/v1/appointments/:id/propose` | doctor | `{ proposedStartAt }` → `Reschedule Pending` |
+| `POST` | `/api/v1/appointments/:id/propose` | doctor | Body: `{ proposedStartAt, format? }` → `Reschedule Pending` |
 
 **Metrics:** `visitsToday`, `pendingCount`, `freeSlotsToday`, `cancellationsLast7Days`.
 
-**Propose:** `doctorPropose` command; patient notified; proposed slot reserved.
+**Propose:** `doctorPropose` command; patient notified; proposed slot reserved.  
+**Design note (Paper):** modal shows Offline/Online toggle — API accepts optional `format`; default = existing visit format if omitted.
 
-**Visit row:** patient display name (first + last), time, format, reason, status, `proposedStartAt` when pending.
+**Visit row:** `id: string`, patient display name (first + last), time, format, reason, status, `proposedStartAt` when pending.
 
 ### Invariants
 
@@ -843,11 +927,11 @@ Promo price storage model (date-ranged override).
 
 | Method | Path | Auth | Notes |
 |---|---|---|---|
-| `GET` | `/api/v1/notifications` | session | Unread + read list for bell |
+| `GET` | `/api/v1/notifications` | session | Unread + list for bell; item `id: string` |
 | `POST` | `/api/v1/notifications/:id/read` | session | Mark one read → remove from active list |
 | `POST` | `/api/v1/notifications/read-all` | session | Mark all read |
 
-**Notification `Out`:** `id`, `type`, `createdAt`, `read`, payload (`appointmentId`, doctor/patient name, event summary). Types align with **R-10** event table.
+**Notification `Out`:** `id: string`, `type`, `createdAt`, `read`, payload (`appointmentId: string`, doctor/patient name, event summary). Types align with **R-10** event table.
 
 **Events that create notifications:** patient books; patient cancels; doctor cancels (incl. bulk); patient reschedules; doctor proposes; patient accepts/picks another/cancels pending.
 
@@ -880,7 +964,7 @@ Exact notification copy per type — frontend i18n templates.
 
 ### Contract
 
-- In: `appointmentId` (pending visit); action: `accept` | `pick_another` (via SCR-04/05) | `cancel`
+- In: `appointmentId: string` (pending visit); action: `accept` | `pick_another` (via SCR-04/05) | `cancel`
 - Out: `accept` → old `Rescheduled`, new `Upcoming` at proposed time; `cancel` → `Cancelled`; pick another → same as reschedule confirm with pending context
 - Errors: `APPOINTMENT_FORBIDDEN`, `APPOINTMENT_INVALID_TRANSITION`, `SLOT_TAKEN` (on accept if proposed slot lost)
 - Auth: patient, owner only
@@ -893,7 +977,7 @@ Exact notification copy per type — frontend i18n templates.
 
 | Method | Path | Auth | Notes |
 |---|---|---|---|
-| `GET` | `/api/v1/appointments/:id/pending-decision` | patient | Original vs proposed summary for SCR-12 UI |
+| `GET` | `/api/v1/appointments/:id/pending-decision` | patient | `id: string` — original vs proposed summary for SCR-12 UI |
 | `POST` | `/api/v1/appointments/:id/accept-proposal` | patient | `patientAcceptProposal` |
 | `POST` | `/api/v1/appointments/:id/cancel` | patient | Pending cancel — releases both slots |
 | `POST` | `/api/v1/appointments/:id/reschedule` | patient | Pick another (FLO-03 path) — supersedes proposal |
@@ -923,9 +1007,9 @@ Panel vs full page — frontend only.
 | Step | Server |
 |---|---|
 | SCR-02 browse | `GET /doctors/search` (guest OK) |
-| Login if guest Book | `POST /auth/login` or register |
+| Login if guest Book | `POST /auth/login` or register steps 1→verify→3→complete |
 | Wizard SCR-03 | `GET /doctors/:id`, `POST recently-viewed` |
-| Wizard SCR-04 | `GET /doctors/:id/calendar` |
+| Wizard SCR-04 | `GET /doctors/:id/calendar`; client picks `format` (Paper) |
 | Wizard SCR-05 confirm | `POST /appointments` — transaction + `SLOT_TAKEN` guard |
 | Success | Notification → doctor; return `Upcoming` |
 | SCR-06 | `GET /patients/me/cabinet` |
@@ -999,8 +1083,10 @@ No notification to refused patient. Doctor notified only for winner.
 | Topic | Decision |
 |---|---|
 | API prefix | `/api/v1` |
+| Resource ids | Always **`string`** in JSON (path params, body, response) |
 | Time storage | `timestamptz` UTC in DB; display in `Europe/Kyiv` |
 | Error envelope | `{ error: { code, message?, fields? } }` — UI copy from i18n by `code` |
 | Pagination | Cursor-based for search; cabinet lists may be full for MVP |
-| File storage | Local disk or object store for license + doctor photos — **Open** |
+| File storage | Local disk or object store for license + photos — **Open** |
 | Auto-complete job | Cron/worker: `Upcoming` → `Completed` after slot end |
+| Design vs older product lines | Paper wins for onboarding steps, gender, optional license, patient photo, clear recently-viewed, reviews widget counts, format on calendar step, optional format on propose |
