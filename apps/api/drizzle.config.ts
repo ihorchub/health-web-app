@@ -1,3 +1,5 @@
+/// <reference types="node" />
+
 import "dotenv/config";
 import { defineConfig } from "drizzle-kit";
 
@@ -7,7 +9,15 @@ if (!url) {
 }
 
 export default defineConfig({
-  schema: "./src/db/schema/index.ts",
+  schema: [
+    "./src/db/schema/enums.ts",
+    "./src/db/schema/users.ts",
+    "./src/db/schema/sessions.ts",
+    "./src/db/schema/registrations.ts",
+    "./src/db/schema/profiles.ts",
+    "./src/db/schema/reference.ts",
+    "./src/db/schema/doctor-schedule.ts",
+  ],
   out: "./drizzle",
   dialect: "postgresql",
   dbCredentials: { url },

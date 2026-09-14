@@ -10,13 +10,20 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
-    "test": "vitest run"
+    "test": "vitest run",
+    "db:seed": "tsx src/db/run-seed-reference.ts"
   },
   "dependencies": {
+    "@fastify/cookie": "^11.0.2",
     "@fastify/cors": "^10.0.2",
+    "@fastify/multipart": "^9.0.3",
+    "@fastify/type-provider-typebox": "^5.1.0",
+    "@sinclair/typebox": "^0.34.28",
+    "argon2": "^0.41.1",
     "dotenv": "^16.4.7",
     "drizzle-orm": "^0.39.3",
     "fastify": "^5.2.1",
+    "fastify-plugin": "^6.0.0",
     "pg": "^8.13.3"
   },
   "devDependencies": {

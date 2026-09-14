@@ -35,6 +35,9 @@ pnpm dev                                 # API :3000 + web :5173 (Vite proxies /
 
 Frontend-only: `pnpm dev:web`. API-only: `pnpm dev:api`.
 
-PostgreSQL is **Supabase** (hosted). Use the **transaction pooler** URI (`DATABASE_URL`, port 6543) for the API; use **direct** (`DIRECT_URL`, port 5432) for `pnpm db:migrate` when needed.
+PostgreSQL is **Supabase** (hosted). Use the **transaction pooler** (`DATABASE_URL`, port **6543**) for the API. For `pnpm db:migrate`, use **session pooler** (`DIRECT_URL`, port **5432**, user `postgres.[PROJECT_REF]` on the same pooler host). The old `db.*.supabase.co` direct host may not resolve on all projects.
 
 See [docs/spec/tech-stack.md](docs/spec/tech-stack.md) for full conventions.
+
+**Try the API (step-by-step curls):** [apps/api/VERIFY.md](apps/api/VERIFY.md)  
+**SCR-01 for frontend:** [docs/spec/SCR-01-api-handoff.md](docs/spec/SCR-01-api-handoff.md)
