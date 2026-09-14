@@ -14,6 +14,7 @@ Digital Healthcare Booking Platform — a self-service website where patients fi
 | IA / chrome decisions (wins on shell conflicts) | `docs/spec/ia-chrome-decision.md` |
 | Frontend specification (UI/client) | `docs/spec/frontend-spec.md` |
 | Backend specification (server/API) | `docs/spec/backend-spec.md` |
+| Technology stack (implementation) | `docs/spec/tech-stack.md` |
 | Design specification | `docs/spec/design-spec.md` |
 | Project context (client brief summary) | `docs/project-context.md` |
 | Cursor rules | `.cursor/rules/` |
@@ -62,3 +63,4 @@ Digital Healthcare Booking Platform — a self-service website where patients fi
 - **Prices:** per-doctor, variable; promo/акційні prices allowed (shown, never charged). No fixed platform fee of 600 UAH (600 may be seed/default only). See `docs/spec/ia-chrome-decision.md`.
 - **Ratings & reviews:** in MVP (5★ + reviews on doctor surfaces). Overlay in `ia-chrome-decision.md` wins over older “reviews out” lines in product-spec.
 - **Out of scope:** medical records, payments/charging (display price ≠ pay in app), family profiles, email/SMS reminders, insurance, admin role, native mobile app.
+- **Implementation stack:** React/Vite/MUI + Fastify/Drizzle/Postgres monorepo — see `docs/spec/tech-stack.md`.

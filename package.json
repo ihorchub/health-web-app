@@ -1,0 +1,23 @@
+{
+  "name": "medicly",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm -r --parallel dev",
+    "dev:api": "pnpm --filter @medicly/api dev",
+    "dev:web": "pnpm --filter @medicly/web dev",
+    "build": "pnpm -r build",
+    "start": "pnpm --filter @medicly/api start",
+    "db:generate": "pnpm --filter @medicly/api db:generate",
+    "db:migrate": "pnpm --filter @medicly/api db:migrate",
+    "db:studio": "pnpm --filter @medicly/api db:studio",
+    "test": "pnpm --filter @medicly/api test",
+    "lint": "pnpm --filter @medicly/web lint",
+    "lint:fix": "pnpm --filter @medicly/web lint:fix",
+    "prettier:check": "pnpm --filter @medicly/web prettier:check",
+    "prettier:fix": "pnpm --filter @medicly/web prettier:fix"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "packageManager": "pnpm@9.15.0"
+}
