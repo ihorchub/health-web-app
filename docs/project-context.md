@@ -87,11 +87,17 @@ These aren't on any screen but are the actual point of the project:
 - **A mascot** — AI-generated, soft 3D style, from the world of medicine (e.g. a small doctor/stethoscope character); needs a name and short personality (2–3 sentences) documented; must work in light & dark and on mobile; appears on sign-up/log-in (required) and ideally on the empty "no appointments yet" state; must never slow down or visually compete with the form.
 
 ## 10. Tech stack
-- **Backend:** Fastify (TypeScript)
-- **Database:** PostgreSQL + Drizzle (ORM)
-- **Repo:** single monorepo, shared by both team members
-- **Frontend:** team's own choice
-- Client explicitly does not dictate stack choices beyond backend/DB — frames it as "the one slide where I am not your client."
+
+**Client brief (fixed):** Backend Fastify + PostgreSQL; monorepo.
+
+**Team choice (locked 14 Sep 2026):** see **[docs/spec/tech-stack.md](./spec/tech-stack.md)** for full detail.
+
+| Layer | Stack |
+|---|---|
+| Monorepo | pnpm — `apps/api`, `apps/web` |
+| Backend | Node.js, Fastify, TypeScript, Drizzle, TypeBox, OpenAPI |
+| Frontend | React, TypeScript, Vite, MUI, React Router, React Query, Orval |
+| Auth | Server-side sessions, HTTP-only cookies |
 
 ## 11. Team split guidance
 - Split by **surface**, not by layer — i.e., not "one owns backend, one owns frontend." Suggested cut: patient side (search/profile/calendar/booking) vs. doctor side (working hours, day view, auth & roles).
@@ -102,16 +108,21 @@ These aren't on any screen but are the actual point of the project:
 - Either team member must be able to answer questions about any part of the system — no siloed knowledge.
 
 ## 12. Open questions the team must answer themselves (due Week 3, in writing + walkthrough)
-- Doctor schedule → bookable slot generation logic
-- Whether a free slot is precomputed/stored or calculated on read, and the tradeoffs
-- Exact double-booking prevention mechanism (same slot, two browsers, same instant)
-- What happens to existing appointments when a doctor shortens their hours
-- How rescheduling atomically frees the old slot and claims the new one
-- Appointment state machine: allowed transitions, who can trigger them, what's irreversible
-- Authorization check strategy applied consistently across every route
-- Time storage format and cross-timezone display behavior
-- API surface / what each of the 9 screens actually needs from it
-- Retrospective: what they'd do differently with 3 more months
+
+**Answered in specs (Sep 2026):** `docs/spec/backend-spec.md` (shared: slots compute-on-read, double-booking, state machine, authz, timezone, API per SCR/FLO) and `docs/spec/tech-stack.md` (tooling).
+
+Original brief list for walkthrough reference:
+
+- Doctor schedule → bookable slot generation logic → **backend-spec Slots**
+- Free slot precompute vs on read → **compute on read**
+- Double-booking mechanism → **transaction + DB uniqueness**
+- Hours shrink vs existing appointments → **SCR-09 / R-08** (no silent cancel)
+- Reschedule atomicity → **backend-spec** + FLO-02
+- State machine → **backend-spec** Appointment state machine
+- Authz per route → **backend-spec** Authz pattern
+- Time storage → **UTC timestamptz**, display **Europe/Kyiv**
+- API per screen → **backend-spec** SCR-01…12 + Contracts
+- Retrospective → still for end of project
 
 ## 13. Acceptance criteria (client will check personally, one by one)
 Functional: signup/login/logout persistence, specialty search accuracy, combinable filters, doctor profile completeness, calendar reflects real hours (not decorative), past times never bookable, booked slots disappear instantly for everyone else, concurrent double-booking correctly refused in plain language, rescheduling releases old slot, cancelling keeps appointment visible as "cancelled" and frees the slot, upcoming/past correctly separated and ordered, doctor sees only own day/calendar, patients can't reach others' appointments via URL manipulation, profile edits persist across logout, validated error messages in the user's chosen language, both themes fully designed with no white flash, language switch is complete and persists, auth screen has the mascot and loads fast on mobile.

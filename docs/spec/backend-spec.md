@@ -1,12 +1,13 @@
 # Backend specification
 
-**Status:** In progress — API contracts aligned to **Paper design priority** (14 Sep 2026); product rules still from [product-spec.md](./product-spec.md) where design is silent  
-**Source of truth (behaviour):** [product-spec.md](./product-spec.md) · **API shape / fields on screens:** Paper file (design wins on UI conflicts; this file is updated to match)  
-**Pair file:** [frontend-spec.md](./frontend-spec.md) — **Contract** blocks must match.
+**Status:** Implementation-ready — SCR-01…SCR-12 + FLO walkthroughs; API contracts aligned to **Paper design priority** (14 Sep 2026); stack locked 14 Sep 2026  
+**Source of truth (behaviour):** [product-spec.md](./product-spec.md) (IA overlay folded 31 Aug 2026) · **API shape / fields on screens:** Paper file (design wins on UI conflicts; this file is updated to match)  
+**Pair file:** [frontend-spec.md](./frontend-spec.md) — **Contract** blocks must match.  
+**Implementation:** [tech-stack.md](./tech-stack.md) — monorepo, OpenAPI, defaults.
 
 Server behaviour: authz, appointment lifecycle, slot honesty, seed, API contracts per screen. Layout belongs in the frontend spec.
 
-**Stack (team choice):** Fastify (TypeScript), PostgreSQL, Drizzle ORM, monorepo.
+**Stack:** Node.js · **Fastify** · TypeScript · **PostgreSQL** · **Drizzle** · **TypeBox** · **OpenAPI** (from routes) · server-side **sessions** (HTTP-only cookie). Monorepo: **pnpm** — `apps/api`, `apps/web`.
 
 **ID convention:** every resource `id` in requests/responses is a **`string`** (not a separate UUID type in the API layer).
 
@@ -50,13 +51,13 @@ One email → one `users` row → one role forever. No dual role.
 3. **Public read** (no session): doctor search, doctor profile, legal pages, seed city/clinic lists for SCR-01 dropdowns.
 4. Never rely on UI hiding alone.
 
-#### Registration validation (MVP defaults)
+#### Registration validation (MVP — see [tech-stack.md](./tech-stack.md))
 
 | Field | Rule |
 |---|---|
 | Email | Valid format; unique across users + open registrations |
-| Password | Min **8** characters (**Confirmed** 31 Aug 2026). Password confirm is **client-only** |
-| Phone | Collected on profile / later edit — format **Open** |
+| Password | Min **8** characters (**Confirmed** 31 Aug 2026). Password confirm is **client-only**; hash with **argon2** (or bcrypt) |
+| Phone | Collected on profile / later edit (Paper step 3 patient has no phone); when present: non-empty, max 32 chars; no SMS verification — format **Open** |
 | DOB | Must be in the past (patient + doctor on step 3) |
 | Gender (patient) | `female` \| `male` — **required** (Paper) |
 | Years of practice (doctor) | Integer ≥ 0 |
@@ -112,9 +113,11 @@ Prefix: `/api/v1`. All ids are `string`.
 
 Forgot password, social login, license **verification**, dual role, clinic admin, **SMS/phone OTP**.
 
-#### Open questions
+#### Implementation notes
 
-Phone format — **Open**. Verify-token TTL / resend cooldown — suggest 24h / 60s.
+- Routes validated with **TypeBox**; documented in **OpenAPI** for Orval (`tech-stack.md`).
+- Sessions: Postgres `sessions` table, **14-day** TTL, cookie name e.g. `medicly_sid`.
+- Phone format — **Open**. Verify-token TTL / resend cooldown — suggest 24h / 60s.
 
 ---
 
@@ -278,7 +281,7 @@ One doctor, one timeline — format does not create parallel slots (**R-04**).
 
 #### Calendar refresh
 
-Server truth on every read; no slot held during SCR-05 confirm. Polling interval is frontend architecture.
+Server truth on every read; no slot held during SCR-05 confirm. Frontend: React Query **refetch every 30s** while SCR-04 wizard is open + refetch on window focus (`tech-stack.md`).
 
 #### Errors
 
@@ -446,7 +449,7 @@ Auth: …
 
 **Doctor complete side effects:** default schedule (Mon–Fri 09–18, lunch 13–14, weekend off, chosen duration, Offline only, default base price e.g. 600 UAH), placeholder photo, visible in search.
 
-**File upload:** `licenseFile` — image or PDF when present; max size **Open** (suggest 10 MB); store path in `doctor_profiles.license_file_url`.
+**File upload:** `licenseFile` — jpeg/png/webp/pdf when present (optional — Paper); max **10 MB**; store under `uploads/`; path in `doctor_profiles.license_file_url` (`tech-stack.md`).
 
 ### Invariants
 
@@ -469,7 +472,7 @@ Forgot password, social login, license verification, **SMS/phone OTP**.
 
 ### Open questions
 
-Phone on which step after design (profile vs later SCR-07) — Paper step 3 patient has no phone; collect on SCR-07 if missing. Max license upload size.
+Phone on which step after design (profile vs later SCR-07) — Paper step 3 patient has no phone; collect on SCR-07 if missing. Legal page HTML/copy source only (`GET /legal/*`).
 
 ---
 
@@ -808,7 +811,7 @@ Password change; SCR-09 schedule fields.
 
 ### Open questions
 
-Doctor photo max dimensions/size.
+None — photo same upload rules as license (images only, 10 MB).
 
 ---
 
@@ -883,14 +886,14 @@ Day nav UI only — no API change.
 | Method | Path | Auth | Notes |
 |---|---|---|---|
 | `GET` | `/api/v1/doctors/me/schedule` | doctor | Full 3-month view + zone boundaries |
-| `PATCH` | `/api/v1/doctors/me/schedule` | doctor | Zone B: hours, lunch, duration, vacation, format, `basePriceEffectiveFrom`, `promoPrice` (**Open** UX) |
+| `PATCH` | `/api/v1/doctors/me/schedule` | doctor | Zone B: hours, lunch, duration, vacation, format, `basePriceEffectiveFrom`, `promoPrice`, `promoValidUntil` (optional date) |
 | `POST` | `/api/v1/doctors/me/schedule/bulk-cancel` | doctor | `{ scope, from?, to?, confirm: true }` |
 
 **Bulk-cancel scopes:** `whole_day`, `rest_of_day`, `rest_of_week`, `custom_range` — all dates within Zone A only.
 
 **Zone A:** reject PATCH that changes hours, duration, or base price. Allow bulk-cancel + vacation mark when day empty.
 
-**Price:** base frozen in Zone A; new base applies from `first day after Zone A`; promo display rules **Open** on setup.
+**Price:** base frozen in Zone A; new base applies from `first day after Zone A`. **Promo:** optional `promo_price` + `promo_valid_until` (inclusive, Kyiv date); effective display = promo when active else base (`tech-stack.md`).
 
 ### Invariants
 
@@ -904,7 +907,7 @@ Rooms; changing booked appointment format/duration in place.
 
 ### Open questions
 
-Promo price storage model (date-ranged override).
+None for storage model (see `tech-stack.md` §7).
 
 ---
 
@@ -1080,13 +1083,20 @@ No notification to refused patient. Doctor notified only for winner.
 
 ## Cross-cutting (appendix)
 
+Full tooling detail: **[tech-stack.md](./tech-stack.md)**.
+
 | Topic | Decision |
 |---|---|
+| Monorepo | pnpm workspaces — `apps/api`, `apps/web` |
 | API prefix | `/api/v1` |
 | Resource ids | Always **`string`** in JSON (path params, body, response) |
-| Time storage | `timestamptz` UTC in DB; display in `Europe/Kyiv` |
+| Contract | OpenAPI 3 from Fastify + TypeBox; Orval → React Query on web |
+| Time storage | `timestamptz` UTC in DB; Zone A / display in `Europe/Kyiv` |
 | Error envelope | `{ error: { code, message?, fields? } }` — UI copy from i18n by `code` |
 | Pagination | Cursor-based for search; cabinet lists may be full for MVP |
-| File storage | Local disk or object store for license + photos — **Open** |
+| File storage | Local `uploads/`; 10 MB; jpeg/png/webp/pdf (pdf license only) |
+| Sessions | Postgres; HTTP-only cookie; 14-day TTL |
+| Passwords | argon2 (or bcrypt); min 8 chars |
+| Tests | Vitest + Postgres (Compose) — slots, book race, authz |
 | Auto-complete job | Cron/worker: `Upcoming` → `Completed` after slot end |
 | Design vs older product lines | Paper wins for onboarding steps, gender, optional license, patient photo, clear recently-viewed, reviews widget counts, format on calendar step, optional format on propose |

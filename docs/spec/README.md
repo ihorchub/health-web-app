@@ -8,6 +8,7 @@ Product and technical specifications for the digital healthcare booking platform
 | [ia-chrome-decision.md](./ia-chrome-decision.md) | Agreed IA / chrome / dashboards / wizard / horizon (26 Aug 2026) | **Wins on its override map** — use this for drawing those areas |
 | [frontend-spec.md](./frontend-spec.md) | UI per screen ID | After product + IA overlay |
 | [backend-spec.md](./backend-spec.md) | Server / API per screen ID | After product + IA overlay |
+| [tech-stack.md](./tech-stack.md) | Monorepo, libraries, implementation defaults | Before coding |
 | [design-spec.md](./design-spec.md) | Visual system | Older Likaro chrome superseded where IA decision says so |
 
 **Drawing:** open `ia-chrome-decision.md` first (incl. **MUI + responsive** rules); use `product-spec.md` for honesty rules and anything not overridden.

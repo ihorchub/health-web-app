@@ -1,0 +1,17 @@
+{
+  "name": "medicly",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --filter @medicly/api dev",
+    "build": "pnpm --filter @medicly/api build",
+    "start": "pnpm --filter @medicly/api start",
+    "db:generate": "pnpm --filter @medicly/api db:generate",
+    "db:migrate": "pnpm --filter @medicly/api db:migrate",
+    "db:studio": "pnpm --filter @medicly/api db:studio",
+    "test": "pnpm --filter @medicly/api test"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "packageManager": "pnpm@9.15.0"
+}
