@@ -18,6 +18,9 @@ Digital Healthcare Booking Platform — a self-service website where patients fi
 | Project context (client brief summary) | `docs/project-context.md` |
 | Cursor rules | `.cursor/rules/` |
 | Cursor skills | `.cursor/skills/` |
+| Brand assets (Lika, logos) | `docs/brand/` |
+
+**Frontend skills (when implementing UI):** `paper-to-frontend`, `frontend-conventions`, `ui-kit-master`. Spec skill: `write-layer-spec`. API/backend codegen skills — later.
 
 ## 3. Source of truth
 
