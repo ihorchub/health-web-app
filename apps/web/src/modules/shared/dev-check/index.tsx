@@ -2,7 +2,7 @@ import { Button, styled } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 
 import { Body, Overline, PageTitle, Subtitle } from '@/components/Text';
-import { usePreviewRole } from '@/hooks/usePreviewRole';
+import { useAppRole } from '@/hooks/useAppRole';
 import { useThemeMode } from '@/hooks/useThemeMode';
 import { AppRole } from '@/types/role';
 
@@ -49,7 +49,7 @@ const RoleButton = styled(Button)<{ $active: boolean }>(({ theme, $active }) => 
 export const DevCheckPage = () => {
   const { t } = useTranslation('common');
   const { mode } = useThemeMode();
-  const { role, setRole } = usePreviewRole();
+  const { role, me, isSession, setPreviewRole } = useAppRole();
 
   return (
     <Page>
@@ -57,37 +57,40 @@ export const DevCheckPage = () => {
       <PageTitle>{t('stubTitle')}</PageTitle>
       <Subtitle>{t('stubSubtitle')}</Subtitle>
       <Body color="textSecondary">
-        {t('previewRole')}: {role} · {mode}
+        {isSession ? `${me?.email ?? ''} · ${role}` : `${t('previewRole')}: ${role}`} ·{' '}
+        {mode}
       </Body>
-      <RoleRow>
-        <RoleButton
-          variant="outlined"
-          $active={role === AppRole.GUEST}
-          onClick={() => {
-            setRole(AppRole.GUEST);
-          }}
-        >
-          {t('roleGuest')}
-        </RoleButton>
-        <RoleButton
-          variant="outlined"
-          $active={role === AppRole.PATIENT}
-          onClick={() => {
-            setRole(AppRole.PATIENT);
-          }}
-        >
-          {t('rolePatient')}
-        </RoleButton>
-        <RoleButton
-          variant="outlined"
-          $active={role === AppRole.DOCTOR}
-          onClick={() => {
-            setRole(AppRole.DOCTOR);
-          }}
-        >
-          {t('roleDoctor')}
-        </RoleButton>
-      </RoleRow>
+      {!isSession ? (
+        <RoleRow>
+          <RoleButton
+            variant="outlined"
+            $active={role === AppRole.GUEST}
+            onClick={() => {
+              setPreviewRole(AppRole.GUEST);
+            }}
+          >
+            {t('roleGuest')}
+          </RoleButton>
+          <RoleButton
+            variant="outlined"
+            $active={role === AppRole.PATIENT}
+            onClick={() => {
+              setPreviewRole(AppRole.PATIENT);
+            }}
+          >
+            {t('rolePatient')}
+          </RoleButton>
+          <RoleButton
+            variant="outlined"
+            $active={role === AppRole.DOCTOR}
+            onClick={() => {
+              setPreviewRole(AppRole.DOCTOR);
+            }}
+          >
+            {t('roleDoctor')}
+          </RoleButton>
+        </RoleRow>
+      ) : null}
       <Overline color="primary">{t('themeOk')}</Overline>
     </Page>
   );

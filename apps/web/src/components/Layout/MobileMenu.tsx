@@ -11,12 +11,17 @@ import {
 import { Button, styled } from '@mui/material';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
+import { usePostAuthLogout } from '@/api/auth';
 import { LanguageToggle } from '@/components/Layout/LanguageToggle';
 import { Meta } from '@/components/Text';
-import { usePreviewRole } from '@/hooks/usePreviewRole';
+import { useAppRole } from '@/hooks/useAppRole';
 import { useThemeMode } from '@/hooks/useThemeMode';
+import { useAuthApiErrorMessage } from '@/modules/auth/hooks/useAuthApiErrorMessage';
 import { AppRole } from '@/types/role';
+import { AppRoute } from '@/utils/routeUtils/routes';
 
 const Panel = styled('div')(({ theme }) => ({
   display: 'flex',
@@ -134,22 +139,41 @@ interface MobileMenuProps {
 
 export const MobileMenu = ({ onNavigate }: MobileMenuProps) => {
   const { t } = useTranslation('common');
-  const { role, setRole } = usePreviewRole();
+  const navigate = useNavigate();
+  const { role, isSession, setPreviewRole } = useAppRole();
   const { mode, toggleTheme } = useThemeMode();
+  const logoutMutation = usePostAuthLogout();
+  const mapError = useAuthApiErrorMessage();
 
-  const handleStubAction = () => {
+  const go = (path: AppRoute) => {
     onNavigate?.();
+    void navigate(path);
   };
 
-  const handleLogOut = () => {
-    setRole(AppRole.GUEST);
-    onNavigate?.();
+  const handleLogOut = async () => {
+    try {
+      if (isSession) {
+        await logoutMutation.mutateAsync();
+      }
+      setPreviewRole(AppRole.GUEST);
+      onNavigate?.();
+      void navigate(AppRoute.LOGIN);
+    } catch (error) {
+      toast.error(mapError(error));
+    }
   };
 
   return (
     <Panel>
       {role === AppRole.PATIENT ? (
-        <Button variant="contained" color="primary" fullWidth onClick={handleStubAction}>
+        <Button
+          variant="contained"
+          color="primary"
+          fullWidth
+          onClick={() => {
+            go(AppRoute.HOME);
+          }}
+        >
           {t('header.findDoctor')}
         </Button>
       ) : null}
@@ -160,12 +184,16 @@ export const MobileMenu = ({ onNavigate }: MobileMenuProps) => {
             <MenuItem
               icon={<IconLogin2 size={22} stroke={1.75} />}
               label={t('header.logIn')}
-              onClick={handleStubAction}
+              onClick={() => {
+                go(AppRoute.LOGIN);
+              }}
             />
             <MenuItem
               icon={<IconUserPlus size={22} stroke={1.75} />}
               label={t('header.signUp')}
-              onClick={handleStubAction}
+              onClick={() => {
+                go(AppRoute.SIGNUP);
+              }}
             />
           </>
         ) : null}
@@ -175,12 +203,16 @@ export const MobileMenu = ({ onNavigate }: MobileMenuProps) => {
             <MenuItem
               icon={<IconLayoutDashboard size={22} stroke={1.75} />}
               label={t('header.myCabinet')}
-              onClick={handleStubAction}
+              onClick={() => {
+                go(role === AppRole.DOCTOR ? AppRoute.DOCTOR_DAY : AppRoute.APPOINTMENTS);
+              }}
             />
             <MenuItem
               icon={<IconUser size={22} stroke={1.75} />}
               label={t('header.myProfile')}
-              onClick={handleStubAction}
+              onClick={() => {
+                onNavigate?.();
+              }}
             />
           </>
         ) : null}
@@ -189,7 +221,9 @@ export const MobileMenu = ({ onNavigate }: MobileMenuProps) => {
           <MenuItem
             icon={<IconCalendarEvent size={22} stroke={1.75} />}
             label={t('header.mySchedule')}
-            onClick={handleStubAction}
+            onClick={() => {
+              go(AppRoute.DOCTOR_DAY);
+            }}
           />
         ) : null}
 

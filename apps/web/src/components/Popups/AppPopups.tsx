@@ -1,7 +1,5 @@
 /**
  * Registry for shared modals (booking wizard, confirmations, etc.).
- * Empty until business popups are registered in Popups enum.
+ * Must render under RouterProvider for navigation.
  */
-export const AppPopups = () => {
-  return null;
-};
+export { DoctorProfilePopup as AppPopups } from '@/modules/booking/doctor-profile/DoctorProfilePopup';

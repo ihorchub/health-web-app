@@ -1,7 +1,8 @@
 import { IconBell, IconMenu2, IconX } from '@tabler/icons-react';
-import { Button, styled } from '@mui/material';
+import { styled } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Link as RouterLink } from 'react-router-dom';
 
 import { AvatarMenu } from '@/components/Layout/AvatarMenu';
 import { BrandLogo } from '@/components/Layout/BrandLogo';
@@ -9,8 +10,9 @@ import { HeaderIconButton } from '@/components/Layout/HeaderIconButton';
 import { LanguageToggle } from '@/components/Layout/LanguageToggle';
 import { MobileMenu } from '@/components/Layout/MobileMenu';
 import { ThemeToggleButton } from '@/components/Layout/ThemeToggleButton';
-import { usePreviewRole } from '@/hooks/usePreviewRole';
+import { useAppRole } from '@/hooks/useAppRole';
 import { AppRole } from '@/types/role';
+import { AppRoute } from '@/utils/routeUtils/routes';
 
 const HEADER_HEIGHT = 68;
 
@@ -64,7 +66,10 @@ const DesktopActions = styled(Actions)(({ theme }) => ({
   },
 }));
 
-const CompactButton = styled(Button)(({ theme }) => ({
+const CompactLink = styled(RouterLink)(({ theme }) => ({
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
   minHeight: 40,
   height: 40,
   paddingInline: 16,
@@ -72,15 +77,24 @@ const CompactButton = styled(Button)(({ theme }) => ({
   lineHeight: '18px',
   fontWeight: 600,
   borderRadius: 8,
-  borderColor: theme.palette.divider,
+  border: `1px solid ${theme.palette.divider}`,
   color: theme.palette.text.primary,
+  textDecoration: 'none',
+  boxSizing: 'border-box',
+  fontFamily: theme.typography.fontFamily,
 }));
 
-const PrimaryCompact = styled(CompactButton)({
+const PrimaryCompactLink = styled(CompactLink)(({ theme }) => ({
   paddingInline: 18,
   border: 'none',
+  backgroundColor: theme.palette.primary.main,
   color: '#FFFFFF',
-});
+
+  '&:hover': {
+    backgroundColor: theme.palette.primary.light,
+    color: '#FFFFFF',
+  },
+}));
 
 const MenuOverlay = styled('div')(({ theme }) => ({
   display: 'flex',
@@ -101,7 +115,7 @@ const MenuOverlay = styled('div')(({ theme }) => ({
 
 export const AppHeader = () => {
   const { t } = useTranslation('common');
-  const { role, hasUnreadNotifications } = usePreviewRole();
+  const { role, hasUnreadNotifications } = useAppRole();
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -126,20 +140,18 @@ export const AppHeader = () => {
             <>
               <LanguageToggle />
               <ThemeToggleButton />
-              <CompactButton variant="outlined" color="inherit">
-                {t('header.logIn')}
-              </CompactButton>
-              <PrimaryCompact variant="contained" color="primary">
+              <CompactLink to={AppRoute.LOGIN}>{t('header.logIn')}</CompactLink>
+              <PrimaryCompactLink to={AppRoute.SIGNUP}>
                 {t('header.signUp')}
-              </PrimaryCompact>
+              </PrimaryCompactLink>
             </>
           ) : null}
 
           {role === AppRole.PATIENT ? (
             <>
-              <PrimaryCompact variant="contained" color="primary">
+              <PrimaryCompactLink to={AppRoute.HOME}>
                 {t('header.findDoctor')}
-              </PrimaryCompact>
+              </PrimaryCompactLink>
               <HeaderIconButton
                 aria-label={t('header.notifications')}
                 showUnread={hasUnreadNotifications}

@@ -1,0 +1,89 @@
+{
+  "hero": {
+    "title": "Знайдіть свого лікаря за кілька кліків",
+    "subtitle": "Оберіть спеціаліста, зручний час і запишіться онлайн.",
+    "stepFind": "Знайти лікаря",
+    "stepTime": "Обрати час",
+    "stepBook": "Записатися онлайн"
+  },
+  "search": {
+    "placeholder": "ПІБ лікаря, клініка або спеціальність",
+    "submit": "Пошук",
+    "filtersOpen": "Фільтри"
+  },
+  "popular": {
+    "label": "Популярні запити:",
+    "family": "Сімейний лікар",
+    "dermatologist": "Дерматолог",
+    "paediatrician": "Педіатр",
+    "neurologist": "Невролог",
+    "gynecologist": "Гінеколог",
+    "cardiologist": "Кардіолог"
+  },
+  "specialties": {
+    "title": "Спеціальності",
+    "all": "Усі спеціальності",
+    "collapse": "Згорнути",
+    "family_doctor": "Сімейний лікар",
+    "cardiologist": "Кардіолог",
+    "dermatologist": "Дерматолог",
+    "paediatrician": "Педіатр"
+  },
+  "results": {
+    "title": "Лікарі",
+    "found": "Знайдено {{count}} лікарів",
+    "foundOne": "Знайдено {{count}} лікаря",
+    "foundFew": "Знайдено {{count}} лікарі",
+    "sortLabel": "Сортування:",
+    "sortRating": "За рейтингом",
+    "sortNearest": "За найближчим часом",
+    "showMore": "Показати ще лікарів",
+    "loading": "Завантажуємо лікарів…",
+    "emptyTitle": "Нікого не знайдено",
+    "emptyBody": "Спробуйте змінити фільтри або пошуковий запит.",
+    "errorTitle": "Не вдалося завантажити",
+    "errorBody": "Перевірте з’єднання і спробуйте ще раз.",
+    "retry": "Спробувати знову"
+  },
+  "filters": {
+    "title": "Фільтри",
+    "reset": "Скинути все",
+    "city": "Місто",
+    "clinic": "Клініка",
+    "specialty": "Спеціальність",
+    "cityPlaceholder": "Оберіть місто",
+    "clinicPlaceholder": "Оберіть клініку",
+    "specialtyPlaceholder": "Оберіть спеціальність",
+    "format": "Тип прийому",
+    "formatOffline": "Офлайн",
+    "formatOnline": "Онлайн",
+    "formatBoth": "Офлайн і онлайн",
+    "availability": "Доступність",
+    "today": "Сьогодні",
+    "tomorrow": "Завтра",
+    "thisWeek": "Цього тижня",
+    "rating": "Рейтинг лікаря",
+    "price": "Ціна прийому",
+    "priceFrom": "від {{value}} грн",
+    "priceTo": "до {{value}} грн+",
+    "apply": "Застосувати",
+    "close": "Закрити"
+  },
+  "card": {
+    "visitType": "Тип прийому:",
+    "offline": "Офлайн",
+    "online": "Онлайн",
+    "nearest": "Найближчий прийом:",
+    "noSlot": "немає слотів",
+    "promo": "Акція",
+    "book": "Записатися",
+    "viewHours": "Дивитись вільні години",
+    "loginHint": "Увійдіть, щоб записатися",
+    "reviews_one": "{{count}} відгук",
+    "reviews_few": "{{count}} відгуки",
+    "reviews_many": "{{count}} відгуків",
+    "favorite": "У вибране",
+    "unfavorite": "Прибрати з вибраного",
+    "bookingSoon": "Запис з’явиться незабаром"
+  }
+}

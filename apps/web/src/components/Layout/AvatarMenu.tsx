@@ -7,11 +7,16 @@ import {
 import { Divider, Menu, MenuItem, styled } from '@mui/material';
 import { useState, type MouseEvent } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
+import { usePostAuthLogout } from '@/api/auth';
 import { LanguageToggle } from '@/components/Layout/LanguageToggle';
 import { Meta } from '@/components/Text';
-import { usePreviewRole } from '@/hooks/usePreviewRole';
+import { useAppRole } from '@/hooks/useAppRole';
+import { useAuthApiErrorMessage } from '@/modules/auth/hooks/useAuthApiErrorMessage';
 import { AppRole } from '@/types/role';
+import { AppRoute } from '@/utils/routeUtils/routes';
 
 const AvatarButton = styled('button')(({ theme }) => ({
   display: 'flex',
@@ -53,7 +58,10 @@ const DangerItem = styled(MenuItem)(({ theme }) => ({
 
 export const AvatarMenu = () => {
   const { t } = useTranslation('common');
-  const { role, initials, setRole } = usePreviewRole();
+  const navigate = useNavigate();
+  const { role, initials, isSession, setPreviewRole } = useAppRole();
+  const logoutMutation = usePostAuthLogout();
+  const mapError = useAuthApiErrorMessage();
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const open = Boolean(anchorEl);
 
@@ -69,9 +77,22 @@ export const AvatarMenu = () => {
     setAnchorEl(null);
   };
 
-  const handleLogOut = () => {
-    setRole(AppRole.GUEST);
+  const go = (path: AppRoute) => {
     handleClose();
+    void navigate(path);
+  };
+
+  const handleLogOut = async () => {
+    handleClose();
+    try {
+      if (isSession) {
+        await logoutMutation.mutateAsync();
+      }
+      setPreviewRole(AppRole.GUEST);
+      void navigate(AppRoute.LOGIN);
+    } catch (error) {
+      toast.error(mapError(error));
+    }
   };
 
   return (
@@ -92,7 +113,11 @@ export const AvatarMenu = () => {
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
         transformOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
-        <MenuItem onClick={handleClose}>
+        <MenuItem
+          onClick={() => {
+            go(role === AppRole.DOCTOR ? AppRoute.DOCTOR_DAY : AppRoute.APPOINTMENTS);
+          }}
+        >
           <ItemIcon>
             <IconLayoutDashboard size={18} stroke={1.75} />
           </ItemIcon>
@@ -105,7 +130,11 @@ export const AvatarMenu = () => {
           {t('header.myProfile')}
         </MenuItem>
         {role === AppRole.DOCTOR ? (
-          <MenuItem onClick={handleClose}>
+          <MenuItem
+            onClick={() => {
+              go(AppRoute.DOCTOR_DAY);
+            }}
+          >
             <ItemIcon>
               <IconCalendarEvent size={18} stroke={1.75} />
             </ItemIcon>

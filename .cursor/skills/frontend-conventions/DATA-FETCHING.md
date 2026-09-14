@@ -36,19 +36,27 @@ Auth register flow (spec): `POST /api/v1/auth/register/step-1` → verify-email 
 src/api/
   mutator/customInstance.ts   # Axios; credentials for cookies
   generated/                  # Orval only — never hand-edit
-  mocks/                      # temporary fixtures + mock hooks
-  hooks/                      # optional wrappers that pick real vs mock
+  mocks/                      # temporary fixtures + mock queryFns
+  doctors/ (or domain folders) # public hooks + DTO types (Orval-shaped)
 ```
 
 Pattern:
 
 1. Define a **stable query key + return type** aligned with backend-spec / future OpenAPI DTOs.
-2. Export a hook with the **same name signature you expect from Orval** (`useGetDoctors`, `useSearchDoctors`, …).
+2. Export a hook with the **same name signature you expect from Orval** (`useGetDoctorsSearch`, …).
 3. Inside: either call generated/real client **or** return mock data via `useQuery({ queryFn: async () => mock… })`.
 4. Feature modules import **only** the public hook — never import `mocks/` from pages.
 5. When the real endpoint ships: point the hook at Orval (or delete the wrapper) and **delete the mock file**. No UI rewrite.
 
-Feature flags (optional): `import.meta.env.VITE_USE_API_MOCKS` or per-domain constants — default mocks **on** for unfinished domains, **off** for auth once API is present.
+**Mock DTOs must look like the future API**, not like UI convenience blobs:
+
+- Prefer **ids** (`cityId`, `clinicId`, `specialty`) + resolve labels from live reference / i18n.
+- Denormalized `cityName` / `clinicName` only if the future search payload will include them **for the active locale** (same as BE will return after `Accept-Language`).
+- Authored long text (doctor about/bio): include **`descriptionUk` + `descriptionEn`** (names may match final OpenAPI — keep both). UI picks by `i18n.language` with fallback. Profile forms will edit both textareas.
+- Do not put UI-only translated strings inside fixtures (no `t()` inside mock files).
+- Query params / filters / pagination (`cursor`, `sort`, `q`, …) should match the intended BE contract so the swap is a `queryFn` change.
+
+Feature flags (optional): `import.meta.env.VITE_USE_API_MOCKS` or per-domain constants — default mocks **on** for unfinished domains, **off** for auth / reference once API is present.
 
 ## Workflow (Orval)
 
