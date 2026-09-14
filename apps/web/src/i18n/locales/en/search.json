@@ -1,0 +1,90 @@
+{
+  "hero": {
+    "title": "Find your doctor in a few clicks",
+    "subtitle": "Pick a specialist, a convenient time, and book online.",
+    "stepFind": "Find a doctor",
+    "stepTime": "Choose a time",
+    "stepBook": "Book online"
+  },
+  "search": {
+    "placeholder": "Doctor name, clinic, or specialty",
+    "submit": "Search",
+    "filtersOpen": "Filters"
+  },
+  "popular": {
+    "label": "Popular searches:",
+    "family": "Family doctor",
+    "dermatologist": "Dermatologist",
+    "paediatrician": "Paediatrician",
+    "neurologist": "Neurologist",
+    "gynecologist": "Gynecologist",
+    "cardiologist": "Cardiologist"
+  },
+  "specialties": {
+    "title": "Specialties",
+    "all": "All specialties",
+    "collapse": "Collapse",
+    "family_doctor": "Family doctor",
+    "cardiologist": "Cardiologist",
+    "dermatologist": "Dermatologist",
+    "paediatrician": "Paediatrician"
+  },
+  "results": {
+    "title": "Doctors",
+    "found": "Found {{count}} doctors",
+    "foundOne": "Found {{count}} doctor",
+    "foundFew": "Found {{count}} doctors",
+    "sortLabel": "Sort:",
+    "sortRating": "By rating",
+    "sortNearest": "By nearest slot",
+    "showMore": "Show more doctors",
+    "loadingBadge": "Loading…",
+    "errorBadge": "Failed to load",
+    "emptyTitle": "No doctors found",
+    "emptyBody": "Try changing the specialty, city, or visit format.",
+    "errorTitle": "Could not load results",
+    "errorBody": "Check your connection and try again",
+    "retry": "Try again"
+  },
+  "filters": {
+    "title": "Filters",
+    "reset": "Reset all",
+    "city": "City",
+    "clinic": "Clinic",
+    "specialty": "Specialty",
+    "cityPlaceholder": "Select a city",
+    "clinicPlaceholder": "Select a clinic",
+    "specialtyPlaceholder": "Select a specialty",
+    "format": "Visit type",
+    "formatOffline": "Offline",
+    "formatOnline": "Online",
+    "formatBoth": "Offline and online",
+    "availability": "Availability",
+    "today": "Today",
+    "tomorrow": "Tomorrow",
+    "thisWeek": "This week",
+    "rating": "Doctor rating",
+    "price": "Visit price",
+    "priceFrom": "from {{value}} UAH",
+    "priceTo": "to {{value}} UAH+",
+    "apply": "Apply",
+    "close": "Close"
+  },
+  "card": {
+    "visitType": "Visit type:",
+    "offline": "Offline",
+    "online": "Online",
+    "nearest": "Nearest visit:",
+    "noSlot": "no slots",
+    "promo": "Promo",
+    "book": "Book",
+    "viewHours": "View free hours",
+    "loginHint": "Log in to book",
+    "reviews_one": "{{count}} review",
+    "reviews_few": "{{count}} reviews",
+    "reviews_many": "{{count}} reviews",
+    "favorite": "Add to favourites",
+    "unfavorite": "Remove from favourites",
+    "bookingSoon": "Booking will be available soon"
+  }
+}

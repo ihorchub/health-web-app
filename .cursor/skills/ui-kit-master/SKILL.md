@@ -61,6 +61,7 @@ Blank line before each `theme.breakpoints.*` block.
 - Light + Dark full themes; toggle persists (localStorage).
 - First visit follows OS preference; no white flash (`CssBaseline` + correct initial mode).
 - Map Paper tokens (`--color-*`, radius, type scale) into MUI `createTheme`.
+- **Primary green CTA** (`contained` + `color="primary"`): label text **and** icons are **always white** (`#FFFFFF`) in Light and Dark — do not use dark `onAccent` on the main button.
 
 ## File organization
 

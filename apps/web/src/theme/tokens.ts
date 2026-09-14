@@ -39,7 +39,8 @@ export const mediclyColors = {
     accent: '#3EC4A3',
     accentHover: '#4FD0B0',
     accentActive: '#2EB191',
-    onAccent: '#0B1C24',
+    /** Primary CTA label/icons stay white in both themes (product lock). */
+    onAccent: '#FFFFFF',
     pink: '#C9A39E',
     error: '#E07A7A',
     success: '#3EC4A3',

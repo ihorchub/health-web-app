@@ -1,12 +1,39 @@
 {
   "appName": "Medicly",
   "themeOk": "Theme OK",
-  "stubTitle": "Medicly · theme OK",
-  "stubSubtitle": "Frontend skeleton is ready. Check light/dark and uk/en.",
+  "stubTitle": "Medicly · chrome OK",
+  "stubSubtitle": "Check Header / Footer, light/dark and uk/en. Role is preview-only.",
   "toggleTheme": "Theme",
   "toggleLanguage": "Language",
   "themeLight": "Light",
   "themeDark": "Dark",
   "languageUk": "UK",
-  "languageEn": "EN"
+  "languageEn": "EN",
+  "previewRole": "Role (preview)",
+  "roleGuest": "Guest",
+  "rolePatient": "Patient",
+  "roleDoctor": "Doctor",
+  "header": {
+    "logIn": "Log in",
+    "signUp": "Sign up",
+    "findDoctor": "Find a doctor",
+    "findDoctorShort": "Find",
+    "myCabinet": "My cabinet",
+    "myProfile": "My profile",
+    "mySchedule": "My schedule",
+    "logOut": "Log out",
+    "notifications": "Notifications",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "menu": "Menu",
+    "language": "Language",
+    "theme": "Theme",
+    "accountMenu": "Account menu"
+  },
+  "footer": {
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Use",
+    "copyright": "© {{year}} Medicly"
+  },
+  "legalPlaceholder": "Legal copy will be added later."
 }

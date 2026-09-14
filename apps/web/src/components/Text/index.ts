@@ -1,0 +1,9 @@
+export { Body } from '@/components/Text/Body';
+export { Label } from '@/components/Text/Label';
+export { Meta } from '@/components/Text/Meta';
+export { Overline } from '@/components/Text/Overline';
+export { PageTitle } from '@/components/Text/PageTitle';
+export { Subtitle } from '@/components/Text/Subtitle';
+export { TitleH1 } from '@/components/Text/TitleH1';
+export { TitleH2 } from '@/components/Text/TitleH2';
+export { TitleH3 } from '@/components/Text/TitleH3';

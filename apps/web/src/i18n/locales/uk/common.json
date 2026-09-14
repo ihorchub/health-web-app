@@ -1,12 +1,39 @@
 {
   "appName": "Medicly",
   "themeOk": "Тема OK",
-  "stubTitle": "Medicly · theme OK",
-  "stubSubtitle": "Каркас фронтенду готовий. Перевір light/dark і uk/en.",
+  "stubTitle": "Medicly · chrome OK",
+  "stubSubtitle": "Перевір Header / Footer, light/dark і uk/en. Роль — лише preview.",
   "toggleTheme": "Тема",
   "toggleLanguage": "Мова",
   "themeLight": "Світла",
   "themeDark": "Темна",
   "languageUk": "UK",
-  "languageEn": "EN"
+  "languageEn": "EN",
+  "previewRole": "Роль (preview)",
+  "roleGuest": "Guest",
+  "rolePatient": "Patient",
+  "roleDoctor": "Doctor",
+  "header": {
+    "logIn": "Увійти",
+    "signUp": "Зареєструватися",
+    "findDoctor": "Знайти лікаря",
+    "findDoctorShort": "Знайти",
+    "myCabinet": "Мій кабінет",
+    "myProfile": "Мій профіль",
+    "mySchedule": "Мій графік",
+    "logOut": "Вийти",
+    "notifications": "Сповіщення",
+    "openMenu": "Відкрити меню",
+    "closeMenu": "Закрити меню",
+    "menu": "Меню",
+    "language": "Мова",
+    "theme": "Тема",
+    "accountMenu": "Меню акаунта"
+  },
+  "footer": {
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Use",
+    "copyright": "© {{year}} Medicly"
+  },
+  "legalPlaceholder": "Текст політики з’явиться пізніше."
 }

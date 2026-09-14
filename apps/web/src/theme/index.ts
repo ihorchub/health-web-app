@@ -126,12 +126,17 @@ export const createMediclyTheme = (mode: ThemeMode) => {
                 props: { variant: 'contained', color: 'primary' },
                 style: {
                   backgroundColor: theme.palette.primary.main,
-                  color: theme.palette.primary.contrastText,
+                  color: '#FFFFFF',
                   '&:hover': {
                     backgroundColor: theme.palette.primary.light,
+                    color: '#FFFFFF',
                   },
                   '&:active': {
                     backgroundColor: theme.palette.primary.dark,
+                    color: '#FFFFFF',
+                  },
+                  '& .MuiButton-startIcon, & .MuiButton-endIcon': {
+                    color: '#FFFFFF',
                   },
                 },
               },

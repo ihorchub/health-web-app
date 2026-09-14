@@ -1,7 +1,15 @@
 import Axios, { type AxiosError, type AxiosRequestConfig } from 'axios';
 
+import i18n from '@/i18n';
+
 export const AXIOS_INSTANCE = Axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL ?? '/api',
+  withCredentials: true,
+});
+
+AXIOS_INSTANCE.interceptors.request.use((config) => {
+  config.headers.set('Accept-Language', i18n.language === 'en' ? 'en' : 'uk');
+  return config;
 });
 
 type CancellablePromise<T> = Promise<T> & {
