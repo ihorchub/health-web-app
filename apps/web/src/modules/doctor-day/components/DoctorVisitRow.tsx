@@ -6,6 +6,7 @@ import {
   DangerOutlineButton,
   DoctorLine,
   FormatChip,
+  HeroActions,
   NextVisitBody,
   NextVisitCard,
   NextVisitHead,
@@ -49,14 +50,19 @@ const rowVariant = (visit: DoctorDayVisit) => {
   return 'default';
 };
 
-const statusTone = (visit: DoctorDayVisit): 'accent' | 'warning' | 'muted' | 'error' => {
+const statusTone = (
+  visit: DoctorDayVisit,
+): 'accent' | 'warning' | 'muted' | 'error' | 'reserved' => {
   if (visit.status === 'cancelled') {
     return 'error';
   }
   if (visit.status === 'reschedule_pending') {
     return 'warning';
   }
-  if (visit.status === 'completed') {
+  if (visit.status === 'reserved') {
+    return 'reserved';
+  }
+  if (visit.status === 'completed' || visit.status === 'rescheduled') {
     return 'muted';
   }
   return 'accent';
@@ -70,6 +76,7 @@ export const DoctorVisitRow = ({
   onOpen,
 }: DoctorVisitRowProps) => {
   const { t, i18n } = useTranslation('doctorDay');
+  const mutedTime = visit.status === 'completed' || visit.status === 'cancelled';
 
   return (
     <VisitRow
@@ -84,7 +91,7 @@ export const DoctorVisitRow = ({
         }
       }}
     >
-      <RowTime>{formatTime(visit.startsAt, i18n.language)}</RowTime>
+      <RowTime $muted={mutedTime}>{formatTime(visit.startsAt, i18n.language)}</RowTime>
 
       <RowMain>
         <RowTitleLine>
@@ -92,13 +99,27 @@ export const DoctorVisitRow = ({
           <StatusPill $tone={statusTone(visit)}>{t(`status.${visit.status}`)}</StatusPill>
           <FormatChip>{t(`format.${visit.format}`)}</FormatChip>
         </RowTitleLine>
-        {visit.reason ? <RowMeta>{t('list.reason', { reason: visit.reason })}</RowMeta> : null}
         {visit.pendingNote ? <RowMeta>{visit.pendingNote}</RowMeta> : null}
-        {visit.status === 'cancelled' && visit.cancelledBy ? (
+        {visit.status === 'reschedule_pending' && visit.proposedTime ? (
+          <RowMeta>
+            {t('list.pendingNote', {
+              original: formatTime(visit.startsAt, i18n.language),
+              proposed: formatTime(visit.proposedTime, i18n.language),
+            })}
+          </RowMeta>
+        ) : null}
+        {visit.status === 'reserved' ? <RowMeta>{t('list.reservedNote')}</RowMeta> : null}
+        {!visit.pendingNote &&
+        visit.status !== 'reschedule_pending' &&
+        visit.status !== 'reserved' &&
+        visit.reason ? (
+          <RowMeta>{t('list.reason', { reason: visit.reason })}</RowMeta>
+        ) : null}
+        {!visit.pendingNote && visit.status === 'cancelled' && visit.cancelledBy ? (
           <RowMeta>
             {visit.cancelledBy === 'patient'
-              ? t('list.cancelledByPatient')
-              : t('list.cancelledByDoctor')}
+              ? t('list.cancelledByPatientShort')
+              : t('list.cancelledByDoctorShort')}
           </RowMeta>
         ) : null}
       </RowMain>
@@ -143,6 +164,10 @@ export const DoctorVisitRow = ({
 
       {visit.status === 'reschedule_pending' ? (
         <WaitingLabel>{t('list.waitingPatient')}</WaitingLabel>
+      ) : null}
+
+      {visit.status === 'reserved' ? (
+        <WaitingLabel>{t('list.proposalLabel')}</WaitingLabel>
       ) : null}
     </VisitRow>
   );
@@ -192,11 +217,11 @@ export const DoctorNextVisitHero = ({
           <DoctorLine>{visit.patientName}</DoctorLine>
           <RowTitleLine>
             <FormatChip>{t(`format.${visit.format}`)}</FormatChip>
-            {visit.reason ? <RowMeta>{visit.reason}</RowMeta> : null}
+            {visit.reason ? <RowMeta>{t('list.reason', { reason: visit.reason })}</RowMeta> : null}
           </RowTitleLine>
         </VisitMain>
 
-        <RowActions>
+        <HeroActions>
           <Button
             variant="contained"
             color="primary"
@@ -226,7 +251,7 @@ export const DoctorNextVisitHero = ({
           >
             {t('nextVisit.cancel')}
           </DangerOutlineButton>
-        </RowActions>
+        </HeroActions>
       </NextVisitBody>
     </NextVisitCard>
   );

@@ -104,6 +104,9 @@ export const AppointmentRow = ({
             clinic: clinicLabel,
           })}
         </RowMetaText>
+        {appointment.reason ? (
+          <RowMetaText>{appointment.reason}</RowMetaText>
+        ) : null}
         {appointment.status === 'cancelled' && appointment.cancelledBy ? (
           <RowMetaText>
             {appointment.cancelledBy === 'doctor'

@@ -22,4 +22,5 @@ export interface CabinetAppointment {
   cancelledBy?: CancelledBy;
   hasPatientReview?: boolean;
   patientReviewRating?: number;
+  patientReviewText?: string;
 }

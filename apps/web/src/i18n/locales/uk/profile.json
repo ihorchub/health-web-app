@@ -6,11 +6,16 @@
   "roleDoctor": "Лікар",
   "activeBadge": "Профіль активний",
   "viewPublicProfile": "Переглянути мій профіль",
+  "changePhoto": "Змінити фото",
   "edit": "Редагувати",
   "save": "Зберегти",
   "cancel": "Скасувати",
   "saving": "Збереження…",
   "saved": "Профіль збережено",
+  "savingOverlay": {
+    "title": "Зберігаємо профіль…",
+    "hint": "Зачекайте кілька секунд"
+  },
   "sections": {
     "basic": "Основна інформація",
     "about": "Про себе",
@@ -18,31 +23,47 @@
     "contact": "Контактна інформація"
   },
   "fields": {
-    "fullName": "ПІБ",
-    "firstName": "Ім’я",
+    "fullName": "Імʼя та прізвище",
+    "firstName": "Імʼя",
     "lastName": "Прізвище",
     "phone": "Телефон",
     "email": "Email",
     "dob": "Дата народження",
     "city": "Місто",
     "clinic": "Клініка",
-    "specialty": "Спеціальність",
-    "experience": "Досвід",
-    "languages": "Мови",
-    "license": "Ліцензія",
-    "licenseOnFile": "На файлі — {{file}}",
+    "homeClinic": "Домашня клініка",
+    "specialty": "Спеціалізація",
+    "experience": "Досвід роботи",
+    "experienceYears": "{{years}}+ років",
+    "experienceHero": "{{years}}+ років досвіду",
+    "languages": "Мова консультацій",
+    "license": "Ліцензія / сертифікат",
+    "licenseOnFile": "На файлі · {{file}}",
     "consultations": "{{count}} консультацій",
     "rating": "{{rating}} ({{count}} відгуків)",
-    "shortBio": "Коротко",
-    "fullBio": "Повний опис",
-    "educationRow": "{{title}} · {{years}}",
-    "certificateRow": "{{title}} · {{year}}"
+    "shortBio": "Коротко про вас",
+    "fullBio": "Повна біографія"
   },
   "education": {
-    "add": "+ Додати сертифікат"
+    "add": "Додати сертифікат"
   },
   "preview": {
-    "title": "Як бачать пацієнти",
-    "close": "Закрити"
+    "eyebrow": "Перегляд",
+    "title": "Так бачать ваш профіль пацієнти",
+    "close": "Закрити",
+    "favourite": "У обране",
+    "clinic": "Клініка",
+    "experience": "Досвід",
+    "format": "Формат",
+    "languages": "Мови",
+    "about": "Про лікаря",
+    "consultation": "Консультація",
+    "reviews": "Відгуки",
+    "reviewsCount": "{{count}} відгуків",
+    "drName": "д-р {{name}}",
+    "formatBoth": "Офлайн / Онлайн",
+    "formatOffline": "Офлайн",
+    "formatOnline": "Онлайн",
+    "price": "{{amount}} ₴"
   }
 }

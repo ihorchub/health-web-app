@@ -34,68 +34,117 @@ export const Hero = styled('div')(({ theme }) => ({
   overflow: 'hidden',
   borderRadius: 20,
   paddingTop: 28,
-  paddingInline: theme.spacing(3),
+  paddingInline: theme.spacing(2),
+  marginBottom: theme.spacing(1),
   backgroundColor: theme.palette.brand.main,
   backgroundImage:
     'radial-gradient(ellipse 50% 70% at 80% 48%, rgba(46, 177, 145, 0.2) 0%, rgba(46, 177, 145, 0.12) 32%, transparent 68%), linear-gradient(160deg, #1A4A5E 0%, #163E52 48%, #123748 100%)',
 
   [theme.breakpoints.up('md')]: {
     paddingInline: 40,
-    minHeight: 305,
+    minHeight: 333,
   },
 
   [theme.breakpoints.down('md')]: {
     flexDirection: 'column',
-    paddingBottom: theme.spacing(2),
+    alignItems: 'center',
+    gap: 12,
+    paddingTop: 20,
+    paddingInline: 16,
+    borderRadius: 16,
+    backgroundImage:
+      'radial-gradient(ellipse 70% 55% at 50% 85%, rgba(46, 177, 145, 0.22) 0%, rgba(46, 177, 145, 0.1) 40%, transparent 72%), linear-gradient(160deg, #1A4A5E 0%, #163E52 48%, #123748 100%)',
   },
 }));
 
 export const HeroCopy = styled('div')(({ theme }) => ({
   display: 'flex',
   flexDirection: 'column',
-  gap: theme.spacing(3),
+  gap: 32,
   flex: 1,
   maxWidth: 720,
-  paddingBottom: theme.spacing(3),
+  width: '58%',
+  minWidth: 0,
+  justifyContent: 'center',
+  paddingTop: 20,
+  paddingBottom: 36,
   color: theme.palette.onBrand,
+
+  [theme.breakpoints.down('md')]: {
+    width: '100%',
+    maxWidth: '100%',
+    gap: 12,
+    paddingTop: 0,
+    paddingBottom: 0,
+    alignItems: 'center',
+  },
+}));
+
+export const HeroTextBlock = styled('div')(({ theme }) => ({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 12,
+  maxWidth: 680,
+  width: '100%',
+
+  [theme.breakpoints.down('md')]: {
+    gap: 10,
+    alignItems: 'center',
+    textAlign: 'center',
+  },
 }));
 
 export const HeroTitle = styled('h1')(({ theme }) => ({
   margin: 0,
   fontFamily: theme.typography.fontFamily,
-  fontSize: 28,
-  lineHeight: '36px',
+  fontSize: 24,
+  lineHeight: '30px',
   fontWeight: 700,
+  letterSpacing: '-0.02em',
   color: theme.palette.onBrand,
 
   [theme.breakpoints.up('md')]: {
-    fontSize: 32,
-    lineHeight: '40px',
+    fontSize: 34,
+    lineHeight: '42px',
+    letterSpacing: '-0.03em',
+  },
+
+  [theme.breakpoints.down('md')]: {
+    textAlign: 'center',
+    width: '100%',
   },
 }));
 
 export const HeroSubtitle = styled('p')(({ theme }) => ({
   margin: 0,
-  marginTop: theme.spacing(1),
   fontFamily: theme.typography.fontFamily,
-  fontSize: 16,
-  lineHeight: '24px',
-  color: theme.palette.onBrand,
-  opacity: 0.92,
+  fontSize: 14,
+  lineHeight: '20px',
+  color: 'rgba(243, 247, 248, 0.88)',
+  maxWidth: 440,
+
+  [theme.breakpoints.up('md')]: {
+    fontSize: 16,
+    lineHeight: '24px',
+    color: '#D7E4EA',
+  },
+
+  [theme.breakpoints.down('md')]: {
+    textAlign: 'center',
+    width: '100%',
+    maxWidth: '100%',
+  },
 }));
 
 export const HeroSteps = styled('div')(({ theme }) => ({
   display: 'flex',
-  flexWrap: 'wrap',
-  gap: theme.spacing(2),
   alignItems: 'flex-start',
+  justifyContent: 'space-between',
+  gap: 8,
+  width: '100%',
 
-  [theme.breakpoints.down('sm')]: {
-    flexWrap: 'nowrap',
-    overflowX: 'auto',
-    width: '100%',
-    paddingBottom: 4,
-    WebkitOverflowScrolling: 'touch',
+  [theme.breakpoints.down('md')]: {
+    gap: 4,
   },
 }));
 
@@ -103,8 +152,38 @@ export const HeroStep = styled('div')(({ theme }) => ({
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
-  gap: theme.spacing(1),
-  minWidth: 96,
+  gap: 8,
+  flex: '1 1 0',
+  minWidth: 0,
+  maxWidth: 200,
+
+  [theme.breakpoints.down('md')]: {
+    gap: 6,
+    maxWidth: 'none',
+  },
+}));
+
+export const HeroStepArrow = styled('div')(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  flexShrink: 0,
+  width: 24,
+  paddingTop: 72,
+  color: '#8FA3AD',
+  opacity: 0.7,
+
+  [theme.breakpoints.down('md')]: {
+    width: 'auto',
+    paddingTop: 12,
+    color: '#7A95A3',
+    opacity: 1,
+
+    '& svg': {
+      width: 12,
+      height: 12,
+    },
+  },
 }));
 
 export const HeroStepIcon = styled('div')(({ theme }) => ({
@@ -113,31 +192,66 @@ export const HeroStepIcon = styled('div')(({ theme }) => ({
   justifyContent: 'center',
   width: 48,
   height: 48,
-  borderRadius: 999,
-  backgroundColor: 'rgba(255,255,255,0.12)',
-  color: theme.palette.onBrand,
+  flexShrink: 0,
+  borderRadius: 24,
+  backgroundColor: '#E8F7F2',
+  color: theme.palette.primary.main,
+
+  [theme.breakpoints.down('md')]: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+
+    '& svg': {
+      width: 20,
+      height: 20,
+    },
+  },
 }));
 
 export const HeroStepLabel = styled('span')(({ theme }) => ({
   fontFamily: theme.typography.fontFamily,
-  fontSize: 13,
-  lineHeight: '18px',
-  fontWeight: 500,
+  fontSize: 17,
+  lineHeight: '22px',
+  fontWeight: 600,
   textAlign: 'center',
   color: theme.palette.onBrand,
+  width: '100%',
+
+  [theme.breakpoints.down('md')]: {
+    fontSize: 13,
+    lineHeight: '16px',
+  },
+}));
+
+export const HeroStepDesc = styled('span')(({ theme }) => ({
+  fontFamily: theme.typography.fontFamily,
+  fontSize: 15,
+  lineHeight: '22px',
+  textAlign: 'center',
+  color: '#B8C8D0',
+  width: '100%',
+
+  [theme.breakpoints.down('md')]: {
+    fontSize: 12,
+    lineHeight: '16px',
+  },
 }));
 
 export const HeroImage = styled('img')(({ theme }) => ({
-  width: '100%',
-  maxWidth: 414,
-  height: 'auto',
-  objectFit: 'contain',
+  width: 414,
+  height: 305,
+  maxWidth: '100%',
+  objectFit: 'cover',
+  objectPosition: 'center',
   alignSelf: 'flex-end',
   display: 'block',
+  flexShrink: 0,
 
   [theme.breakpoints.down('md')]: {
-    maxWidth: 280,
-    marginInline: 'auto',
+    width: 324,
+    height: 239,
+    alignSelf: 'center',
   },
 }));
 

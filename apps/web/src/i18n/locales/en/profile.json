@@ -6,11 +6,16 @@
   "roleDoctor": "Doctor",
   "activeBadge": "Profile active",
   "viewPublicProfile": "View my profile",
+  "changePhoto": "Change photo",
   "edit": "Edit",
   "save": "Save",
   "cancel": "Cancel",
   "saving": "Saving…",
   "saved": "Profile saved",
+  "savingOverlay": {
+    "title": "Saving profile…",
+    "hint": "Please wait a few seconds"
+  },
   "sections": {
     "basic": "Basic information",
     "about": "About me",
@@ -26,23 +31,39 @@
     "dob": "Date of birth",
     "city": "City",
     "clinic": "Clinic",
-    "specialty": "Specialty",
-    "experience": "Experience",
-    "languages": "Languages",
-    "license": "License",
-    "licenseOnFile": "On file — {{file}}",
+    "homeClinic": "Home clinic",
+    "specialty": "Specialization",
+    "experience": "Work experience",
+    "experienceYears": "{{years}}+ years",
+    "experienceHero": "{{years}}+ years of experience",
+    "languages": "Consultation languages",
+    "license": "License / certificate",
+    "licenseOnFile": "On file · {{file}}",
     "consultations": "{{count}} consultations",
     "rating": "{{rating}} ({{count}} reviews)",
     "shortBio": "Short bio",
-    "fullBio": "Full bio",
-    "educationRow": "{{title}} · {{years}}",
-    "certificateRow": "{{title}} · {{year}}"
+    "fullBio": "Full biography"
   },
   "education": {
-    "add": "+ Add certificate"
+    "add": "Add certificate"
   },
   "preview": {
-    "title": "Patient view",
-    "close": "Close"
+    "eyebrow": "Preview",
+    "title": "This is how patients see your profile",
+    "close": "Close",
+    "favourite": "Add to favourites",
+    "clinic": "Clinic",
+    "experience": "Experience",
+    "format": "Format",
+    "languages": "Languages",
+    "about": "About the doctor",
+    "consultation": "Consultation",
+    "reviews": "Reviews",
+    "reviewsCount": "{{count}} reviews",
+    "drName": "Dr {{name}}",
+    "formatBoth": "Offline / Online",
+    "formatOffline": "Offline",
+    "formatOnline": "Online",
+    "price": "{{amount}} ₴"
   }
 }

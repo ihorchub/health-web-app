@@ -51,3 +51,16 @@ export const toYmd = (date: Date): string => {
   const day = String(date.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
 };
+
+/** Diff in whole calendar days from `from` to `iso` (Kyiv demo clock). */
+export const calendarDayDiff = (iso: string, from: Date): number => {
+  const target = new Date(iso);
+  const startOf = (date: Date) =>
+    new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
+  return Math.round((startOf(target) - startOf(from)) / 86400000);
+};
+
+export const isTodayOrTomorrow = (iso: string, from: Date): boolean => {
+  const diff = calendarDayDiff(iso, from);
+  return diff === 0 || diff === 1;
+};

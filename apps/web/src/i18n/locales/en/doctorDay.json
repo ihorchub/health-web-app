@@ -19,19 +19,29 @@
     "cancellations7d": "Cancellations (7 days)"
   },
   "tabs": {
-    "visits": "Visits",
+    "visits": "Visits today",
     "pending": "Awaiting decision",
     "free": "Free hours",
-    "cancellations": "Cancellations"
+    "cancellations": "Cancellations · 7 days",
+    "visitsShort": "Visits",
+    "pendingShort": "Pending",
+    "freeShort": "Free",
+    "cancellationsShort": "Cancelled"
   },
   "list": {
     "visitsTitle": "Visits",
     "visitsMeta": "{{total}} today · showing {{shown}}",
     "showMore": "Show more",
-    "waitingPatient": "Awaiting patient",
+    "loading": "Loading…",
+    "waitingPatient": "Waiting for patient",
+    "proposalLabel": "Proposal",
+    "pendingNote": "Original {{original}} · proposed {{proposed}} — both occupied",
+    "reservedNote": "Slot held by a proposal — not free",
     "reason": "Reason: {{reason}}",
     "cancelledByPatient": "Cancelled by patient",
-    "cancelledByDoctor": "Cancelled by doctor"
+    "cancelledByDoctor": "Cancelled by doctor",
+    "cancelledByPatientShort": "Cancelled by: patient",
+    "cancelledByDoctorShort": "Cancelled by: doctor"
   },
   "status": {
     "upcoming": "Upcoming",
@@ -66,15 +76,33 @@
     "freeRow": "{{start}}–{{end}} · {{count}} slots",
     "pendingTitle": "Awaiting responses",
     "pendingRow": "{{patient}} · {{from}} → {{to}}",
+    "pendingRowTime": "{{from}} → {{to}}",
     "quickTitle": "Quick links",
     "mySchedule": "My schedule",
     "myProfile": "My profile"
   },
   "modals": {
     "proposeTitle": "Propose a time",
-    "proposeBody": "Pick a free slot for {{patient}}",
+    "proposeStep": "Step 1 of 2 · Choose a new time and format",
+    "proposeSummaryTitle": "{{time}} · {{minutes}} min",
+    "proposeSummaryMeta": "{{date}} · {{doctor}}",
+    "doctorShort": "Dr. {{name}}",
+    "dateTime": "Date and time",
+    "currentVisit": "Current visit",
+    "patientAlreadyBooked": "Patient is already booked for this visit",
+    "visitFormat": "Visit format",
     "dayScheduleTitle": "Day schedule",
+    "dayScheduleMeta": "{{visits}} visits · {{free}} free slots",
     "visitCardTitle": "Visit card",
+    "statusWaitingShort": "Waiting",
+    "freeSlotTitle": "Free slot · {{minutes}} min",
+    "freeSlotHint": "Tap to propose a time",
+    "phone": "Phone: {{value}}",
+    "email": "Email: {{value}}",
+    "prevMonth": "Previous month",
+    "nextMonth": "Next month",
+    "next": "Next",
+    "cancel": "Cancel",
     "submit": "Send",
     "close": "Close"
   },

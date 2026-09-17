@@ -1,6 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
 
 import type {
+  DoctorDashboardParams,
+  DoctorDashboardResponse,
+} from '@/api/doctors/dashboard.types';
+import type {
   DoctorCalendarParams,
   DoctorCalendarResponse,
   DoctorProfile,
@@ -8,6 +12,7 @@ import type {
   DoctorsSearchResponse,
 } from '@/api/doctors/types';
 import { mockGetDoctorCalendar } from '@/api/mocks/doctorCalendar';
+import { mockGetDoctorMeDashboard } from '@/api/mocks/doctorDashboard';
 import { mockGetDoctorById, mockSearchDoctors } from '@/api/mocks/doctorsSearch';
 
 export const doctorsQueryKeys = {
@@ -16,6 +21,8 @@ export const doctorsQueryKeys = {
   byId: (doctorId: string, roleKey: string) => ['doctors', doctorId, roleKey] as const,
   calendar: (doctorId: string, params: DoctorCalendarParams) =>
     ['doctors', doctorId, 'calendar', params] as const,
+  meDashboard: (params: DoctorDashboardParams) =>
+    ['doctors', 'me', 'dashboard', params] as const,
 };
 
 interface UseGetDoctorsSearchOptions {
@@ -84,6 +91,22 @@ export const useGetDoctorCalendar = (
   });
 };
 
+interface UseGetDoctorMeDashboardOptions {
+  enabled?: boolean;
+}
+
+/** Orval-shaped — GET /api/v1/doctors/me/dashboard */
+export const useGetDoctorMeDashboard = (
+  params: DoctorDashboardParams,
+  options: UseGetDoctorMeDashboardOptions = {},
+) => {
+  return useQuery<DoctorDashboardResponse>({
+    queryKey: doctorsQueryKeys.meDashboard(params),
+    queryFn: () => mockGetDoctorMeDashboard(params.date),
+    enabled: Boolean(params.date) && (options.enabled ?? true),
+  });
+};
+
 export type {
   DoctorsSearchParams,
   DoctorsSearchResponse,
@@ -96,3 +119,13 @@ export type {
   CalendarDaySummary,
   DayAvailabilityFlag,
 } from '@/api/doctors/types';
+
+export type {
+  DoctorDashboardParams,
+  DoctorDashboardResponse,
+  DoctorDashboardVisit,
+  DoctorDashboardMetrics,
+  DoctorDashboardPendingPatient,
+  DoctorDashboardFreeWindow,
+  ProposeAppointmentBody,
+} from '@/api/doctors/dashboard.types';
