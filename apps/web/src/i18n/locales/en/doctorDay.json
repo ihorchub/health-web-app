@@ -1,0 +1,85 @@
+{
+  "greetingMorning": "Good morning, {{name}}",
+  "greetingDay": "Good afternoon, {{name}}",
+  "greetingEvening": "Good evening, {{name}}",
+  "subtitle": "Day overview and visits in time order",
+  "dateLine": "{{date}}",
+  "nextVisit": {
+    "label": "Next visit",
+    "statusUpcoming": "Upcoming",
+    "durationMin": "{{minutes}} min",
+    "complete": "Mark completed",
+    "propose": "Propose time",
+    "cancel": "Cancel"
+  },
+  "metrics": {
+    "visitsToday": "Visits today",
+    "pending": "Awaiting decision",
+    "freeHours": "Free hours",
+    "cancellations7d": "Cancellations (7 days)"
+  },
+  "tabs": {
+    "visits": "Visits",
+    "pending": "Awaiting decision",
+    "free": "Free hours",
+    "cancellations": "Cancellations"
+  },
+  "list": {
+    "visitsTitle": "Visits",
+    "visitsMeta": "{{total}} today · showing {{shown}}",
+    "showMore": "Show more",
+    "waitingPatient": "Awaiting patient",
+    "reason": "Reason: {{reason}}",
+    "cancelledByPatient": "Cancelled by patient",
+    "cancelledByDoctor": "Cancelled by doctor"
+  },
+  "status": {
+    "upcoming": "Upcoming",
+    "reschedule_pending": "Pending decision",
+    "completed": "Completed",
+    "cancelled": "Cancelled",
+    "rescheduled": "Rescheduled",
+    "reserved": "Reserved"
+  },
+  "format": {
+    "offline": "In person",
+    "online": "Online"
+  },
+  "rowActions": {
+    "complete": "Complete",
+    "propose": "Other time",
+    "cancel": "Cancel"
+  },
+  "sidebar": {
+    "weekTitle": "Week schedule",
+    "weekView": "View ›",
+    "legendVisits": "Visits",
+    "legendFree": "Free",
+    "legendPending": "Pending",
+    "legendCancelled": "Cancelled",
+    "reminderTitle": "Reminder",
+    "reminderLine": "In {{minutes}} min — {{patient}}",
+    "reminderMeta": "{{time}} · {{format}} · {{reason}}",
+    "toVisit": "Go to visit",
+    "freeTitle": "Free windows today",
+    "scheduleLink": "Schedule",
+    "freeRow": "{{start}}–{{end}} · {{count}} slots",
+    "pendingTitle": "Awaiting responses",
+    "pendingRow": "{{patient}} · {{from}} → {{to}}",
+    "quickTitle": "Quick links",
+    "mySchedule": "My schedule",
+    "myProfile": "My profile"
+  },
+  "modals": {
+    "proposeTitle": "Propose a time",
+    "proposeBody": "Pick a free slot for {{patient}}",
+    "dayScheduleTitle": "Day schedule",
+    "visitCardTitle": "Visit card",
+    "submit": "Send",
+    "close": "Close"
+  },
+  "empty": {
+    "title": "No visits on this day",
+    "body": "Adjust free hours in your working schedule."
+  }
+}

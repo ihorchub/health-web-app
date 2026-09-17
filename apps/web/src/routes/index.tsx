@@ -6,8 +6,10 @@ import { PreviewRoleProvider } from '@/context/PreviewRoleContext';
 import { LoginPage } from '@/modules/auth/login';
 import { SignupPage } from '@/modules/auth/signup';
 import { DoctorProfileRoute } from '@/modules/booking/doctor-profile';
-import { DoctorDayStubPage } from '@/modules/doctor-day';
-import { PatientCabinetStubPage } from '@/modules/patient-room';
+import { DoctorDayPage } from '@/modules/doctor-day';
+import { PatientCabinetPage } from '@/modules/patient-room';
+import { ProfilePage } from '@/modules/profile';
+import { WorkingHoursPage } from '@/modules/working-hours';
 import { SearchPage } from '@/modules/search';
 import { LegalPlaceholderPage } from '@/modules/shared/legal/LegalPlaceholderPage';
 import { DevCheckRoute } from '@/routes/DevCheckRoute';
@@ -60,11 +62,19 @@ export const router = createBrowserRouter([
       },
       {
         path: AppRoute.APPOINTMENTS,
-        element: <PatientCabinetStubPage />,
+        element: <PatientCabinetPage />,
       },
       {
         path: AppRoute.DOCTOR_DAY,
-        element: <DoctorDayStubPage />,
+        element: <DoctorDayPage />,
+      },
+      {
+        path: AppRoute.DOCTOR_HOURS,
+        element: <WorkingHoursPage />,
+      },
+      {
+        path: AppRoute.PROFILE,
+        element: <ProfilePage />,
       },
     ],
   },

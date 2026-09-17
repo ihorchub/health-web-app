@@ -7,7 +7,6 @@ export interface PreviewRoleContextValue {
   setRole: (role: AppRole) => void;
   /** Preview stub — real auth later. */
   initials: string;
-  hasUnreadNotifications: boolean;
 }
 
 export const PreviewRoleContext = createContext<PreviewRoleContextValue | null>(null);

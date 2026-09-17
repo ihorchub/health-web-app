@@ -39,6 +39,7 @@
     "sortNearest": "By nearest slot",
     "showMore": "Show more doctors",
     "loadingBadge": "Loading…",
+    "loadingBody": "Finding doctors that match your filters…",
     "errorBadge": "Failed to load",
     "emptyTitle": "No doctors found",
     "emptyBody": "Try changing the specialty, city, or visit format.",

@@ -1,4 +1,4 @@
-import { IconBell, IconMenu2, IconX } from '@tabler/icons-react';
+import { IconMenu2, IconX } from '@tabler/icons-react';
 import { styled } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -9,6 +9,7 @@ import { BrandLogo } from '@/components/Layout/BrandLogo';
 import { HeaderIconButton } from '@/components/Layout/HeaderIconButton';
 import { LanguageToggle } from '@/components/Layout/LanguageToggle';
 import { MobileMenu } from '@/components/Layout/MobileMenu';
+import { NotificationBell } from '@/components/Layout/NotificationBell';
 import { ThemeToggleButton } from '@/components/Layout/ThemeToggleButton';
 import { useAppRole } from '@/hooks/useAppRole';
 import { AppRole } from '@/types/role';
@@ -115,7 +116,7 @@ const MenuOverlay = styled('div')(({ theme }) => ({
 
 export const AppHeader = () => {
   const { t } = useTranslation('common');
-  const { role, hasUnreadNotifications } = useAppRole();
+  const { role } = useAppRole();
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -152,12 +153,7 @@ export const AppHeader = () => {
               <PrimaryCompactLink to={AppRoute.HOME}>
                 {t('header.findDoctor')}
               </PrimaryCompactLink>
-              <HeaderIconButton
-                aria-label={t('header.notifications')}
-                showUnread={hasUnreadNotifications}
-              >
-                <IconBell size={20} />
-              </HeaderIconButton>
+              <NotificationBell />
               <ThemeToggleButton />
               <AvatarMenu />
             </>
@@ -165,12 +161,7 @@ export const AppHeader = () => {
 
           {role === AppRole.DOCTOR ? (
             <>
-              <HeaderIconButton
-                aria-label={t('header.notifications')}
-                showUnread={hasUnreadNotifications}
-              >
-                <IconBell size={20} />
-              </HeaderIconButton>
+              <NotificationBell />
               <ThemeToggleButton />
               <AvatarMenu />
             </>
@@ -189,13 +180,7 @@ export const AppHeader = () => {
           ) : (
             <>
               {role !== AppRole.GUEST ? (
-                <HeaderIconButton
-                  size="sm"
-                  aria-label={t('header.notifications')}
-                  showUnread={hasUnreadNotifications}
-                >
-                  <IconBell size={16} />
-                </HeaderIconButton>
+                <NotificationBell size="sm" />
               ) : null}
               <HeaderIconButton
                 bordered={false}

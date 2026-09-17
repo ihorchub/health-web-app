@@ -1,0 +1,48 @@
+{
+  "title": "Мій профіль",
+  "patientSubtitle": "Ваші особисті дані для записів та сповіщень.",
+  "doctorSubtitle": "Тут відображається інформація про вас, яка видима вашим пацієнтам.",
+  "rolePatient": "Пацієнт",
+  "roleDoctor": "Лікар",
+  "activeBadge": "Профіль активний",
+  "viewPublicProfile": "Переглянути мій профіль",
+  "edit": "Редагувати",
+  "save": "Зберегти",
+  "cancel": "Скасувати",
+  "saving": "Збереження…",
+  "saved": "Профіль збережено",
+  "sections": {
+    "basic": "Основна інформація",
+    "about": "Про себе",
+    "education": "Освіта та сертифікати",
+    "contact": "Контактна інформація"
+  },
+  "fields": {
+    "fullName": "ПІБ",
+    "firstName": "Ім’я",
+    "lastName": "Прізвище",
+    "phone": "Телефон",
+    "email": "Email",
+    "dob": "Дата народження",
+    "city": "Місто",
+    "clinic": "Клініка",
+    "specialty": "Спеціальність",
+    "experience": "Досвід",
+    "languages": "Мови",
+    "license": "Ліцензія",
+    "licenseOnFile": "На файлі — {{file}}",
+    "consultations": "{{count}} консультацій",
+    "rating": "{{rating}} ({{count}} відгуків)",
+    "shortBio": "Коротко",
+    "fullBio": "Повний опис",
+    "educationRow": "{{title}} · {{years}}",
+    "certificateRow": "{{title}} · {{year}}"
+  },
+  "education": {
+    "add": "+ Додати сертифікат"
+  },
+  "preview": {
+    "title": "Як бачать пацієнти",
+    "close": "Закрити"
+  }
+}

@@ -1,0 +1,134 @@
+{
+  "greeting": "Вітаю, {{name}}",
+  "dateLine": "{{date}}",
+  "findDoctor": "Знайти лікаря",
+  "page": {
+    "loadingSubtitle": "Завантажуємо ваші записи…"
+  },
+  "emptyAll": {
+    "title": "Поки немає записів",
+    "body": "Коли ви запишетеся до лікаря, візити з’являться тут — у розділах «Майбутні» та «Минулі»."
+  },
+  "nextVisit": {
+    "label": "Наступний візит",
+    "statusUpcoming": "Майбутній",
+    "statusPending": "Очікує рішення",
+    "todayDuration": "сьогодні · {{minutes}} хв",
+    "move": "Перенести",
+    "cancel": "Скасувати"
+  },
+  "upcoming": {
+    "title": "Найближчі візити",
+    "count": "{{count}} майбутні",
+    "loadingCount": "…",
+    "loadingTitle": "Завантаження…",
+    "loadingBody": "Отримуємо ваші записи",
+    "showAll": "Показати всі візити",
+    "tomorrow": "завтра",
+    "emptyTitle": "Немає майбутніх записів",
+    "emptyBody": "Минулі візити залишаються нижче. Запишіться до лікаря — і новий візит з’явиться тут."
+  },
+  "past": {
+    "title": "Минулі візити",
+    "count": "{{count}} записи",
+    "leaveReview": "Залишити відгук",
+    "yourReview": "Ваш відгук",
+    "emptyTitle": "Минулих візитів ще немає",
+    "emptyBody": "Після завершення прийому вони з’являться тут."
+  },
+  "status": {
+    "upcoming": "Майбутній",
+    "reschedule_pending": "Очікує рішення",
+    "completed": "Завершено",
+    "cancelled": "Скасовано",
+    "rescheduled": "Перенесено"
+  },
+  "format": {
+    "offline": "Офлайн",
+    "online": "Онлайн"
+  },
+  "rowMeta": "{{time}} · {{specialty}} · {{clinic}}",
+  "today": "сьогодні",
+  "demoClinic": "Добробут",
+  "cancelledByDoctor": "Скасовано лікарем",
+  "cancelledByPatient": "Скасовано вами",
+  "favourites": {
+    "title": "Обрані лікарі",
+    "all": "Усі ›"
+  },
+  "recent": {
+    "title": "Нещодавно переглянуті",
+    "clear": "Очистити"
+  },
+  "specialties": {
+    "title": "Спеціальності",
+    "all": "Усі ›"
+  },
+  "sidebar": {
+    "calendar": "Календар",
+    "legendVisit": "Візит",
+    "legendToday": "Сьогодні",
+    "reminderTitle": "Нагадування",
+    "reminderLine": "Сьогодні о {{time}} — {{doctor}}",
+    "reminderMeta": "{{format}} · {{specialty}} · {{clinic}}",
+    "toVisit": "До візиту",
+    "newDoctor": "Новий лікар",
+    "book": "Записатися",
+    "reviewsTitle": "Мої відгуки",
+    "reviewsSummary": "{{left}} відгуки залишено",
+    "reviewsPending": "{{count}} візит очікує вашої оцінки",
+    "reviewsView": "Переглянути",
+    "howTitle": "Як записатися",
+    "howBody": "Знайдіть лікаря → оберіть час → підтвердіть. Усе онлайн за кілька хвилин.",
+    "toSearch": "До пошуку ›"
+  },
+  "reviewModal": {
+    "title": "Залишити відгук",
+    "rating": "Оцінка",
+    "textLabel": "Коментар (необов’язково)",
+    "textPlaceholder": "Поділіться враженням від візиту…",
+    "submit": "Надіслати",
+    "cancel": "Скасувати"
+  },
+  "visitModal": {
+    "close": "Закрити",
+    "reason": "Причина візиту",
+    "place": "Місце",
+    "when": "Дата та час"
+  },
+  "pendingBanner": {
+    "title": "Лікар запропонував новий час ({{count}})",
+    "body": "Потрібно прийняти пропозицію, обрати інший слот або скасувати візит.",
+    "cta": "Прийняти рішення"
+  },
+  "pendingDecision": {
+    "title": "Рішення щодо перенесення",
+    "intro": "Лікар запропонував інший час. Оригінальний слот зайнятий, запропонований — зарезервований, доки ви не вирішите.",
+    "original": "Було",
+    "originalHint": "Поточний запис (зайнятий)",
+    "proposed": "Пропозиція",
+    "proposedHint": "Зарезервовано для вас",
+    "accept": "Прийняти запропонований час",
+    "pickAnother": "Обрати інший слот",
+    "cancelVisit": "Скасувати візит",
+    "close": "Закрити",
+    "decide": "Рішення",
+    "acceptedToast": "Новий час підтверджено",
+    "cancelledToast": "Візит скасовано",
+    "pickAnotherToast": "Оберіть інший час у календарі того ж лікаря"
+  },
+  "loading": "Завантаження кабінету…",
+  "dayModal": {
+    "eyebrow": "Мій день",
+    "title": "Записи на день",
+    "visitCount": "{{count}} візити",
+    "yourVisits": "Ваші візити · {{count}} записи",
+    "noVisits": "На цей день записів немає.",
+    "details": "Деталі →",
+    "bookNew": "Записатися до нового лікаря",
+    "close": "Закрити",
+    "prevMonth": "Попередній місяць",
+    "nextMonth": "Наступний місяць",
+    "minutesShort": "хв"
+  }
+}

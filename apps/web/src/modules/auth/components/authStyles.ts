@@ -40,7 +40,12 @@ export const AuthShell = styled('div')(({ theme }) => ({
   borderRadius: 16,
   overflow: 'hidden',
   backgroundColor: theme.palette.background.paper,
-  boxShadow: '2px 1px 2px rgba(22, 62, 82, 0.06), 0px 8px 24px rgba(22, 62, 82, 0.06)',
+  boxShadow:
+    theme.palette.mode === 'light'
+      ? '2px 1px 2px rgba(22, 62, 82, 0.06), 0px 8px 24px rgba(22, 62, 82, 0.06)'
+      : 'none',
+  border:
+    theme.palette.mode === 'dark' ? `1px solid ${theme.palette.divider}` : 'none',
 
   [theme.breakpoints.down('md')]: {
     flexDirection: 'column',
@@ -274,7 +279,12 @@ export const FormCard = styled('form')(({ theme }) => ({
   padding: theme.spacing(3),
   borderRadius: 16,
   backgroundColor: theme.palette.background.paper,
-  boxShadow: '2px 2px 12px rgba(22, 62, 82, 0.08)',
+  boxShadow:
+    theme.palette.mode === 'light'
+      ? '2px 2px 12px rgba(22, 62, 82, 0.08)'
+      : 'none',
+  border:
+    theme.palette.mode === 'dark' ? `1px solid ${theme.palette.divider}` : 'none',
   boxSizing: 'border-box',
 }));
 
@@ -498,7 +508,12 @@ export const CenterCard = styled('div')(({ theme }) => ({
   paddingInline: theme.spacing(3),
   borderRadius: 16,
   backgroundColor: theme.palette.background.paper,
-  boxShadow: '2px 2px 12px rgba(22, 62, 82, 0.08)',
+  boxShadow:
+    theme.palette.mode === 'light'
+      ? '2px 2px 12px rgba(22, 62, 82, 0.08)'
+      : 'none',
+  border:
+    theme.palette.mode === 'dark' ? `1px solid ${theme.palette.divider}` : 'none',
   boxSizing: 'border-box',
 }));
 

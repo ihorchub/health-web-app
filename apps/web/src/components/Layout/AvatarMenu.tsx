@@ -123,7 +123,11 @@ export const AvatarMenu = () => {
           </ItemIcon>
           {t('header.myCabinet')}
         </MenuItem>
-        <MenuItem onClick={handleClose}>
+        <MenuItem
+          onClick={() => {
+            go(AppRoute.PROFILE);
+          }}
+        >
           <ItemIcon>
             <IconUser size={18} stroke={1.75} />
           </ItemIcon>
@@ -132,7 +136,7 @@ export const AvatarMenu = () => {
         {role === AppRole.DOCTOR ? (
           <MenuItem
             onClick={() => {
-              go(AppRoute.DOCTOR_DAY);
+              go(AppRoute.DOCTOR_HOURS);
             }}
           >
             <ItemIcon>

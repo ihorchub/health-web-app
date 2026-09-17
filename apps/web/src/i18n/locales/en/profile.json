@@ -1,0 +1,48 @@
+{
+  "title": "My profile",
+  "patientSubtitle": "Your personal details for bookings and notifications.",
+  "doctorSubtitle": "Information about you that is visible to your patients.",
+  "rolePatient": "Patient",
+  "roleDoctor": "Doctor",
+  "activeBadge": "Profile active",
+  "viewPublicProfile": "View my profile",
+  "edit": "Edit",
+  "save": "Save",
+  "cancel": "Cancel",
+  "saving": "Saving…",
+  "saved": "Profile saved",
+  "sections": {
+    "basic": "Basic information",
+    "about": "About me",
+    "education": "Education & certificates",
+    "contact": "Contact information"
+  },
+  "fields": {
+    "fullName": "Full name",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "phone": "Phone",
+    "email": "Email",
+    "dob": "Date of birth",
+    "city": "City",
+    "clinic": "Clinic",
+    "specialty": "Specialty",
+    "experience": "Experience",
+    "languages": "Languages",
+    "license": "License",
+    "licenseOnFile": "On file — {{file}}",
+    "consultations": "{{count}} consultations",
+    "rating": "{{rating}} ({{count}} reviews)",
+    "shortBio": "Short bio",
+    "fullBio": "Full bio",
+    "educationRow": "{{title}} · {{years}}",
+    "certificateRow": "{{title}} · {{year}}"
+  },
+  "education": {
+    "add": "+ Add certificate"
+  },
+  "preview": {
+    "title": "Patient view",
+    "close": "Close"
+  }
+}

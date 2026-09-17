@@ -38,6 +38,7 @@ interface FilterPanelProps {
   onChange: (next: Partial<SearchFiltersState>) => void;
   onReset: () => void;
   embedded?: boolean;
+  showHeader?: boolean;
 }
 
 export const FilterPanel = ({
@@ -48,17 +49,20 @@ export const FilterPanel = ({
   onChange,
   onReset,
   embedded,
+  showHeader = true,
 }: FilterPanelProps) => {
   const { t } = useTranslation('search');
 
   const body = (
     <>
-      <FiltersHeader>
-        <SectionTitle>{t('filters.title')}</SectionTitle>
-        <ResetButton type="button" onClick={onReset}>
-          {t('filters.reset')}
-        </ResetButton>
-      </FiltersHeader>
+      {showHeader ? (
+        <FiltersHeader>
+          <SectionTitle>{t('filters.title')}</SectionTitle>
+          <ResetButton type="button" onClick={onReset}>
+            {t('filters.reset')}
+          </ResetButton>
+        </FiltersHeader>
+      ) : null}
 
       <FilterGroup>
         <FilterGroupTitle>{t('filters.city')}</FilterGroupTitle>
