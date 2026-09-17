@@ -1,0 +1,202 @@
+import type {
+  DoctorDayVisit,
+  FreeWindowSlot,
+  PendingPatientRow,
+  WeekDaySummary,
+} from '@/modules/doctor-day/types';
+
+export const DEMO_DOCTOR_DAY = '2026-08-27';
+
+export const MOCK_DOCTOR_VISITS: DoctorDayVisit[] = [
+  {
+    id: 'dv_1',
+    startsAt: '2026-08-27T08:00:00+03:00',
+    durationMinutes: 30,
+    patientName: 'Марія Шевченко',
+    status: 'completed',
+    format: 'offline',
+    reason: 'Профілактичний огляд',
+  },
+  {
+    id: 'dv_2',
+    startsAt: '2026-08-27T09:00:00+03:00',
+    durationMinutes: 30,
+    patientName: 'Андрій Мельник',
+    status: 'upcoming',
+    format: 'offline',
+    reason: 'Біль у спині',
+  },
+  {
+    id: 'dv_3',
+    startsAt: '2026-08-27T10:30:00+03:00',
+    durationMinutes: 30,
+    patientName: 'Ірина Коваль',
+    status: 'upcoming',
+    format: 'online',
+    reason: 'Консультація',
+  },
+  {
+    id: 'dv_4',
+    startsAt: '2026-08-27T11:30:00+03:00',
+    durationMinutes: 30,
+    patientName: 'Петро Сидоренко',
+    status: 'cancelled',
+    format: 'offline',
+    cancelledBy: 'patient',
+  },
+  {
+    id: 'dv_5',
+    startsAt: '2026-08-27T14:00:00+03:00',
+    durationMinutes: 30,
+    patientName: 'Оксана Литвин',
+    status: 'reschedule_pending',
+    format: 'offline',
+    reason: 'Повторний візит',
+    pendingNote: 'Запропоновано 16:00 · очікує рішення пацієнта',
+    proposedTime: '2026-08-27T16:00:00+03:00',
+  },
+  {
+    id: 'dv_6',
+    startsAt: '2026-08-27T16:00:00+03:00',
+    durationMinutes: 30,
+    patientName: 'Оксана Литвин',
+    status: 'reserved',
+    format: 'offline',
+    pendingNote: 'Зарезервовано під пропозицію переносу',
+  },
+  {
+    id: 'dv_7',
+    startsAt: '2026-08-27T15:30:00+03:00',
+    durationMinutes: 30,
+    patientName: 'Наталія Бондар',
+    status: 'upcoming',
+    format: 'online',
+  },
+  {
+    id: 'dv_8',
+    startsAt: '2026-08-27T17:30:00+03:00',
+    durationMinutes: 30,
+    patientName: 'Ігор Кравчук',
+    status: 'upcoming',
+    format: 'offline',
+    reason: 'Аналізи',
+  },
+  {
+    id: 'dv_9',
+    startsAt: '2026-08-27T18:00:00+03:00',
+    durationMinutes: 30,
+    patientName: 'Сергій Мельник',
+    status: 'upcoming',
+    format: 'offline',
+  },
+];
+
+export const MOCK_METRICS = {
+  visitsToday: 8,
+  pendingDecisions: 2,
+  freeHoursToday: 4,
+  cancellations7d: 3,
+};
+
+export const MOCK_FREE_WINDOWS: FreeWindowSlot[] = [
+  { id: 'fw_1', start: '12:00', end: '13:00', slotsCount: 2 },
+  { id: 'fw_2', start: '13:30', end: '14:00', slotsCount: 1 },
+  { id: 'fw_3', start: '19:00', end: '20:00', slotsCount: 2 },
+];
+
+export const MOCK_PENDING_ROWS: PendingPatientRow[] = [
+  {
+    id: 'pr_1',
+    patientName: 'Оксана Литвин',
+    fromTime: '14:00',
+    toTime: '16:00',
+  },
+  {
+    id: 'pr_2',
+    patientName: 'Тарас Гнатюк',
+    fromTime: '11:00',
+    toTime: '12:30',
+  },
+];
+
+export const MOCK_WEEK_DAYS: WeekDaySummary[] = [
+  {
+    ymd: '2026-08-24',
+    weekdayShort: 'пн',
+    dayNumber: 24,
+    visits: 6,
+    free: 2,
+    pending: 0,
+    cancelled: 1,
+    isToday: false,
+    isSelected: false,
+  },
+  {
+    ymd: '2026-08-25',
+    weekdayShort: 'вт',
+    dayNumber: 25,
+    visits: 5,
+    free: 3,
+    pending: 1,
+    cancelled: 0,
+    isToday: false,
+    isSelected: false,
+  },
+  {
+    ymd: '2026-08-26',
+    weekdayShort: 'ср',
+    dayNumber: 26,
+    visits: 7,
+    free: 1,
+    pending: 0,
+    cancelled: 2,
+    isToday: false,
+    isSelected: false,
+  },
+  {
+    ymd: '2026-08-27',
+    weekdayShort: 'чт',
+    dayNumber: 27,
+    visits: 8,
+    free: 4,
+    pending: 2,
+    cancelled: 1,
+    isToday: true,
+    isSelected: true,
+  },
+  {
+    ymd: '2026-08-28',
+    weekdayShort: 'пт',
+    dayNumber: 28,
+    visits: 4,
+    free: 5,
+    pending: 0,
+    cancelled: 0,
+    isToday: false,
+    isSelected: false,
+  },
+  {
+    ymd: '2026-08-29',
+    weekdayShort: 'сб',
+    dayNumber: 29,
+    visits: 2,
+    free: 6,
+    pending: 0,
+    cancelled: 0,
+    isToday: false,
+    isSelected: false,
+  },
+  {
+    ymd: '2026-08-30',
+    weekdayShort: 'нд',
+    dayNumber: 30,
+    visits: 0,
+    free: 0,
+    pending: 0,
+    cancelled: 0,
+    isToday: false,
+    isSelected: false,
+  },
+];
+
+export const MOCK_PROPOSE_SLOTS = ['12:00', '12:30', '13:00', '19:00', '19:30'];

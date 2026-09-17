@@ -1,0 +1,134 @@
+{
+  "greeting": "Welcome, {{name}}",
+  "dateLine": "{{date}}",
+  "findDoctor": "Find a doctor",
+  "page": {
+    "loadingSubtitle": "Loading your appointments…"
+  },
+  "emptyAll": {
+    "title": "No appointments yet",
+    "body": "When you book a doctor, visits will show here — under Upcoming and Past."
+  },
+  "nextVisit": {
+    "label": "Next visit",
+    "statusUpcoming": "Upcoming",
+    "statusPending": "Pending decision",
+    "todayDuration": "today · {{minutes}} min",
+    "move": "Reschedule",
+    "cancel": "Cancel"
+  },
+  "upcoming": {
+    "title": "Upcoming visits",
+    "count": "{{count}} upcoming",
+    "loadingCount": "…",
+    "loadingTitle": "Loading…",
+    "loadingBody": "Fetching your appointments",
+    "showAll": "Show all visits",
+    "tomorrow": "tomorrow",
+    "emptyTitle": "No upcoming appointments",
+    "emptyBody": "Past visits stay below. Book a doctor and your next visit will appear here."
+  },
+  "past": {
+    "title": "Past visits",
+    "count": "{{count}} records",
+    "leaveReview": "Leave a review",
+    "yourReview": "Your review",
+    "emptyTitle": "No past visits yet",
+    "emptyBody": "Completed appointments will appear here."
+  },
+  "status": {
+    "upcoming": "Upcoming",
+    "reschedule_pending": "Pending decision",
+    "completed": "Completed",
+    "cancelled": "Cancelled",
+    "rescheduled": "Rescheduled"
+  },
+  "format": {
+    "offline": "In person",
+    "online": "Online"
+  },
+  "rowMeta": "{{time}} · {{specialty}} · {{clinic}}",
+  "today": "today",
+  "demoClinic": "Dobrobut",
+  "cancelledByDoctor": "Cancelled by doctor",
+  "cancelledByPatient": "Cancelled by you",
+  "favourites": {
+    "title": "Favourite doctors",
+    "all": "All ›"
+  },
+  "recent": {
+    "title": "Recently viewed",
+    "clear": "Clear"
+  },
+  "specialties": {
+    "title": "Specialties",
+    "all": "All ›"
+  },
+  "sidebar": {
+    "calendar": "Calendar",
+    "legendVisit": "Visit",
+    "legendToday": "Today",
+    "reminderTitle": "Reminder",
+    "reminderLine": "Today at {{time}} — {{doctor}}",
+    "reminderMeta": "{{format}} · {{specialty}} · {{clinic}}",
+    "toVisit": "Go to visit",
+    "newDoctor": "New doctor",
+    "book": "Book",
+    "reviewsTitle": "My reviews",
+    "reviewsSummary": "{{left}} reviews left",
+    "reviewsPending": "{{count}} visit awaiting your rating",
+    "reviewsView": "View",
+    "howTitle": "How to book",
+    "howBody": "Find a doctor → choose a time → confirm. All online in a few minutes.",
+    "toSearch": "To search ›"
+  },
+  "reviewModal": {
+    "title": "Leave a review",
+    "rating": "Rating",
+    "textLabel": "Comment (optional)",
+    "textPlaceholder": "Share how the visit went…",
+    "submit": "Submit",
+    "cancel": "Cancel"
+  },
+  "visitModal": {
+    "close": "Close",
+    "reason": "Reason for visit",
+    "place": "Location",
+    "when": "Date and time"
+  },
+  "pendingBanner": {
+    "title": "Doctor proposed a new time ({{count}})",
+    "body": "Accept the proposal, pick another slot, or cancel the visit.",
+    "cta": "Make a decision"
+  },
+  "pendingDecision": {
+    "title": "Reschedule decision",
+    "intro": "Your doctor suggested another time. Your original slot stays taken; the proposal stays reserved until you decide.",
+    "original": "Was",
+    "originalHint": "Current booking (taken)",
+    "proposed": "Proposed",
+    "proposedHint": "Reserved for you",
+    "accept": "Accept proposed time",
+    "pickAnother": "Pick another slot",
+    "cancelVisit": "Cancel visit",
+    "close": "Close",
+    "decide": "Decide",
+    "acceptedToast": "New time confirmed",
+    "cancelledToast": "Visit cancelled",
+    "pickAnotherToast": "Choose another time in the same doctor’s calendar"
+  },
+  "loading": "Loading your cabinet…",
+  "dayModal": {
+    "eyebrow": "My day",
+    "title": "Appointments for the day",
+    "visitCount": "{{count}} visits",
+    "yourVisits": "Your visits · {{count}} records",
+    "noVisits": "No appointments on this day.",
+    "details": "Details →",
+    "bookNew": "Book a new doctor",
+    "close": "Close",
+    "prevMonth": "Previous month",
+    "nextMonth": "Next month",
+    "minutesShort": "min"
+  }
+}

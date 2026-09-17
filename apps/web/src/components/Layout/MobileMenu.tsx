@@ -211,7 +211,7 @@ export const MobileMenu = ({ onNavigate }: MobileMenuProps) => {
               icon={<IconUser size={22} stroke={1.75} />}
               label={t('header.myProfile')}
               onClick={() => {
-                onNavigate?.();
+                go(AppRoute.PROFILE);
               }}
             />
           </>
@@ -222,7 +222,7 @@ export const MobileMenu = ({ onNavigate }: MobileMenuProps) => {
             icon={<IconCalendarEvent size={22} stroke={1.75} />}
             label={t('header.mySchedule')}
             onClick={() => {
-              go(AppRoute.DOCTOR_DAY);
+              go(AppRoute.DOCTOR_HOURS);
             }}
           />
         ) : null}

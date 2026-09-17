@@ -6,7 +6,11 @@ export enum Popups {
 
 export interface DoctorProfilePopupPayload {
   doctorId: string;
+  /** Skip SCR-03 profile when continuing an existing flow (e.g. SCR-12 pick another). */
+  initialStep?: 'profile' | 'calendar' | 'confirm';
 }
+
+export const PENDING_RESCHEDULE_STORAGE_KEY = 'medicly-pending-reschedule';
 
 export type PopupPayload = DoctorProfilePopupPayload | undefined;
 

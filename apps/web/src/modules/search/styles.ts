@@ -89,6 +89,14 @@ export const HeroSteps = styled('div')(({ theme }) => ({
   flexWrap: 'wrap',
   gap: theme.spacing(2),
   alignItems: 'flex-start',
+
+  [theme.breakpoints.down('sm')]: {
+    flexWrap: 'nowrap',
+    overflowX: 'auto',
+    width: '100%',
+    paddingBottom: 4,
+    WebkitOverflowScrolling: 'touch',
+  },
 }));
 
 export const HeroStep = styled('div')(({ theme }) => ({
@@ -136,14 +144,22 @@ export const HeroImage = styled('img')(({ theme }) => ({
 export const SearchBar = styled('form')(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
-  gap: theme.spacing(1.5),
+  gap: theme.spacing(1),
   width: '100%',
   minHeight: 56,
   paddingInline: 12,
   borderRadius: theme.shape.borderRadius,
   backgroundColor: theme.palette.background.paper,
   border: `1px solid ${theme.palette.divider}`,
+  boxShadow:
+    theme.palette.mode === 'light'
+      ? '0px 1px 2px rgba(22, 62, 82, 0.04)'
+      : 'none',
   boxSizing: 'border-box',
+
+  [theme.breakpoints.up('sm')]: {
+    gap: theme.spacing(1.5),
+  },
 }));
 
 export const SearchInput = styled('input')(({ theme }) => ({
@@ -163,22 +179,42 @@ export const SearchInput = styled('input')(({ theme }) => ({
   },
 }));
 
-export const SearchSubmit = styled(Button)({
+export const SearchSubmit = styled(Button)(({ theme }) => ({
+  display: 'inline-flex',
+  gap: theme.spacing(0.75),
   minHeight: 40,
   height: 40,
+  minWidth: 40,
   paddingInline: 18,
   flexShrink: 0,
   color: '#FFFFFF',
-});
+
+  [theme.breakpoints.down('sm')]: {
+    paddingInline: 10,
+  },
+}));
+
+export const SearchSubmitLabel = styled('span')(({ theme }) => ({
+  [theme.breakpoints.down('sm')]: {
+    display: 'none',
+  },
+}));
 
 export const MobileFilterButton = styled(Button)(({ theme }) => ({
   minHeight: 40,
   height: 40,
+  minWidth: 40,
   flexShrink: 0,
   borderColor: theme.palette.divider,
   color: theme.palette.text.primary,
 
   [theme.breakpoints.up('md')]: {
+    display: 'none',
+  },
+}));
+
+export const MobileFilterLabel = styled('span')(({ theme }) => ({
+  [theme.breakpoints.down('sm')]: {
     display: 'none',
   },
 }));
@@ -421,6 +457,12 @@ export const DoctorsHeader = styled('div')(({ theme }) => ({
   justifyContent: 'space-between',
   gap: theme.spacing(1.5),
   minHeight: 40,
+  width: '100%',
+
+  [theme.breakpoints.down('sm')]: {
+    flexDirection: 'column',
+    alignItems: 'stretch',
+  },
 }));
 
 export const FoundText = styled('span')(({ theme }) => ({
@@ -431,14 +473,19 @@ export const FoundText = styled('span')(({ theme }) => ({
   color: theme.palette.primary.main,
 }));
 
-export const SortSelect = styled(TextField)({
+export const SortSelect = styled(TextField)(({ theme }) => ({
   minWidth: 220,
 
   '& .MuiOutlinedInput-root': {
     minHeight: 40,
     borderRadius: 8,
   },
-});
+
+  [theme.breakpoints.down('sm')]: {
+    width: '100%',
+    minWidth: 0,
+  },
+}));
 
 export const DoctorGrid = styled('div')(({ theme }) => ({
   display: 'grid',
@@ -777,12 +824,70 @@ export const SkeletonBar = styled('div')<{ $width?: string; $height?: number }>(
   }),
 );
 
+export const LoadingBanner = styled('div')(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  gap: theme.spacing(2),
+  padding: theme.spacing(2),
+  borderRadius: 16,
+  border: `1px solid ${theme.palette.divider}`,
+  backgroundColor: theme.palette.background.paper,
+}));
+
+export const LoadingBannerMascot = styled('img')({
+  width: 56,
+  height: 56,
+  flexShrink: 0,
+  objectFit: 'contain',
+});
+
 export const FiltersDrawer = styled(Drawer)(({ theme }) => ({
   '& .MuiDrawer-paper': {
+    display: 'flex',
+    flexDirection: 'column',
     width: '100%',
     maxWidth: 390,
-    padding: theme.spacing(2),
+    maxHeight: '100dvh',
     boxSizing: 'border-box',
     backgroundColor: theme.palette.background.paper,
+    borderLeft: `1px solid ${theme.palette.divider}`,
   },
+}));
+
+export const DrawerTopBar = styled('div')(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: theme.spacing(1),
+  flexShrink: 0,
+  padding: theme.spacing(2),
+  borderBottom: `1px solid ${theme.palette.divider}`,
+}));
+
+export const DrawerScroll = styled('div')(({ theme }) => ({
+  flex: 1,
+  minHeight: 0,
+  overflowY: 'auto',
+  padding: theme.spacing(2),
+}));
+
+export const DrawerStickyFooter = styled('div')(({ theme }) => ({
+  flexShrink: 0,
+  padding: theme.spacing(2),
+  borderTop: `1px solid ${theme.palette.divider}`,
+  backgroundColor: theme.palette.background.paper,
+}));
+
+export const DrawerCloseButton = styled('button')(({ theme }) => ({
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  width: 40,
+  height: 40,
+  padding: 0,
+  border: `1px solid ${theme.palette.divider}`,
+  borderRadius: 8,
+  backgroundColor: theme.palette.background.paper,
+  color: theme.palette.text.primary,
+  cursor: 'pointer',
 }));

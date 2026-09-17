@@ -3,9 +3,11 @@ import { useTranslation } from 'react-i18next';
 
 import {
   MobileFilterButton,
+  MobileFilterLabel,
   SearchBar,
   SearchInput,
   SearchSubmit,
+  SearchSubmitLabel,
 } from '@/modules/search/styles';
 
 interface SearchBarSectionProps {
@@ -46,10 +48,11 @@ export const SearchBarSection = ({
         startIcon={<IconAdjustmentsHorizontal size={18} />}
         onClick={onOpenFilters}
       >
-        {t('search.filtersOpen')}
+        <MobileFilterLabel>{t('search.filtersOpen')}</MobileFilterLabel>
       </MobileFilterButton>
       <SearchSubmit type="submit" variant="contained" color="primary">
-        {t('search.submit')}
+        <SearchSubmitLabel>{t('search.submit')}</SearchSubmitLabel>
+        <IconSearch size={18} stroke={2} aria-hidden />
       </SearchSubmit>
     </SearchBar>
   );

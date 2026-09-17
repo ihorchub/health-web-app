@@ -1,0 +1,14 @@
+{
+  "title": "Сповіщення",
+  "readAll": "Прочитати все",
+  "empty": "Немає нових сповіщень",
+  "events": {
+    "patient_booked": "{{patientName}} записалась на {{visit}}",
+    "patient_cancelled": "{{patientName}} скасувала візит {{visit}}",
+    "patient_rescheduled": "{{patientName}} перенесла візит на {{visit}}",
+    "patient_accepted_proposal": "{{patientName}} прийняла запропонований час {{visit}}",
+    "patient_picked_other_slot": "{{patientName}} обрала інший час {{visit}}",
+    "doctor_cancelled": "{{doctorName}} скасувала візит {{visit}}",
+    "doctor_proposed_time": "{{doctorName}} запропонувала новий час {{visit}}"
+  }
+}

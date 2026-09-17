@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 
 import { useGetAuthMe } from '@/api/auth';
 import { usePreviewRole } from '@/hooks/usePreviewRole';
+import { useNotifications } from '@/modules/notifications/NotificationsContext';
 import { AppRole } from '@/types/role';
 
 const initialsFromName = (firstName: string): string => {
@@ -21,13 +22,14 @@ const roleFromMe = (role: 'patient' | 'doctor'): AppRole => {
 export const useAppRole = () => {
   const { data: me, isLoading, isFetching } = useGetAuthMe();
   const preview = usePreviewRole();
+  const { hasUnread } = useNotifications();
 
   return useMemo(() => {
     if (me) {
       return {
         role: roleFromMe(me.role),
         initials: initialsFromName(me.firstName),
-        hasUnreadNotifications: false,
+        hasUnreadNotifications: hasUnread,
         me,
         isSession: true as const,
         isLoading: isLoading || isFetching,
@@ -38,11 +40,11 @@ export const useAppRole = () => {
     return {
       role: preview.role,
       initials: preview.initials,
-      hasUnreadNotifications: preview.hasUnreadNotifications,
+      hasUnreadNotifications: hasUnread,
       me: null,
       isSession: false as const,
       isLoading: isLoading || isFetching,
       setPreviewRole: preview.setRole,
     };
-  }, [isFetching, isLoading, me, preview]);
+  }, [hasUnread, isFetching, isLoading, me, preview]);
 };

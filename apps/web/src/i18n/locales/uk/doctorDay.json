@@ -1,0 +1,85 @@
+{
+  "greetingMorning": "Доброго ранку, {{name}}",
+  "greetingDay": "Доброго дня, {{name}}",
+  "greetingEvening": "Доброго вечора, {{name}}",
+  "subtitle": "Огляд дня та візити в порядку часу",
+  "dateLine": "{{date}}",
+  "nextVisit": {
+    "label": "Наступний візит",
+    "statusUpcoming": "Майбутній",
+    "durationMin": "{{minutes}} хв",
+    "complete": "Завершити",
+    "propose": "Запропонувати час",
+    "cancel": "Скасувати"
+  },
+  "metrics": {
+    "visitsToday": "Візитів сьогодні",
+    "pending": "Очікують рішення",
+    "freeHours": "Вільні години",
+    "cancellations7d": "Скасування (7 днів)"
+  },
+  "tabs": {
+    "visits": "Візити",
+    "pending": "Очікують рішення",
+    "free": "Вільні години",
+    "cancellations": "Скасування"
+  },
+  "list": {
+    "visitsTitle": "Візити",
+    "visitsMeta": "{{total}} на сьогодні · показано {{shown}}",
+    "showMore": "Показати ще",
+    "waitingPatient": "Очікує пацієнта",
+    "reason": "Причина: {{reason}}",
+    "cancelledByPatient": "Скасовано пацієнтом",
+    "cancelledByDoctor": "Скасовано лікарем"
+  },
+  "status": {
+    "upcoming": "Майбутній",
+    "reschedule_pending": "Очікує рішення",
+    "completed": "Завершено",
+    "cancelled": "Скасовано",
+    "rescheduled": "Перенесено",
+    "reserved": "Зарезервовано"
+  },
+  "format": {
+    "offline": "Офлайн",
+    "online": "Онлайн"
+  },
+  "rowActions": {
+    "complete": "Завершити",
+    "propose": "Інший час",
+    "cancel": "Скасувати"
+  },
+  "sidebar": {
+    "weekTitle": "Розклад на тиждень",
+    "weekView": "Переглянути ›",
+    "legendVisits": "Візити",
+    "legendFree": "Вільні",
+    "legendPending": "Очікують",
+    "legendCancelled": "Скасовані",
+    "reminderTitle": "Нагадування",
+    "reminderLine": "Через {{minutes}} хв — {{patient}}",
+    "reminderMeta": "{{time}} · {{format}} · {{reason}}",
+    "toVisit": "До візиту",
+    "freeTitle": "Вільні вікна сьогодні",
+    "scheduleLink": "Графік",
+    "freeRow": "{{start}}–{{end}} · {{count}} слоти",
+    "pendingTitle": "Очікують відповіді",
+    "pendingRow": "{{patient}} · {{from}} → {{to}}",
+    "quickTitle": "Швидкі посилання",
+    "mySchedule": "Мій графік",
+    "myProfile": "Мій профіль"
+  },
+  "modals": {
+    "proposeTitle": "Запропонувати час",
+    "proposeBody": "Оберіть вільний слот для {{patient}}",
+    "dayScheduleTitle": "Розклад дня",
+    "visitCardTitle": "Картка прийому",
+    "submit": "Надіслати",
+    "close": "Закрити"
+  },
+  "empty": {
+    "title": "На цей день візитів немає",
+    "body": "Вільні години можна налаштувати в графіку роботи."
+  }
+}

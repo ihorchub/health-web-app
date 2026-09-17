@@ -72,6 +72,11 @@ import type {
   BookingWizardStep,
 } from '@/modules/booking/wizard/types';
 import { AppRole } from '@/types/role';
+import {
+  clearPendingReschedulePick,
+  dispatchPendingRescheduleResolved,
+  readPendingReschedulePick,
+} from '@/modules/patient-room/utils/pendingRescheduleEvents';
 import { pickLocalizedDescription } from '@/utils/pickLocalizedDescription';
 import { Popups, type DoctorProfilePopupPayload } from '@/utils/popupUtils/popupTypes';
 import { AppRoute, doctorProfilePath } from '@/utils/routeUtils/routes';
@@ -175,8 +180,17 @@ export const DoctorProfilePopup = () => {
       setSelectedStartAt(null);
       setSelection(null);
       setConfirmError(null);
+      return;
     }
-  }, [open]);
+
+    const popupPayload = payload as DoctorProfilePopupPayload | undefined;
+    if (popupPayload?.initialStep && popupPayload.initialStep !== 'profile') {
+      setStep(popupPayload.initialStep);
+      setSelectedStartAt(null);
+      setSelection(null);
+      setConfirmError(null);
+    }
+  }, [open, payload]);
 
   useEffect(() => {
     if (open && doctor) {
@@ -265,6 +279,19 @@ export const DoctorProfilePopup = () => {
         format: selection.format,
         reason,
       });
+
+      const pendingId = readPendingReschedulePick();
+      if (pendingId) {
+        dispatchPendingRescheduleResolved({
+          pendingId,
+          doctorId,
+          newStartsAt: selection.startAt,
+          format: selection.format,
+          durationMinutes: selection.visitDurationMinutes,
+        });
+        clearPendingReschedulePick();
+      }
+
       toast.success(t('confirm.successToast'));
       closePopup();
       void navigate(AppRoute.APPOINTMENTS);

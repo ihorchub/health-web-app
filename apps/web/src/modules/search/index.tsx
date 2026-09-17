@@ -1,4 +1,5 @@
 import { Button } from '@mui/material';
+import { IconX } from '@tabler/icons-react';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -22,9 +23,14 @@ import { SpecialtySection } from '@/modules/search/components/SpecialtySection';
 import {
   Content,
   ContentRow,
+  DrawerCloseButton,
+  DrawerScroll,
+  DrawerStickyFooter,
+  DrawerTopBar,
   FiltersDrawer,
   LeftColumn,
   Page,
+  SectionTitle,
 } from '@/modules/search/styles';
 import { AppRole } from '@/types/role';
 
@@ -207,25 +213,42 @@ export const SearchPage = () => {
           setFiltersOpen(false);
         }}
       >
-        <FilterPanel
-          embedded
-          filters={filters}
-          cities={citiesQuery.data?.items ?? []}
-          clinics={clinicsQuery.data?.items ?? []}
-          specialties={specialtiesQuery.data?.items ?? []}
-          onChange={updateFilters}
-          onReset={resetFilters}
-        />
-        <Button
-          variant="contained"
-          color="primary"
-          fullWidth
-          onClick={() => {
-            setFiltersOpen(false);
-          }}
-        >
-          {t('filters.apply')}
-        </Button>
+        <DrawerTopBar>
+          <SectionTitle>{t('filters.title')}</SectionTitle>
+          <DrawerCloseButton
+            type="button"
+            aria-label={t('filters.close')}
+            onClick={() => {
+              setFiltersOpen(false);
+            }}
+          >
+            <IconX size={20} stroke={1.75} />
+          </DrawerCloseButton>
+        </DrawerTopBar>
+        <DrawerScroll>
+          <FilterPanel
+            embedded
+            showHeader={false}
+            filters={filters}
+            cities={citiesQuery.data?.items ?? []}
+            clinics={clinicsQuery.data?.items ?? []}
+            specialties={specialtiesQuery.data?.items ?? []}
+            onChange={updateFilters}
+            onReset={resetFilters}
+          />
+        </DrawerScroll>
+        <DrawerStickyFooter>
+          <Button
+            variant="contained"
+            color="primary"
+            fullWidth
+            onClick={() => {
+              setFiltersOpen(false);
+            }}
+          >
+            {t('filters.apply')}
+          </Button>
+        </DrawerStickyFooter>
       </FiltersDrawer>
     </Page>
   );

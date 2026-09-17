@@ -2,7 +2,10 @@ import { Dialog, styled } from '@mui/material';
 
 export const ProfileDialog = styled(Dialog)(({ theme }) => ({
   '& .MuiBackdrop-root': {
-    backgroundColor: 'rgba(22, 62, 82, 0.45)',
+    backgroundColor:
+      theme.palette.mode === 'light'
+        ? 'rgba(22, 62, 82, 0.45)'
+        : 'rgba(11, 28, 36, 0.72)',
   },
 
   '& .MuiDialog-container': {
@@ -18,7 +21,21 @@ export const ProfileDialog = styled(Dialog)(({ theme }) => ({
     maxHeight: 'calc(100dvh - 32px)',
     borderRadius: 20,
     overflow: 'hidden',
-    boxShadow: '0px 1px 2px rgba(22, 62, 82, 0.06), 0px 24px 64px rgba(22, 62, 82, 0.2)',
+    boxShadow:
+      theme.palette.mode === 'light'
+        ? '0px 1px 2px rgba(22, 62, 82, 0.06), 0px 24px 64px rgba(22, 62, 82, 0.2)'
+        : 'none',
+    border:
+      theme.palette.mode === 'dark' ? `1px solid ${theme.palette.divider}` : 'none',
+
+    [theme.breakpoints.down('sm')]: {
+      margin: 0,
+      maxWidth: '100%',
+      width: '100%',
+      height: '100dvh',
+      maxHeight: '100dvh',
+      borderRadius: 0,
+    },
   },
 }));
 
@@ -40,6 +57,10 @@ export const DialogHeader = styled('div')(({ theme }) => ({
   flexShrink: 0,
   padding: theme.spacing(2, 3),
   borderBottom: `1px solid ${theme.palette.divider}`,
+
+  [theme.breakpoints.down('sm')]: {
+    padding: theme.spacing(1.5, 2),
+  },
 }));
 
 export const HeaderText = styled('div')(({ theme }) => ({
@@ -92,6 +113,10 @@ export const DialogBody = styled('div')(({ theme }) => ({
   flexGrow: 1,
   overflowY: 'auto',
   padding: theme.spacing(3, 3.5),
+
+  [theme.breakpoints.down('sm')]: {
+    padding: theme.spacing(2),
+  },
 }));
 
 export const IdentityRow = styled('div')(({ theme }) => ({
@@ -366,6 +391,12 @@ export const DialogFooter = styled('div')(({ theme }) => ({
   flexShrink: 0,
   padding: theme.spacing(1.5, 3),
   borderTop: `1px solid ${theme.palette.divider}`,
+
+  [theme.breakpoints.down('sm')]: {
+    flexDirection: 'column-reverse',
+    alignItems: 'stretch',
+    padding: theme.spacing(2),
+  },
 }));
 
 export const StateBox = styled('div')(({ theme }) => ({

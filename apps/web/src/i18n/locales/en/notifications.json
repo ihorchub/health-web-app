@@ -1,0 +1,14 @@
+{
+  "title": "Notifications",
+  "readAll": "Read all",
+  "empty": "No new notifications",
+  "events": {
+    "patient_booked": "{{patientName}} booked a visit for {{visit}}",
+    "patient_cancelled": "{{patientName}} cancelled the visit on {{visit}}",
+    "patient_rescheduled": "{{patientName}} rescheduled to {{visit}}",
+    "patient_accepted_proposal": "{{patientName}} accepted the proposed time {{visit}}",
+    "patient_picked_other_slot": "{{patientName}} chose another time {{visit}}",
+    "doctor_cancelled": "{{doctorName}} cancelled the visit on {{visit}}",
+    "doctor_proposed_time": "{{doctorName}} proposed a new time {{visit}}"
+  }
+}

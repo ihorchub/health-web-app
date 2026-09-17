@@ -51,6 +51,8 @@ import {
   StruckPrice,
   TitleRow,
   FilterMenuItem,
+  LoadingBanner,
+  LoadingBannerMascot,
   ResultsWrap,
 } from '@/modules/search/styles';
 import { AppRole } from '@/types/role';
@@ -58,6 +60,7 @@ import { AppRoute, doctorProfilePath } from '@/utils/routeUtils/routes';
 
 const LIKA_EMPTY = '/brand/lika-poses/lika4.png';
 const LIKA_ERROR = '/brand/lika-poses/lika5.png';
+const LIKA_LOADING = '/brand/lika-poses/lika3.png';
 const SKELETON_COUNT = 6;
 
 const formatNearest = (iso: string | null, locale: string, fallback: string) => {
@@ -354,11 +357,17 @@ export const DoctorsSection = ({
       </DoctorsHeader>
 
       {isLoading ? (
-        <DoctorGrid aria-busy aria-label={t('results.loadingBadge')}>
-          {Array.from({ length: SKELETON_COUNT }).map((_, index) => (
-            <DoctorCardSkeleton key={index} />
-          ))}
-        </DoctorGrid>
+        <>
+          <LoadingBanner aria-live="polite">
+            <LoadingBannerMascot src={LIKA_LOADING} alt="" />
+            <StateBody>{t('results.loadingBody')}</StateBody>
+          </LoadingBanner>
+          <DoctorGrid aria-busy aria-label={t('results.loadingBadge')}>
+            {Array.from({ length: SKELETON_COUNT }).map((_, index) => (
+              <DoctorCardSkeleton key={index} />
+            ))}
+          </DoctorGrid>
+        </>
       ) : null}
 
       {isError ? (
