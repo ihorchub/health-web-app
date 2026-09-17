@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
 import { useAppRole } from '@/hooks/useAppRole';
-import { DoctorDayMetrics } from '@/modules/doctor-day/components/DoctorDayMetrics';
 import {
   DayScheduleDialog,
   ProposeTimeDialog,
@@ -15,7 +14,7 @@ import {
   DoctorNextVisitHero,
   DoctorVisitRow,
 } from '@/modules/doctor-day/components/DoctorVisitRow';
-import { MOCK_DOCTOR_VISITS, MOCK_FREE_WINDOWS } from '@/modules/doctor-day/fixtures';
+import { useDoctorDayDashboard } from '@/modules/doctor-day/hooks/useDoctorDayDashboard';
 import {
   Content,
   DateLine,
@@ -34,9 +33,10 @@ import {
   SideColumn,
 } from '@/modules/doctor-day/styles';
 import type { DoctorDayTab, DoctorDayVisit } from '@/modules/doctor-day/types';
+import { DEMO_DOCTOR_DAY } from '@/modules/doctor-day/utils/mapDashboard';
 import { formatCabinetHeaderDate } from '@/modules/patient-room/utils/formatCabinetDate';
 
-const DEMO_TODAY = new Date('2026-08-27T12:00:00+03:00');
+const DEMO_TODAY = new Date(`${DEMO_DOCTOR_DAY}T12:00:00+03:00`);
 
 const greetingKey = (hour: number) => {
   if (hour < 12) {
@@ -48,22 +48,32 @@ const greetingKey = (hour: number) => {
   return 'greetingEvening';
 };
 
-const nextUpcoming = (visits: DoctorDayVisit[]) =>
-  visits.find((visit) => visit.status === 'upcoming');
-
 export const DoctorDayPage = () => {
   const { t, i18n } = useTranslation('doctorDay');
   const { me } = useAppRole();
   const [tab, setTab] = useState<DoctorDayTab>('visits');
-  const [visits, setVisits] = useState(MOCK_DOCTOR_VISITS);
   const [visibleCount, setVisibleCount] = useState(8);
   const [detailVisit, setDetailVisit] = useState<DoctorDayVisit | null>(null);
   const [proposeVisit, setProposeVisit] = useState<DoctorDayVisit | null>(null);
   const [scheduleOpen, setScheduleOpen] = useState(false);
 
+  const {
+    visits,
+    nextVisit: heroVisit,
+    freeWindows,
+    pendingPatients,
+    metrics,
+    proposeSlots,
+    proposeSlotIsos,
+    weekDays,
+    isLoading,
+    completeVisit,
+    cancelVisit,
+    proposeVisit: submitPropose,
+  } = useDoctorDayDashboard(DEMO_DOCTOR_DAY);
+
   const doctorName = me?.firstName ?? 'Оксано';
   const headerDate = formatCabinetHeaderDate(DEMO_TODAY, i18n.language);
-  const heroVisit = nextUpcoming(visits);
 
   const sortedVisits = useMemo(
     () => [...visits].sort((a, b) => a.startsAt.localeCompare(b.startsAt)),
@@ -71,45 +81,47 @@ export const DoctorDayPage = () => {
   );
 
   const filteredVisits = useMemo(() => {
+    const withoutHero = heroVisit
+      ? sortedVisits.filter((visit) => visit.id !== heroVisit.id)
+      : sortedVisits;
+
     if (tab === 'pending') {
-      return sortedVisits.filter((visit) => visit.status === 'reschedule_pending');
+      return withoutHero.filter((visit) => visit.status === 'reschedule_pending');
     }
     if (tab === 'cancellations') {
-      return sortedVisits.filter((visit) => visit.status === 'cancelled');
+      return withoutHero.filter((visit) => visit.status === 'cancelled');
     }
     if (tab === 'free') {
       return [];
     }
-    return sortedVisits;
-  }, [sortedVisits, tab]);
+    return withoutHero;
+  }, [heroVisit, sortedVisits, tab]);
 
   const tabCounts: Record<DoctorDayTab, number> = {
-    visits: sortedVisits.length,
-    pending: sortedVisits.filter((visit) => visit.status === 'reschedule_pending').length,
-    free: MOCK_FREE_WINDOWS.length,
-    cancellations: sortedVisits.filter((visit) => visit.status === 'cancelled').length,
+    visits: metrics.visitsToday,
+    pending: metrics.pendingDecisions,
+    free: metrics.freeHoursToday,
+    cancellations: metrics.cancellations7d,
   };
 
   const shown = filteredVisits.slice(0, visibleCount);
 
-  const markCompleted = (id: string) => {
-    setVisits((current) =>
-      current.map((visit) =>
-        visit.id === id ? { ...visit, status: 'completed' as const } : visit,
-      ),
-    );
-    toast.success(t('rowActions.complete'));
+  const markCompleted = async (id: string) => {
+    try {
+      await completeVisit(id);
+      toast.success(t('rowActions.complete'));
+    } catch {
+      toast.error(t('rowActions.complete'));
+    }
   };
 
-  const cancelVisit = (id: string) => {
-    setVisits((current) =>
-      current.map((visit) =>
-        visit.id === id
-          ? { ...visit, status: 'cancelled' as const, cancelledBy: 'doctor' as const }
-          : visit,
-      ),
-    );
-    toast.message(t('rowActions.cancel'));
+  const cancelOne = async (id: string) => {
+    try {
+      await cancelVisit(id);
+      toast.message(t('rowActions.cancel'));
+    } catch {
+      toast.error(t('rowActions.cancel'));
+    }
   };
 
   return (
@@ -117,7 +129,9 @@ export const DoctorDayPage = () => {
       <Content>
         <GreetingRow>
           <GreetingCopy>
-            <GreetingTitle>{t(greetingKey(DEMO_TODAY.getHours()), { name: doctorName })}</GreetingTitle>
+            <GreetingTitle>
+              {t(greetingKey(DEMO_TODAY.getHours()), { name: doctorName })}
+            </GreetingTitle>
             <GreetingSubtitle>{t('subtitle')}</GreetingSubtitle>
           </GreetingCopy>
           <DateLine>{t('dateLine', { date: headerDate })}</DateLine>
@@ -130,18 +144,16 @@ export const DoctorDayPage = () => {
               setDetailVisit(heroVisit);
             }}
             onComplete={() => {
-              markCompleted(heroVisit.id);
+              void markCompleted(heroVisit.id);
             }}
             onPropose={() => {
               setProposeVisit(heroVisit);
             }}
             onCancel={() => {
-              cancelVisit(heroVisit.id);
+              void cancelOne(heroVisit.id);
             }}
           />
         ) : null}
-
-        <DoctorDayMetrics />
 
         <LayoutRow>
           <MainColumn>
@@ -151,15 +163,17 @@ export const DoctorDayPage = () => {
               <SectionHead>
                 <SectionTitle>{t('list.visitsTitle')}</SectionTitle>
                 <SectionMeta>
-                  {t('list.visitsMeta', {
-                    total: sortedVisits.length,
-                    shown: shown.length,
-                  })}
+                  {isLoading
+                    ? t('list.loading')
+                    : t('list.visitsMeta', {
+                        total: sortedVisits.length,
+                        shown: shown.length + (tab === 'visits' && heroVisit ? 1 : 0),
+                      })}
                 </SectionMeta>
               </SectionHead>
 
               {tab === 'free' ? (
-                MOCK_FREE_WINDOWS.map((window) => (
+                freeWindows.map((window) => (
                   <EmptyBlock key={window.id}>
                     {window.start}–{window.end} · {window.slotsCount}
                   </EmptyBlock>
@@ -173,13 +187,13 @@ export const DoctorDayPage = () => {
                       setDetailVisit(visit);
                     }}
                     onComplete={() => {
-                      markCompleted(visit.id);
+                      void markCompleted(visit.id);
                     }}
                     onPropose={() => {
                       setProposeVisit(visit);
                     }}
                     onCancel={() => {
-                      cancelVisit(visit.id);
+                      void cancelOne(visit.id);
                     }}
                   />
                 ))
@@ -206,6 +220,9 @@ export const DoctorDayPage = () => {
           <SideColumn>
             <DoctorDaySidebar
               nextVisit={heroVisit ?? null}
+              weekDays={weekDays}
+              freeWindows={freeWindows}
+              pendingPatients={pendingPatients}
               onOpenSchedule={() => {
                 setScheduleOpen(true);
               }}
@@ -225,16 +242,44 @@ export const DoctorDayPage = () => {
         onClose={() => {
           setDetailVisit(null);
         }}
+        onComplete={() => {
+          if (detailVisit) {
+            void markCompleted(detailVisit.id);
+          }
+        }}
+        onPropose={() => {
+          if (!detailVisit) {
+            return;
+          }
+          setProposeVisit(detailVisit);
+          setDetailVisit(null);
+        }}
+        onCancel={() => {
+          if (detailVisit) {
+            void cancelOne(detailVisit.id);
+          }
+        }}
       />
 
       <ProposeTimeDialog
         visit={proposeVisit}
         open={Boolean(proposeVisit)}
+        slotLabels={proposeSlots}
+        slotIsos={proposeSlotIsos}
         onClose={() => {
           setProposeVisit(null);
         }}
-        onSubmit={() => {
-          toast.success(t('modals.proposeTitle'));
+        onSubmit={(proposedStartAt) => {
+          if (!proposeVisit) {
+            return;
+          }
+          void submitPropose(proposeVisit.id, proposedStartAt)
+            .then(() => {
+              toast.success(t('modals.proposeTitle'));
+            })
+            .catch(() => {
+              toast.error(t('modals.proposeTitle'));
+            });
         }}
       />
 
@@ -244,6 +289,10 @@ export const DoctorDayPage = () => {
           setScheduleOpen(false);
         }}
         visits={sortedVisits}
+        freeWindows={freeWindows}
+        onOpenVisit={(visit) => {
+          setDetailVisit(visit);
+        }}
       />
     </Page>
   );

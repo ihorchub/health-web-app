@@ -1,10 +1,13 @@
 {
   "hero": {
     "title": "Find your doctor in a few clicks",
-    "subtitle": "Pick a specialist, a convenient time, and book online.",
+    "subtitle": "Choose a specialist, pick a convenient time, and book online",
     "stepFind": "Find a doctor",
+    "stepFindDesc": "Choose a specialist",
     "stepTime": "Choose a time",
-    "stepBook": "Book online"
+    "stepTimeDesc": "See available time slots",
+    "stepBook": "Book online",
+    "stepBookDesc": "No calls or queues"
   },
   "search": {
     "placeholder": "Doctor name, clinic, or specialty",

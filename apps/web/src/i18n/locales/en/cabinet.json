@@ -6,6 +6,8 @@
     "loadingSubtitle": "Loading your appointments…"
   },
   "emptyAll": {
+    "pageTitle": "My appointments",
+    "subtitle": "Upcoming and past visits in one place",
     "title": "No appointments yet",
     "body": "When you book a doctor, visits will show here — under Upcoming and Past."
   },
@@ -24,6 +26,7 @@
     "loadingTitle": "Loading…",
     "loadingBody": "Fetching your appointments",
     "showAll": "Show all visits",
+    "showLess": "Show less",
     "tomorrow": "tomorrow",
     "emptyTitle": "No upcoming appointments",
     "emptyBody": "Past visits stay below. Book a doctor and your next visit will appear here."
@@ -83,18 +86,33 @@
     "toSearch": "To search ›"
   },
   "reviewModal": {
+    "eyebrow": "Visit review",
     "title": "Leave a review",
+    "context": "{{when}} · {{specialty}} · {{format}} · {{status}}",
     "rating": "Rating",
+    "comment": "Comment",
+    "optional": "optional",
     "textLabel": "Comment (optional)",
-    "textPlaceholder": "Share how the visit went…",
+    "textPlaceholder": "Share how the visit went",
     "submit": "Submit",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "successToast": "Thanks for your review"
   },
   "visitModal": {
+    "title": "Visit details",
+    "doctorName": "Dr {{name}}",
+    "clinicLine": "{{clinic}}, {{city}}",
     "close": "Close",
     "reason": "Reason for visit",
     "place": "Location",
-    "when": "Date and time"
+    "when": "Date and time",
+    "duration": "Duration",
+    "durationValue": "{{minutes}} min",
+    "price": "Price",
+    "priceValue": "{{amount}} UAH",
+    "priceNote": "Pay at the clinic · price is informational and is not charged in the app",
+    "cancelled": "Cancellation",
+    "doctorProfile": "Doctor profile →"
   },
   "pendingBanner": {
     "title": "Doctor proposed a new time ({{count}})",
@@ -102,6 +120,7 @@
     "cta": "Make a decision"
   },
   "pendingDecision": {
+    "eyebrow": "Reschedule",
     "title": "Reschedule decision",
     "intro": "Your doctor suggested another time. Your original slot stays taken; the proposal stays reserved until you decide.",
     "original": "Was",
@@ -129,6 +148,8 @@
     "close": "Close",
     "prevMonth": "Previous month",
     "nextMonth": "Next month",
-    "minutesShort": "min"
+    "minutesShort": "min",
+    "legendSelected": "Selected",
+    "legendVisit": "Your visit"
   }
 }

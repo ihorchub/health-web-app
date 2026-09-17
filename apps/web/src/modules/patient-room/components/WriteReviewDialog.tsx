@@ -1,96 +1,150 @@
-import {
-  Button,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  TextField,
-  styled,
-} from '@mui/material';
-import { IconStarFilled } from '@tabler/icons-react';
-import { useState } from 'react';
+import { IconStar, IconStarFilled, IconX } from '@tabler/icons-react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { SheetDialog } from '@/components/Dialog/SheetDialog';
-
-const ReviewDialogContent = styled(DialogContent)(({ theme }) => ({
-  display: 'flex',
-  flexDirection: 'column',
-  gap: theme.spacing(2),
-  paddingTop: theme.spacing(1),
-}));
-
-const StarsRow = styled('div')(({ theme }) => ({
-  display: 'flex',
-  gap: theme.spacing(0.5),
-}));
-
-const StarButton = styled('button')<{ $active: boolean }>(({ theme, $active }) => ({
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  width: 40,
-  height: 40,
-  border: 'none',
-  borderRadius: 8,
-  cursor: 'pointer',
-  backgroundColor: $active ? theme.palette.action.selected : 'transparent',
-  color: theme.palette.primary.main,
-}));
+import { findMockDoctor } from '@/api/mocks/doctorsFixtures';
+import {
+  ReviewCancelButton,
+  ReviewCommentLabelRow,
+  ReviewDialogBody,
+  ReviewDialogContext,
+  ReviewDialogDoctor,
+  ReviewDialogFooter,
+  ReviewDialogHeader,
+  ReviewDialogMeta,
+  ReviewDialogOverline,
+  ReviewDialogRoot,
+  ReviewDialogTitle,
+  ReviewFieldLabel,
+  ReviewOptional,
+  ReviewStarButton,
+  ReviewStarsRow,
+  ReviewSubmitButton,
+  ReviewTextArea,
+  VisitDetailClose,
+} from '@/modules/patient-room/styles';
+import type { CabinetAppointment } from '@/modules/patient-room/types';
 
 interface WriteReviewDialogProps {
+  appointment: CabinetAppointment | null;
   open: boolean;
   onClose: () => void;
   onSubmit: (rating: number, text: string) => void;
 }
 
-export const WriteReviewDialog = ({ open, onClose, onSubmit }: WriteReviewDialogProps) => {
-  const { t } = useTranslation('cabinet');
-  const [rating, setRating] = useState(5);
+const formatShortWhen = (iso: string, locale: string) =>
+  new Intl.DateTimeFormat(locale === 'uk' ? 'uk-UA' : 'en-GB', {
+    day: 'numeric',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: 'Europe/Kyiv',
+  }).format(new Date(iso));
+
+export const WriteReviewDialog = ({
+  appointment,
+  open,
+  onClose,
+  onSubmit,
+}: WriteReviewDialogProps) => {
+  const { t, i18n } = useTranslation(['cabinet', 'search']);
+  const [rating, setRating] = useState(4);
   const [text, setText] = useState('');
 
+  useEffect(() => {
+    if (open) {
+      setRating(4);
+      setText('');
+    }
+  }, [open]);
+
   const handleClose = () => {
-    setRating(5);
-    setText('');
     onClose();
   };
 
+  if (!appointment) {
+    return null;
+  }
+
+  const doctor = findMockDoctor(appointment.doctorId);
+  const doctorName = doctor
+    ? t('cabinet:visitModal.doctorName', {
+        name: `${doctor.firstName} ${doctor.lastName}`,
+      })
+    : appointment.doctorId;
+  const specialty = doctor ? t(`search:specialties.${doctor.specialty}`) : '';
+
   return (
-    <SheetDialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
-      <DialogTitle>{t('reviewModal.title')}</DialogTitle>
-      <ReviewDialogContent>
-        <span>{t('reviewModal.rating')}</span>
-        <StarsRow>
-          {Array.from({ length: 5 }).map((_, index) => {
-            const value = index + 1;
-            return (
-              <StarButton
-                key={value}
-                type="button"
-                $active={value <= rating}
-                aria-label={`${value}`}
-                onClick={() => {
-                  setRating(value);
-                }}
-              >
-                <IconStarFilled size={22} opacity={value <= rating ? 1 : 0.25} />
-              </StarButton>
-            );
+    <ReviewDialogRoot open={open} onClose={handleClose} fullWidth>
+      <ReviewDialogHeader>
+        <div>
+          <ReviewDialogOverline>{t('cabinet:reviewModal.eyebrow')}</ReviewDialogOverline>
+          <ReviewDialogTitle>{t('cabinet:reviewModal.title')}</ReviewDialogTitle>
+        </div>
+        <VisitDetailClose
+          type="button"
+          aria-label={t('cabinet:reviewModal.cancel')}
+          onClick={handleClose}
+        >
+          <IconX size={18} stroke={1.8} />
+        </VisitDetailClose>
+      </ReviewDialogHeader>
+
+      <ReviewDialogContext>
+        <ReviewDialogDoctor>{doctorName}</ReviewDialogDoctor>
+        <ReviewDialogMeta>
+          {t('cabinet:reviewModal.context', {
+            when: formatShortWhen(appointment.startsAt, i18n.language),
+            specialty,
+            format: t(`cabinet:format.${appointment.format}`),
+            status: t(`cabinet:status.${appointment.status}`),
           })}
-        </StarsRow>
-        <TextField
-          label={t('reviewModal.textLabel')}
-          placeholder={t('reviewModal.textPlaceholder')}
-          multiline
-          minRows={3}
-          value={text}
-          onChange={(event) => {
-            setText(event.target.value);
-          }}
-        />
-      </ReviewDialogContent>
-      <DialogActions>
-        <Button onClick={handleClose}>{t('reviewModal.cancel')}</Button>
-        <Button
+        </ReviewDialogMeta>
+      </ReviewDialogContext>
+
+      <ReviewDialogBody>
+        <div>
+          <ReviewFieldLabel>{t('cabinet:reviewModal.rating')}</ReviewFieldLabel>
+          <ReviewStarsRow>
+            {Array.from({ length: 5 }).map((_, index) => {
+              const value = index + 1;
+              const active = value <= rating;
+              return (
+                <ReviewStarButton
+                  key={value}
+                  type="button"
+                  aria-label={`${value}`}
+                  onClick={() => {
+                    setRating(value);
+                  }}
+                >
+                  {active ? <IconStarFilled size={28} /> : <IconStar size={28} stroke={1.5} />}
+                </ReviewStarButton>
+              );
+            })}
+          </ReviewStarsRow>
+        </div>
+
+        <div>
+          <ReviewCommentLabelRow>
+            <ReviewFieldLabel>{t('cabinet:reviewModal.comment')}</ReviewFieldLabel>
+            <ReviewOptional>{t('cabinet:reviewModal.optional')}</ReviewOptional>
+          </ReviewCommentLabelRow>
+          <ReviewTextArea
+            value={text}
+            placeholder={t('cabinet:reviewModal.textPlaceholder')}
+            onChange={(event) => {
+              setText(event.target.value);
+            }}
+          />
+        </div>
+      </ReviewDialogBody>
+
+      <ReviewDialogFooter>
+        <ReviewCancelButton variant="outlined" color="inherit" onClick={handleClose}>
+          {t('cabinet:reviewModal.cancel')}
+        </ReviewCancelButton>
+        <ReviewSubmitButton
           variant="contained"
           color="primary"
           onClick={() => {
@@ -98,9 +152,9 @@ export const WriteReviewDialog = ({ open, onClose, onSubmit }: WriteReviewDialog
             handleClose();
           }}
         >
-          {t('reviewModal.submit')}
-        </Button>
-      </DialogActions>
-    </SheetDialog>
+          {t('cabinet:reviewModal.submit')}
+        </ReviewSubmitButton>
+      </ReviewDialogFooter>
+    </ReviewDialogRoot>
   );
 };

@@ -1,31 +1,25 @@
-import {
-  Button,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  styled,
-} from '@mui/material';
+import { Button, styled } from '@mui/material';
+import { IconX } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
-
-import { SheetDialog } from '@/components/Dialog/SheetDialog';
 
 import { findMockDoctor } from '@/api/mocks/doctorsFixtures';
 import {
   DangerOutlineButton,
   FormatChip,
   OutlineButton,
+  PendingDialogBody,
+  PendingDialogFooter,
+  PendingDialogHeader,
+  PendingDialogRoot,
+  VisitDetailClose,
+  VisitDetailOverline,
+  VisitDetailTitle,
 } from '@/modules/patient-room/styles';
 import type { CabinetAppointment } from '@/modules/patient-room/types';
 import {
   formatCabinetHeaderDate,
   formatTime,
 } from '@/modules/patient-room/utils/formatCabinetDate';
-
-const DialogBody = styled(DialogContent)(({ theme }) => ({
-  display: 'flex',
-  flexDirection: 'column',
-  gap: theme.spacing(2),
-}));
 
 const Intro = styled('p')(({ theme }) => ({
   margin: 0,
@@ -76,12 +70,6 @@ const MetaLine = styled('span')(({ theme }) => ({
   color: theme.palette.text.secondary,
 }));
 
-const ActionsColumn = styled('div')(({ theme }) => ({
-  display: 'flex',
-  flexDirection: 'column',
-  gap: theme.spacing(1),
-}));
-
 interface ReschedulePendingDialogProps {
   appointment: CabinetAppointment | null;
   open: boolean;
@@ -116,9 +104,22 @@ export const ReschedulePendingDialog = ({
     `${formatCabinetHeaderDate(new Date(iso), i18n.language)}, ${formatTime(iso, i18n.language)}`;
 
   return (
-    <SheetDialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle>{t('cabinet:pendingDecision.title')}</DialogTitle>
-      <DialogBody>
+    <PendingDialogRoot open={open} onClose={onClose} fullWidth>
+      <PendingDialogHeader>
+        <div>
+          <VisitDetailOverline>{t('cabinet:pendingDecision.eyebrow')}</VisitDetailOverline>
+          <VisitDetailTitle>{t('cabinet:pendingDecision.title')}</VisitDetailTitle>
+        </div>
+        <VisitDetailClose
+          type="button"
+          aria-label={t('cabinet:pendingDecision.close')}
+          onClick={onClose}
+        >
+          <IconX size={18} stroke={1.8} />
+        </VisitDetailClose>
+      </PendingDialogHeader>
+
+      <PendingDialogBody>
         <Intro>{t('cabinet:pendingDecision.intro')}</Intro>
         <MetaLine>
           {doctorName} · {specialty} · {clinicLabel}
@@ -137,41 +138,39 @@ export const ReschedulePendingDialog = ({
             <MetaLine>{t('cabinet:pendingDecision.proposedHint')}</MetaLine>
           </TimeCard>
         </CompareGrid>
-      </DialogBody>
-      <DialogActions>
-        <ActionsColumn>
-          <Button
-            variant="contained"
-            color="primary"
-            fullWidth
-            onClick={() => {
-              onAccept(appointment);
-            }}
-          >
-            {t('cabinet:pendingDecision.accept')}
-          </Button>
-          <OutlineButton
-            variant="outlined"
-            color="inherit"
-            fullWidth
-            onClick={() => {
-              onPickAnother(appointment);
-            }}
-          >
-            {t('cabinet:pendingDecision.pickAnother')}
-          </OutlineButton>
-          <DangerOutlineButton
-            variant="outlined"
-            fullWidth
-            onClick={() => {
-              onCancelVisit(appointment);
-            }}
-          >
-            {t('cabinet:pendingDecision.cancelVisit')}
-          </DangerOutlineButton>
-          <Button onClick={onClose}>{t('cabinet:pendingDecision.close')}</Button>
-        </ActionsColumn>
-      </DialogActions>
-    </SheetDialog>
+      </PendingDialogBody>
+
+      <PendingDialogFooter>
+        <Button
+          variant="contained"
+          color="primary"
+          fullWidth
+          onClick={() => {
+            onAccept(appointment);
+          }}
+        >
+          {t('cabinet:pendingDecision.accept')}
+        </Button>
+        <OutlineButton
+          variant="outlined"
+          color="inherit"
+          fullWidth
+          onClick={() => {
+            onPickAnother(appointment);
+          }}
+        >
+          {t('cabinet:pendingDecision.pickAnother')}
+        </OutlineButton>
+        <DangerOutlineButton
+          variant="outlined"
+          fullWidth
+          onClick={() => {
+            onCancelVisit(appointment);
+          }}
+        >
+          {t('cabinet:pendingDecision.cancelVisit')}
+        </DangerOutlineButton>
+      </PendingDialogFooter>
+    </PendingDialogRoot>
   );
 };

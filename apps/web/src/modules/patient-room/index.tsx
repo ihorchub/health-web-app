@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -36,6 +36,7 @@ import {
   LayoutRow,
   LoadingSubtitle,
   MainColumn,
+  MobileOnlyStack,
   Page,
   SectionHead,
   SectionMeta,
@@ -50,11 +51,15 @@ import {
   type PendingRescheduleResolvedDetail,
   storePendingReschedulePick,
 } from '@/modules/patient-room/utils/pendingRescheduleEvents';
-import { formatCabinetHeaderDate } from '@/modules/patient-room/utils/formatCabinetDate';
+import {
+  formatCabinetHeaderDate,
+  isTodayOrTomorrow,
+} from '@/modules/patient-room/utils/formatCabinetDate';
 import { Popups } from '@/utils/popupUtils/popupTypes';
 import { AppRoute, doctorProfilePath } from '@/utils/routeUtils/routes';
 
 const DEMO_TODAY = new Date('2026-08-27T12:00:00+03:00');
+const UPCOMING_PREVIEW = 2;
 
 const isUpcomingGroup = (status: CabinetAppointment['status']) =>
   status === 'upcoming' || status === 'reschedule_pending';
@@ -64,6 +69,7 @@ export const PatientCabinetPage = () => {
   const navigate = useNavigate();
   const { updatePopup } = usePopups();
   const { me } = useAppRole();
+  const pastSectionRef = useRef<HTMLElement | null>(null);
 
   const { appointments, setAppointments, upcomingLoading } = useCabinetAppointmentsState();
   const [recentDoctors, setRecentDoctors] = useState(getRecentDoctors());
@@ -73,6 +79,7 @@ export const PatientCabinetPage = () => {
   const [pendingDecisionVisit, setPendingDecisionVisit] = useState<CabinetAppointment | null>(
     null,
   );
+  const [showAllUpcoming, setShowAllUpcoming] = useState(false);
 
   const citiesQuery = useGetReferenceCities();
   const cityNames = useMemo(
@@ -109,10 +116,27 @@ export const PatientCabinetPage = () => {
   const pendingVisits = upcoming.filter((item) => item.status === 'reschedule_pending');
   const past = appointments.filter((item) => !isUpcomingGroup(item.status));
   const nextVisit = upcoming[0] ?? null;
-  const listUpcoming = upcoming.slice(1, 3);
+  const restUpcoming = upcoming.slice(1);
+  const listUpcoming = showAllUpcoming
+    ? restUpcoming
+    : restUpcoming.slice(0, UPCOMING_PREVIEW);
   const promoDoctor = getPromoDoctor();
   const isEmptyAll = !upcomingLoading && appointments.length === 0;
   const showPastSection = !isEmptyAll;
+  const showDoctorCarousels = !isEmptyAll;
+  const showCalendar = !isEmptyAll;
+
+  const reviewVisit = useMemo(
+    () => appointments.find((item) => item.id === reviewVisitId) ?? null,
+    [appointments, reviewVisitId],
+  );
+
+  const reminderVisit =
+    nextVisit &&
+    nextVisit.status === 'upcoming' &&
+    isTodayOrTomorrow(nextVisit.startsAt, DEMO_TODAY)
+      ? nextVisit
+      : null;
 
   const goFindDoctor = () => {
     void navigate(AppRoute.HOME);
@@ -151,7 +175,7 @@ export const PatientCabinetPage = () => {
     toast.success(t('pendingDecision.acceptedToast'));
   };
 
-  const handleCancelPending = (visit: CabinetAppointment) => {
+  const handleCancelVisit = (visit: CabinetAppointment) => {
     setAppointments((current) =>
       current.map((item) =>
         item.id === visit.id
@@ -164,8 +188,19 @@ export const PatientCabinetPage = () => {
           : item,
       ),
     );
+    setDetailVisit(null);
     closePendingDecision();
     toast.success(t('pendingDecision.cancelledToast'));
+  };
+
+  const handleMoveVisit = (visit: CabinetAppointment) => {
+    setDetailVisit(null);
+    void navigate(doctorProfilePath(visit.doctorId));
+    updatePopup(Popups.DOCTOR_PROFILE, true, {
+      doctorId: visit.doctorId,
+      initialStep: 'calendar',
+    });
+    toast.message(t('pendingDecision.pickAnotherToast'));
   };
 
   const handlePickAnother = (visit: CabinetAppointment) => {
@@ -207,14 +242,22 @@ export const PatientCabinetPage = () => {
     return () => {
       window.removeEventListener(PENDING_RESCHEDULE_RESOLVED, onResolved);
     };
-  }, [t]);
+  }, [setAppointments, t]);
 
   const openDoctor = (doctor: DoctorSearchCard) => {
     void navigate(doctorProfilePath(doctor.id));
     updatePopup(Popups.DOCTOR_PROFILE, true, { doctorId: doctor.id });
   };
 
-  const handleSubmitReview = (rating: number) => {
+  const openVisitDetail = (visit: CabinetAppointment) => {
+    if (visit.status === 'reschedule_pending') {
+      openPendingDecision(visit);
+      return;
+    }
+    setDetailVisit(visit);
+  };
+
+  const handleSubmitReview = (rating: number, text: string) => {
     if (!reviewVisitId) {
       return;
     }
@@ -222,11 +265,33 @@ export const PatientCabinetPage = () => {
     setAppointments((current) =>
       current.map((item) =>
         item.id === reviewVisitId
-          ? { ...item, hasPatientReview: true, patientReviewRating: rating }
+          ? {
+              ...item,
+              hasPatientReview: true,
+              patientReviewRating: rating,
+              patientReviewText: text.trim() || undefined,
+            }
           : item,
       ),
     );
-    toast.success(t('past.leaveReview'));
+    toast.success(t('reviewModal.successToast'));
+  };
+
+  const sidebarOpenVisit = () => {
+    if (!nextVisit) {
+      return;
+    }
+    openVisitDetail(nextVisit);
+  };
+
+  const sidebarBookPromo = () => {
+    if (promoDoctor) {
+      openDoctor(promoDoctor);
+    }
+  };
+
+  const sidebarOpenDay = (ymd: string) => {
+    setCalendarDayYmd(ymd);
   };
 
   return (
@@ -234,45 +299,75 @@ export const PatientCabinetPage = () => {
       <Content>
         <GreetingRow>
           <GreetingCopy>
-            <GreetingTitle>{t('greeting', { name: patientName })}</GreetingTitle>
+            <GreetingTitle>
+              {isEmptyAll
+                ? t('emptyAll.pageTitle')
+                : t('greeting', { name: patientName })}
+            </GreetingTitle>
             {upcomingLoading ? (
               <LoadingSubtitle>{t('page.loadingSubtitle')}</LoadingSubtitle>
+            ) : isEmptyAll ? (
+              <LoadingSubtitle>{t('emptyAll.subtitle')}</LoadingSubtitle>
             ) : null}
           </GreetingCopy>
           <DateLine>{t('dateLine', { date: headerDate })}</DateLine>
         </GreetingRow>
 
+        {!upcomingLoading && pendingVisits.length > 0 ? (
+          <PendingDecisionBanner
+            count={pendingVisits.length}
+            onOpen={() => {
+              openPendingDecision(pendingVisits[0]!);
+            }}
+          />
+        ) : null}
+
+        <MobileOnlyStack>
+          <CabinetSidebar
+            variant="mobile-early"
+            appointments={appointments}
+            reminderVisit={isEmptyAll ? null : reminderVisit}
+            promoDoctor={promoDoctor}
+            showCalendar={false}
+            showReviews={false}
+            onOpenVisit={sidebarOpenVisit}
+            onBookPromo={sidebarBookPromo}
+            onOpenDay={sidebarOpenDay}
+          />
+        </MobileOnlyStack>
+
         <LayoutRow>
           <MainColumn>
-            {!upcomingLoading && pendingVisits.length > 0 ? (
-              <PendingDecisionBanner
-                count={pendingVisits.length}
-                onOpen={() => {
-                  openPendingDecision(pendingVisits[0]!);
-                }}
-              />
-            ) : null}
-
             {!upcomingLoading && nextVisit ? (
               <NextVisitHero
                 appointment={nextVisit}
                 onOpen={() => {
-                  if (nextVisit.status === 'reschedule_pending') {
-                    openPendingDecision(nextVisit);
-                    return;
-                  }
-                  setDetailVisit(nextVisit);
+                  openVisitDetail(nextVisit);
                 }}
                 onDecide={() => {
                   openPendingDecision(nextVisit);
                 }}
                 onReschedule={() => {
-                  toast.message(t('nextVisit.move'));
+                  handleMoveVisit(nextVisit);
                 }}
                 onCancel={() => {
-                  toast.message(t('nextVisit.cancel'));
+                  handleCancelVisit(nextVisit);
                 }}
               />
+            ) : null}
+
+            {showCalendar ? (
+              <MobileOnlyStack>
+                <CabinetSidebar
+                  variant="mobile-calendar"
+                  appointments={appointments}
+                  reminderVisit={null}
+                  promoDoctor={null}
+                  onOpenVisit={sidebarOpenVisit}
+                  onBookPromo={sidebarBookPromo}
+                  onOpenDay={sidebarOpenDay}
+                />
+              </MobileOnlyStack>
             ) : null}
 
             <section>
@@ -294,20 +389,16 @@ export const PatientCabinetPage = () => {
                     appointment={item}
                     variant="upcoming"
                     onOpen={() => {
-                      if (item.status === 'reschedule_pending') {
-                        openPendingDecision(item);
-                        return;
-                      }
-                      setDetailVisit(item);
+                      openVisitDetail(item);
                     }}
                     onDecide={() => {
                       openPendingDecision(item);
                     }}
                     onReschedule={() => {
-                      toast.message(t('nextVisit.move'));
+                      handleMoveVisit(item);
                     }}
                     onCancel={() => {
-                      toast.message(t('nextVisit.cancel'));
+                      handleCancelVisit(item);
                     }}
                   />
                 ))
@@ -317,98 +408,102 @@ export const PatientCabinetPage = () => {
                 <CabinetStatePanel variant="empty-upcoming" onFindDoctor={goFindDoctor} />
               )}
 
-              {!upcomingLoading && upcoming.length > 3 ? (
-                <ShowMoreLink type="button">{t('upcoming.showAll')}</ShowMoreLink>
+              {!upcomingLoading && restUpcoming.length > UPCOMING_PREVIEW ? (
+                <ShowMoreLink
+                  type="button"
+                  onClick={() => {
+                    setShowAllUpcoming((value) => !value);
+                  }}
+                >
+                  {showAllUpcoming ? t('upcoming.showLess') : t('upcoming.showAll')}
+                </ShowMoreLink>
               ) : null}
             </section>
 
             {showPastSection ? (
-            <section>
-              <SectionHead>
-                <SectionTitle>{t('past.title')}</SectionTitle>
-                <SectionMeta>{t('past.count', { count: past.length })}</SectionMeta>
-              </SectionHead>
+              <section ref={pastSectionRef}>
+                <SectionHead>
+                  <SectionTitle>{t('past.title')}</SectionTitle>
+                  <SectionMeta>{t('past.count', { count: past.length })}</SectionMeta>
+                </SectionHead>
 
-              {past.length > 0 ? (
-                past.map((item) => (
-                  <AppointmentRow
-                    key={item.id}
-                    appointment={item}
-                    variant="past"
-                    onOpen={() => {
-                      setDetailVisit(item);
-                    }}
-                    onLeaveReview={() => {
-                      setReviewVisitId(item.id);
-                    }}
-                  />
-                ))
-              ) : (
-                <EmptyBlock>
-                  <EmptyTitle>{t('past.emptyTitle')}</EmptyTitle>
-                  <EmptyBody>{t('past.emptyBody')}</EmptyBody>
-                </EmptyBlock>
-              )}
-            </section>
+                {past.length > 0 ? (
+                  past.map((item) => (
+                    <AppointmentRow
+                      key={item.id}
+                      appointment={item}
+                      variant="past"
+                      onOpen={() => {
+                        setDetailVisit(item);
+                      }}
+                      onLeaveReview={() => {
+                        setReviewVisitId(item.id);
+                      }}
+                    />
+                  ))
+                ) : (
+                  <EmptyBlock>
+                    <EmptyTitle>{t('past.emptyTitle')}</EmptyTitle>
+                    <EmptyBody>{t('past.emptyBody')}</EmptyBody>
+                  </EmptyBlock>
+                )}
+              </section>
             ) : null}
 
-            <DoctorCarouselSection
-              title={t('favourites.title')}
-              linkLabel={t('favourites.all')}
-              onLink={() => {
-                void navigate(AppRoute.HOME);
-              }}
-              doctors={getFavouriteDoctors()}
-              clinicNames={clinicNames}
-              cityNames={cityNames}
-              onOpenProfile={openDoctor}
-              onBook={openDoctor}
-              onFavourite={() => {
-                toast.message(t('favourites.title'));
-              }}
-              onViewHours={openDoctor}
-            />
+            {showDoctorCarousels ? (
+              <>
+                <DoctorCarouselSection
+                  title={t('favourites.title')}
+                  linkLabel={t('favourites.all')}
+                  onLink={() => {
+                    void navigate(AppRoute.HOME);
+                  }}
+                  doctors={getFavouriteDoctors()}
+                  clinicNames={clinicNames}
+                  cityNames={cityNames}
+                  onOpenProfile={openDoctor}
+                  onBook={openDoctor}
+                  onFavourite={() => {
+                    toast.message(t('favourites.title'));
+                  }}
+                  onViewHours={openDoctor}
+                />
 
-            <DoctorCarouselSection
-              title={t('recent.title')}
-              linkLabel={t('recent.clear')}
-              onLink={() => {
-                setRecentDoctors([]);
-              }}
-              doctors={recentDoctors}
-              clinicNames={clinicNames}
-              cityNames={cityNames}
-              onOpenProfile={openDoctor}
-              onBook={openDoctor}
-              onFavourite={() => undefined}
-              onViewHours={openDoctor}
-            />
+                {recentDoctors.length > 0 ? (
+                  <DoctorCarouselSection
+                    title={t('recent.title')}
+                    linkLabel={t('recent.clear')}
+                    onLink={() => {
+                      setRecentDoctors([]);
+                    }}
+                    doctors={recentDoctors}
+                    clinicNames={clinicNames}
+                    cityNames={cityNames}
+                    onOpenProfile={openDoctor}
+                    onBook={openDoctor}
+                    onFavourite={() => undefined}
+                    onViewHours={openDoctor}
+                  />
+                ) : null}
+              </>
+            ) : null}
 
             <CabinetSpecialties />
           </MainColumn>
 
           <SideColumn>
             <CabinetSidebar
+              variant="desktop"
               appointments={appointments}
-              nextVisit={upcomingLoading ? null : nextVisit}
+              reminderVisit={reminderVisit}
               promoDoctor={promoDoctor}
-              onOpenVisit={() => {
-                if (!nextVisit) {
-                  return;
-                }
-                if (nextVisit.status === 'reschedule_pending') {
-                  openPendingDecision(nextVisit);
-                  return;
-                }
-                setDetailVisit(nextVisit);
-              }}
-              onBookPromo={() => {
-                if (promoDoctor) {
-                  openDoctor(promoDoctor);
-                }
-              }}
-              onOpenDay={(ymd) => {
-                setCalendarDayYmd(ymd);
+              showCalendar={showCalendar}
+              showReviews={!isEmptyAll}
+              onOpenVisit={sidebarOpenVisit}
+              onBookPromo={sidebarBookPromo}
+              onOpenDay={sidebarOpenDay}
+              onViewReviews={() => {
+                pastSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
               }}
             />
           </SideColumn>
@@ -424,11 +519,7 @@ export const PatientCabinetPage = () => {
         }}
         onOpenVisit={(visit) => {
           setCalendarDayYmd(null);
-          if (visit.status === 'reschedule_pending') {
-            openPendingDecision(visit);
-            return;
-          }
-          setDetailVisit(visit);
+          openVisitDetail(visit);
         }}
       />
 
@@ -438,7 +529,7 @@ export const PatientCabinetPage = () => {
         onClose={closePendingDecision}
         onAccept={handleAcceptProposal}
         onPickAnother={handlePickAnother}
-        onCancelVisit={handleCancelPending}
+        onCancelVisit={handleCancelVisit}
       />
 
       <VisitDetailDialog
@@ -447,9 +538,21 @@ export const PatientCabinetPage = () => {
         onClose={() => {
           setDetailVisit(null);
         }}
+        onReschedule={handleMoveVisit}
+        onCancel={handleCancelVisit}
+        onLeaveReview={(visit) => {
+          setDetailVisit(null);
+          setReviewVisitId(visit.id);
+        }}
+        onOpenDoctor={(visit) => {
+          setDetailVisit(null);
+          void navigate(doctorProfilePath(visit.doctorId));
+          updatePopup(Popups.DOCTOR_PROFILE, true, { doctorId: visit.doctorId });
+        }}
       />
 
       <WriteReviewDialog
+        appointment={reviewVisit}
         open={Boolean(reviewVisitId)}
         onClose={() => {
           setReviewVisitId(null);

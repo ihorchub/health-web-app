@@ -30,22 +30,33 @@ import { AppRoute } from '@/utils/routeUtils/routes';
 const WEEKDAYS_UK = ['пн', 'вт', 'ср', 'чт', 'пт', 'сб', 'нд'];
 const WEEKDAYS_EN = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
 
+export type CabinetSidebarVariant = 'desktop' | 'mobile-early' | 'mobile-calendar';
+
 interface CabinetSidebarProps {
+  variant?: CabinetSidebarVariant;
   appointments: CabinetAppointment[];
-  nextVisit: CabinetAppointment | null;
+  /** Reminder only for today/tomorrow Upcoming — pass null to hide. */
+  reminderVisit: CabinetAppointment | null;
   promoDoctor: DoctorSearchCard | null;
+  showCalendar?: boolean;
+  showReviews?: boolean;
   onOpenVisit: () => void;
   onBookPromo: () => void;
   onOpenDay: (ymd: string) => void;
+  onViewReviews?: () => void;
 }
 
 export const CabinetSidebar = ({
+  variant = 'desktop',
   appointments,
-  nextVisit,
+  reminderVisit,
   promoDoctor,
+  showCalendar = true,
+  showReviews = true,
   onOpenVisit,
   onBookPromo,
   onOpenDay,
+  onViewReviews,
 }: CabinetSidebarProps) => {
   const { t, i18n } = useTranslation(['cabinet', 'search']);
   const navigate = useNavigate();
@@ -82,74 +93,82 @@ export const CabinetSidebar = ({
   }, [viewDate]);
 
   const weekdays = i18n.language === 'uk' ? WEEKDAYS_UK : WEEKDAYS_EN;
-  const nextDoctor = nextVisit ? findMockDoctor(nextVisit.doctorId) : null;
+  const nextDoctor = reminderVisit ? findMockDoctor(reminderVisit.doctorId) : null;
   const markedDays = useMemo(() => appointmentDays(appointments), [appointments]);
+
+  const showCalendarBlock =
+    showCalendar && (variant === 'desktop' || variant === 'mobile-calendar');
+  const showEarlyWidgets = variant === 'desktop' || variant === 'mobile-early';
+  const showReviewsBlock = showReviews && variant === 'desktop';
+  const showHowBlock = variant === 'desktop' || variant === 'mobile-early';
 
   return (
     <>
-      <CalendarShell>
-        <WidgetTitle>{t('cabinet:sidebar.calendar')}</WidgetTitle>
-        <CalendarHeader>
-          <button
-            type="button"
-            aria-label="Previous month"
-            onClick={() => {
-              setMonthOffset((value) => value - 1);
-            }}
-          >
-            <IconChevronLeft size={18} />
-          </button>
-          <CalendarMonth>{monthLabel}</CalendarMonth>
-          <button
-            type="button"
-            aria-label="Next month"
-            onClick={() => {
-              setMonthOffset((value) => value + 1);
-            }}
-          >
-            <IconChevronRight size={18} />
-          </button>
-        </CalendarHeader>
-        <CalendarGrid>
-          {weekdays.map((label) => (
-            <WeekdayCell key={label}>{label}</WeekdayCell>
-          ))}
-          {calendarCells.map((cell, index) => (
-            <DayCell
-              key={cell.ymd ?? `empty-${index}`}
+      {showCalendarBlock ? (
+        <CalendarShell>
+          <WidgetTitle>{t('cabinet:sidebar.calendar')}</WidgetTitle>
+          <CalendarHeader>
+            <button
               type="button"
-              disabled={!cell.day}
-              $muted={!cell.day}
-              $today={cell.ymd === '2026-08-27'}
-              $marked={cell.ymd ? markedDays.includes(cell.ymd) : false}
+              aria-label={t('cabinet:dayModal.prevMonth')}
               onClick={() => {
-                if (cell.ymd && markedDays.includes(cell.ymd)) {
-                  onOpenDay(cell.ymd);
-                }
+                setMonthOffset((value) => value - 1);
               }}
             >
-              {cell.day ?? ''}
-            </DayCell>
-          ))}
-        </CalendarGrid>
-        <CalendarLegend>
-          <LegendItem>{t('cabinet:sidebar.legendVisit')}</LegendItem>
-          <span>{t('cabinet:sidebar.legendToday')}</span>
-        </CalendarLegend>
-      </CalendarShell>
+              <IconChevronLeft size={18} />
+            </button>
+            <CalendarMonth>{monthLabel}</CalendarMonth>
+            <button
+              type="button"
+              aria-label={t('cabinet:dayModal.nextMonth')}
+              onClick={() => {
+                setMonthOffset((value) => value + 1);
+              }}
+            >
+              <IconChevronRight size={18} />
+            </button>
+          </CalendarHeader>
+          <CalendarGrid>
+            {weekdays.map((label) => (
+              <WeekdayCell key={label}>{label}</WeekdayCell>
+            ))}
+            {calendarCells.map((cell, index) => (
+              <DayCell
+                key={cell.ymd ?? `empty-${index}`}
+                type="button"
+                disabled={!cell.day}
+                $muted={!cell.day}
+                $today={cell.ymd === '2026-08-27'}
+                $marked={cell.ymd ? markedDays.includes(cell.ymd) : false}
+                onClick={() => {
+                  if (cell.ymd && markedDays.includes(cell.ymd)) {
+                    onOpenDay(cell.ymd);
+                  }
+                }}
+              >
+                {cell.day ?? ''}
+              </DayCell>
+            ))}
+          </CalendarGrid>
+          <CalendarLegend>
+            <LegendItem>{t('cabinet:sidebar.legendVisit')}</LegendItem>
+            <span>{t('cabinet:sidebar.legendToday')}</span>
+          </CalendarLegend>
+        </CalendarShell>
+      ) : null}
 
-      {nextVisit && nextDoctor ? (
+      {showEarlyWidgets && reminderVisit && nextDoctor ? (
         <WidgetCard>
           <WidgetTitle>{t('cabinet:sidebar.reminderTitle')}</WidgetTitle>
           <WidgetBody>
             {t('cabinet:sidebar.reminderLine', {
-              time: formatTime(nextVisit.startsAt, i18n.language),
+              time: formatTime(reminderVisit.startsAt, i18n.language),
               doctor: `${nextDoctor.firstName} ${nextDoctor.lastName}`,
             })}
           </WidgetBody>
           <WidgetMeta>
             {t('cabinet:sidebar.reminderMeta', {
-              format: t(`cabinet:format.${nextVisit.format}`),
+              format: t(`cabinet:format.${reminderVisit.format}`),
               specialty: t(`search:specialties.${nextDoctor.specialty}`),
               clinic: t('cabinet:demoClinic'),
             })}
@@ -160,7 +179,7 @@ export const CabinetSidebar = ({
         </WidgetCard>
       ) : null}
 
-      {promoDoctor ? (
+      {showEarlyWidgets && promoDoctor ? (
         <WidgetCard>
           <WidgetTitle>{t('cabinet:sidebar.newDoctor')}</WidgetTitle>
           <PromoDoctorRow>
@@ -178,28 +197,32 @@ export const CabinetSidebar = ({
         </WidgetCard>
       ) : null}
 
-      <WidgetCard>
-        <WidgetTitle>{t('cabinet:sidebar.reviewsTitle')}</WidgetTitle>
-        <WidgetBody>{t('cabinet:sidebar.reviewsSummary', { left: 2 })}</WidgetBody>
-        <WidgetMeta>{t('cabinet:sidebar.reviewsPending', { count: 1 })}</WidgetMeta>
-        <WidgetAction variant="text" color="primary">
-          {t('cabinet:sidebar.reviewsView')}
-        </WidgetAction>
-      </WidgetCard>
+      {showReviewsBlock ? (
+        <WidgetCard>
+          <WidgetTitle>{t('cabinet:sidebar.reviewsTitle')}</WidgetTitle>
+          <WidgetBody>{t('cabinet:sidebar.reviewsSummary', { left: 2 })}</WidgetBody>
+          <WidgetMeta>{t('cabinet:sidebar.reviewsPending', { count: 1 })}</WidgetMeta>
+          <WidgetAction variant="text" color="primary" onClick={onViewReviews}>
+            {t('cabinet:sidebar.reviewsView')}
+          </WidgetAction>
+        </WidgetCard>
+      ) : null}
 
-      <WidgetCard>
-        <WidgetTitle>{t('cabinet:sidebar.howTitle')}</WidgetTitle>
-        <WidgetMeta>{t('cabinet:sidebar.howBody')}</WidgetMeta>
-        <WidgetAction
-          variant="text"
-          color="primary"
-          onClick={() => {
-            void navigate(AppRoute.HOME);
-          }}
-        >
-          {t('cabinet:sidebar.toSearch')}
-        </WidgetAction>
-      </WidgetCard>
+      {showHowBlock ? (
+        <WidgetCard>
+          <WidgetTitle>{t('cabinet:sidebar.howTitle')}</WidgetTitle>
+          <WidgetMeta>{t('cabinet:sidebar.howBody')}</WidgetMeta>
+          <WidgetAction
+            variant="text"
+            color="primary"
+            onClick={() => {
+              void navigate(AppRoute.HOME);
+            }}
+          >
+            {t('cabinet:sidebar.toSearch')}
+          </WidgetAction>
+        </WidgetCard>
+      ) : null}
     </>
   );
 };

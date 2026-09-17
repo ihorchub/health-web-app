@@ -23,6 +23,8 @@ export interface DoctorDayVisit {
   cancelledBy?: CancelledBy;
   pendingNote?: string;
   proposedTime?: string;
+  phone?: string;
+  email?: string;
 }
 
 export interface FreeWindowSlot {

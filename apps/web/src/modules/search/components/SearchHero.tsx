@@ -1,4 +1,4 @@
-import { IconCalendarEvent, IconCheckbox, IconSearch } from '@tabler/icons-react';
+import { IconCalendarEvent, IconCheckbox, IconChevronRight, IconSearch } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
 
 import {
@@ -6,10 +6,13 @@ import {
   HeroCopy,
   HeroImage,
   HeroStep,
+  HeroStepArrow,
+  HeroStepDesc,
   HeroStepIcon,
   HeroStepLabel,
   HeroSteps,
   HeroSubtitle,
+  HeroTextBlock,
   HeroTitle,
 } from '@/modules/search/styles';
 
@@ -21,28 +24,37 @@ export const SearchHero = () => {
   return (
     <Hero>
       <HeroCopy>
-        <div>
+        <HeroTextBlock>
           <HeroTitle>{t('hero.title')}</HeroTitle>
           <HeroSubtitle>{t('hero.subtitle')}</HeroSubtitle>
-        </div>
+        </HeroTextBlock>
         <HeroSteps>
           <HeroStep>
             <HeroStepIcon>
-              <IconSearch size={22} stroke={1.75} />
+              <IconSearch size={24} stroke={1.75} />
             </HeroStepIcon>
             <HeroStepLabel>{t('hero.stepFind')}</HeroStepLabel>
+            <HeroStepDesc>{t('hero.stepFindDesc')}</HeroStepDesc>
           </HeroStep>
+          <HeroStepArrow aria-hidden>
+            <IconChevronRight size={14} stroke={1.75} />
+          </HeroStepArrow>
           <HeroStep>
             <HeroStepIcon>
-              <IconCalendarEvent size={22} stroke={1.75} />
+              <IconCalendarEvent size={24} stroke={1.75} />
             </HeroStepIcon>
             <HeroStepLabel>{t('hero.stepTime')}</HeroStepLabel>
+            <HeroStepDesc>{t('hero.stepTimeDesc')}</HeroStepDesc>
           </HeroStep>
+          <HeroStepArrow aria-hidden>
+            <IconChevronRight size={14} stroke={1.75} />
+          </HeroStepArrow>
           <HeroStep>
             <HeroStepIcon>
-              <IconCheckbox size={22} stroke={1.75} />
+              <IconCheckbox size={24} stroke={1.75} />
             </HeroStepIcon>
             <HeroStepLabel>{t('hero.stepBook')}</HeroStepLabel>
+            <HeroStepDesc>{t('hero.stepBookDesc')}</HeroStepDesc>
           </HeroStep>
         </HeroSteps>
       </HeroCopy>

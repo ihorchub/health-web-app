@@ -1,31 +1,59 @@
 import { Button } from '@mui/material';
-import { IconEye } from '@tabler/icons-react';
+import {
+  IconBuildingHospital,
+  IconCalendarEvent,
+  IconCertificate,
+  IconEye,
+  IconFileText,
+  IconId,
+  IconMail,
+  IconMapPin,
+  IconPhone,
+  IconPlus,
+  IconSchool,
+  IconStarFilled,
+  IconUser,
+  IconWorld,
+} from '@tabler/icons-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
-import { useGetReferenceCities, useGetReferenceClinics } from '@/api/reference';
 import { DoctorPreviewDialog } from '@/modules/profile/components/DoctorPreviewDialog';
+import { ProfileAvatar } from '@/modules/profile/components/ProfileAvatar';
+import { ProfileFieldRow } from '@/modules/profile/components/ProfileFieldRow';
+import { ProfileSavingOverlay } from '@/modules/profile/components/ProfileSavingOverlay';
+import { ProfileSectionHeader } from '@/modules/profile/components/ProfileSectionHeader';
 import { MOCK_DOCTOR_PROFILE } from '@/modules/profile/fixtures';
 import {
   ActionRow,
-  ActiveBadge,
   AddLink,
-  Avatar,
-  AvatarWrap,
-  BioBlock,
+  BioValue,
   Content,
-  EditLink,
+  EducationCard,
+  EduList,
   EduRow,
-  FieldBlock,
+  EduText,
+  EduYears,
   FieldGrid,
+  FieldIcon,
+  FieldItem,
   FieldLabel,
+  FieldRow,
+  FieldRows,
+  BioFieldText,
   FieldValue,
   HeroCard,
+  HeroDot,
   HeroLeft,
   HeroMeta,
+  HeroMuted,
   HeroName,
   HeroNameRow,
+  HeroStat,
+  HeroStats,
+  HeroStatMuted,
+  HeroStatValue,
   HeroText,
   Page,
   PageIntro,
@@ -33,31 +61,31 @@ import {
   PageTitle,
   ProfileTextField,
   SectionCard,
-  SectionHead,
-  SectionTitle,
+  SoftBadge,
+  StarAccent,
   ViewProfileButton,
 } from '@/modules/profile/styles';
 import type { DoctorProfileData, ProfileSection } from '@/modules/profile/types';
 import { pickLocalizedDescription } from '@/utils/pickLocalizedDescription';
 
 export const DoctorProfileView = () => {
-  const { t, i18n } = useTranslation(['profile', 'search']);
+  const { t, i18n } = useTranslation('profile');
   const [profile, setProfile] = useState<DoctorProfileData>(MOCK_DOCTOR_PROFILE);
   const [editing, setEditing] = useState<ProfileSection | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  const citiesQuery = useGetReferenceCities();
-  const clinicsQuery = useGetReferenceClinics(profile.cityId);
-  const cityName =
-    citiesQuery.data?.items.find((city) => city.id === profile.cityId)?.name ?? profile.cityId;
-  const clinicName =
-    clinicsQuery.data?.items.find((clinic) => clinic.id === profile.clinicId)?.name ??
-    profile.clinicId;
-
-  const startEdit = (section: ProfileSection) => {
-    setEditing(section);
-  };
+  const initials = `${profile.firstName.charAt(0)}${profile.lastName.charAt(0)}`;
+  const shortBio = pickLocalizedDescription(
+    profile.shortBioUk,
+    profile.shortBioEn,
+    i18n.language,
+  );
+  const fullBio = pickLocalizedDescription(
+    profile.fullBioUk,
+    profile.fullBioEn,
+    i18n.language,
+  );
 
   const cancelEdit = () => {
     setEditing(null);
@@ -70,243 +98,309 @@ export const DoctorProfileView = () => {
     });
     setSaving(false);
     setEditing(null);
-    toast.success(t('profile:saved'));
+    toast.success(t('saved'));
   };
-
-  const shortBio = pickLocalizedDescription(
-    profile.shortBioUk,
-    profile.shortBioEn,
-    i18n.language,
-  );
-  const fullBio = pickLocalizedDescription(profile.fullBioUk, profile.fullBioEn, i18n.language);
 
   return (
     <Page>
       <Content>
         <PageIntro>
-          <PageTitle>{t('profile:title')}</PageTitle>
-          <PageSubtitle>{t('profile:doctorSubtitle')}</PageSubtitle>
+          <PageTitle>{t('title')}</PageTitle>
+          <PageSubtitle>{t('doctorSubtitle')}</PageSubtitle>
         </PageIntro>
 
         <HeroCard>
           <HeroLeft>
-            <AvatarWrap>
-              <Avatar src={profile.photoUrl} alt="" />
-            </AvatarWrap>
+            <ProfileAvatar
+              photoUrl={profile.photoUrl}
+              initials={initials}
+              cameraLabel={t('changePhoto')}
+              onCameraClick={() => undefined}
+            />
             <HeroText>
               <HeroNameRow>
                 <HeroName>
                   {profile.firstName} {profile.lastName}
                 </HeroName>
-                <ActiveBadge>{t('profile:activeBadge')}</ActiveBadge>
+                <SoftBadge>{t('activeBadge')}</SoftBadge>
               </HeroNameRow>
-              <HeroMeta>{t(`search:specialties.${profile.specialty}`)}</HeroMeta>
-              <HeroMeta>{profile.yearsPractice}+ {t('profile:fields.experience').toLowerCase()}</HeroMeta>
-              <HeroMeta>
-                {t('profile:fields.rating', {
-                  rating: profile.ratingAverage.toFixed(1),
-                  count: profile.reviewCount,
-                })}{' '}
-                ·{' '}
-                {t('profile:fields.consultations', { count: profile.consultationCount })}
-              </HeroMeta>
+              <HeroMeta>{profile.specialtyLabel}</HeroMeta>
+              <HeroMuted>
+                {t('fields.experienceHero', { years: profile.yearsPractice })}
+              </HeroMuted>
+              <HeroStats>
+                <HeroStat>
+                  <StarAccent>
+                    <IconStarFilled size={16} aria-hidden />
+                  </StarAccent>
+                  <HeroStatValue>
+                    {t('fields.rating', {
+                      rating: profile.ratingAverage.toFixed(1),
+                      count: profile.reviewCount,
+                    })}
+                  </HeroStatValue>
+                </HeroStat>
+                <HeroDot />
+                <HeroStatMuted>
+                  {t('fields.consultations', { count: profile.consultationCount })}
+                </HeroStatMuted>
+              </HeroStats>
             </HeroText>
           </HeroLeft>
           <ViewProfileButton
             variant="outlined"
-            color="inherit"
-            startIcon={<IconEye size={18} />}
+            startIcon={<IconEye size={18} stroke={1.75} />}
             onClick={() => {
               setPreviewOpen(true);
             }}
           >
-            {t('profile:viewPublicProfile')}
+            {t('viewPublicProfile')}
           </ViewProfileButton>
         </HeroCard>
 
         <SectionCard>
-          <SectionHead>
-            <SectionTitle>{t('profile:sections.basic')}</SectionTitle>
-            {editing !== 'basic' ? (
-              <EditLink type="button" onClick={() => startEdit('basic')}>
-                {t('profile:edit')}
-              </EditLink>
-            ) : null}
-          </SectionHead>
+          <ProfileSectionHeader
+            title={t('sections.basic')}
+            editLabel={t('edit')}
+            showEdit={editing !== 'basic'}
+            onEdit={() => {
+              setEditing('basic');
+            }}
+          />
           {editing === 'basic' ? (
             <>
               <FieldGrid>
                 <ProfileTextField
-                  label={t('profile:fields.firstName')}
+                  label={t('fields.firstName')}
                   value={profile.firstName}
                   onChange={(event) => {
-                    setProfile((current) => ({ ...current, firstName: event.target.value }));
+                    setProfile((current) => ({
+                      ...current,
+                      firstName: event.target.value,
+                    }));
                   }}
                 />
                 <ProfileTextField
-                  label={t('profile:fields.lastName')}
+                  label={t('fields.lastName')}
                   value={profile.lastName}
                   onChange={(event) => {
-                    setProfile((current) => ({ ...current, lastName: event.target.value }));
+                    setProfile((current) => ({
+                      ...current,
+                      lastName: event.target.value,
+                    }));
                   }}
                 />
-                <FieldBlock>
-                  <FieldLabel>{t('profile:fields.dob')}</FieldLabel>
-                  <FieldValue>{profile.dateOfBirth}</FieldValue>
-                </FieldBlock>
-                <FieldBlock>
-                  <FieldLabel>{t('profile:fields.specialty')}</FieldLabel>
-                  <FieldValue>{t(`search:specialties.${profile.specialty}`)}</FieldValue>
-                </FieldBlock>
-                <FieldBlock>
-                  <FieldLabel>{t('profile:fields.city')}</FieldLabel>
-                  <FieldValue>{cityName}</FieldValue>
-                </FieldBlock>
-                <FieldBlock>
-                  <FieldLabel>{t('profile:fields.clinic')}</FieldLabel>
-                  <FieldValue>{clinicName}</FieldValue>
-                </FieldBlock>
-                <FieldBlock>
-                  <FieldLabel>{t('profile:fields.license')}</FieldLabel>
-                  <FieldValue>
-                    {t('profile:fields.licenseOnFile', { file: profile.licenseFileName })}
-                  </FieldValue>
-                </FieldBlock>
+                <ProfileTextField
+                  label={t('fields.languages')}
+                  value={profile.languages}
+                  onChange={(event) => {
+                    setProfile((current) => ({
+                      ...current,
+                      languages: event.target.value,
+                    }));
+                  }}
+                />
+                <ProfileTextField
+                  label={t('fields.city')}
+                  value={profile.cityName}
+                  onChange={(event) => {
+                    setProfile((current) => ({
+                      ...current,
+                      cityName: event.target.value,
+                    }));
+                  }}
+                />
+                <ProfileTextField
+                  label={t('fields.clinic')}
+                  value={profile.clinicName}
+                  onChange={(event) => {
+                    setProfile((current) => ({
+                      ...current,
+                      clinicName: event.target.value,
+                    }));
+                  }}
+                />
               </FieldGrid>
               <ActionRow>
-                <Button onClick={cancelEdit}>{t('profile:cancel')}</Button>
-                <Button variant="contained" color="primary" disabled={saving} onClick={saveEdit}>
-                  {saving ? t('profile:saving') : t('profile:save')}
+                <Button onClick={cancelEdit}>{t('cancel')}</Button>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  disabled={saving}
+                  onClick={saveEdit}
+                >
+                  {saving ? t('saving') : t('save')}
                 </Button>
               </ActionRow>
             </>
           ) : (
-            <FieldGrid>
-              <FieldBlock>
-                <FieldLabel>{t('profile:fields.fullName')}</FieldLabel>
-                <FieldValue>
-                  {profile.firstName} {profile.lastName}
-                </FieldValue>
-              </FieldBlock>
-              <FieldBlock>
-                <FieldLabel>{t('profile:fields.specialty')}</FieldLabel>
-                <FieldValue>{t(`search:specialties.${profile.specialty}`)}</FieldValue>
-              </FieldBlock>
-              <FieldBlock>
-                <FieldLabel>{t('profile:fields.experience')}</FieldLabel>
-                <FieldValue>{profile.yearsPractice}+</FieldValue>
-              </FieldBlock>
-              <FieldBlock>
-                <FieldLabel>{t('profile:fields.languages')}</FieldLabel>
-                <FieldValue>{profile.languages}</FieldValue>
-              </FieldBlock>
-              <FieldBlock>
-                <FieldLabel>{t('profile:fields.city')}</FieldLabel>
-                <FieldValue>{cityName}</FieldValue>
-              </FieldBlock>
-              <FieldBlock>
-                <FieldLabel>{t('profile:fields.clinic')}</FieldLabel>
-                <FieldValue>{clinicName}</FieldValue>
-              </FieldBlock>
-              <FieldBlock>
-                <FieldLabel>{t('profile:fields.license')}</FieldLabel>
-                <FieldValue>
-                  {t('profile:fields.licenseOnFile', { file: profile.licenseFileName })}
-                </FieldValue>
-              </FieldBlock>
-            </FieldGrid>
+            <FieldRows>
+              <FieldRow>
+                <ProfileFieldRow
+                  icon={<IconUser size={18} stroke={1.75} />}
+                  label={t('fields.fullName')}
+                  value={`${profile.firstName} ${profile.lastName}`}
+                />
+                <ProfileFieldRow
+                  icon={<IconId size={18} stroke={1.75} />}
+                  label={t('fields.specialty')}
+                  value={profile.specialtyLabel}
+                />
+              </FieldRow>
+              <FieldRow>
+                <ProfileFieldRow
+                  icon={<IconCalendarEvent size={18} stroke={1.75} />}
+                  label={t('fields.experience')}
+                  value={t('fields.experienceYears', { years: profile.yearsPractice })}
+                />
+                <ProfileFieldRow
+                  icon={<IconWorld size={18} stroke={1.75} />}
+                  label={t('fields.languages')}
+                  value={profile.languages}
+                />
+              </FieldRow>
+              <FieldRow>
+                <ProfileFieldRow
+                  icon={<IconMapPin size={18} stroke={1.75} />}
+                  label={t('fields.city')}
+                  value={profile.cityName}
+                />
+                <ProfileFieldRow
+                  icon={<IconBuildingHospital size={18} stroke={1.75} />}
+                  label={t('fields.clinic')}
+                  value={profile.clinicName}
+                />
+              </FieldRow>
+              <FieldRow>
+                <ProfileFieldRow
+                  icon={<IconFileText size={18} stroke={1.75} />}
+                  label={t('fields.license')}
+                  value={t('fields.licenseOnFile', { file: profile.licenseFileName })}
+                />
+              </FieldRow>
+            </FieldRows>
           )}
         </SectionCard>
 
         <SectionCard>
-          <SectionHead>
-            <SectionTitle>{t('profile:sections.about')}</SectionTitle>
-            {editing !== 'about' ? (
-              <EditLink type="button" onClick={() => startEdit('about')}>
-                {t('profile:edit')}
-              </EditLink>
-            ) : null}
-          </SectionHead>
+          <ProfileSectionHeader
+            title={t('sections.about')}
+            editLabel={t('edit')}
+            showEdit={editing !== 'about'}
+            onEdit={() => {
+              setEditing('about');
+            }}
+          />
           {editing === 'about' ? (
             <>
               <ProfileTextField
-                label={t('profile:fields.shortBio')}
+                label={t('fields.shortBio')}
                 multiline
                 minRows={2}
                 value={profile.shortBioUk}
                 onChange={(event) => {
-                  setProfile((current) => ({ ...current, shortBioUk: event.target.value }));
+                  setProfile((current) => ({
+                    ...current,
+                    shortBioUk: event.target.value,
+                  }));
                 }}
               />
               <ProfileTextField
-                label={t('profile:fields.fullBio')}
+                label={t('fields.fullBio')}
                 multiline
                 minRows={4}
                 value={profile.fullBioUk}
                 onChange={(event) => {
-                  setProfile((current) => ({ ...current, fullBioUk: event.target.value }));
+                  setProfile((current) => ({
+                    ...current,
+                    fullBioUk: event.target.value,
+                  }));
                 }}
               />
               <ActionRow>
-                <Button onClick={cancelEdit}>{t('profile:cancel')}</Button>
+                <Button onClick={cancelEdit}>{t('cancel')}</Button>
                 <Button variant="contained" color="primary" onClick={saveEdit}>
-                  {t('profile:save')}
+                  {t('save')}
                 </Button>
               </ActionRow>
             </>
           ) : (
-            <>
-              <BioBlock>
-                <FieldLabel>{t('profile:fields.shortBio')}</FieldLabel>
-                <FieldValue>{shortBio}</FieldValue>
-              </BioBlock>
-              <BioBlock>
-                <FieldLabel>{t('profile:fields.fullBio')}</FieldLabel>
-                <FieldValue>{fullBio}</FieldValue>
-              </BioBlock>
-            </>
+            <FieldRows>
+              <FieldItem>
+                <FieldIcon aria-hidden>
+                  <IconUser size={18} stroke={1.75} />
+                </FieldIcon>
+                <BioFieldText>
+                  <FieldLabel>{t('fields.shortBio')}</FieldLabel>
+                  <BioValue>{shortBio}</BioValue>
+                </BioFieldText>
+              </FieldItem>
+              <FieldItem>
+                <FieldIcon aria-hidden>
+                  <IconFileText size={18} stroke={1.75} />
+                </FieldIcon>
+                <BioFieldText>
+                  <FieldLabel>{t('fields.fullBio')}</FieldLabel>
+                  <BioValue>{fullBio}</BioValue>
+                </BioFieldText>
+              </FieldItem>
+            </FieldRows>
           )}
         </SectionCard>
 
-        <SectionCard>
-          <SectionHead>
-            <SectionTitle>{t('profile:sections.education')}</SectionTitle>
-            <EditLink type="button" onClick={() => startEdit('education')}>
-              {t('profile:edit')}
-            </EditLink>
-          </SectionHead>
-          {profile.education.map((item) => (
-            <EduRow key={item.id}>
-              <FieldValue>{item.title}</FieldValue>
-              <HeroMeta>
-                {item.subtitle} · {item.years}
-              </HeroMeta>
-            </EduRow>
-          ))}
-          <AddLink type="button">{t('profile:education.add')}</AddLink>
-        </SectionCard>
+        <EducationCard>
+          <ProfileSectionHeader
+            title={t('sections.education')}
+            editLabel={t('edit')}
+            onEdit={() => {
+              setEditing('education');
+            }}
+          />
+          <EduList>
+            {profile.education.map((item) => (
+              <EduRow key={item.id}>
+                <FieldIcon aria-hidden>
+                  {item.kind === 'education' ? (
+                    <IconSchool size={18} stroke={1.75} />
+                  ) : (
+                    <IconCertificate size={18} stroke={1.75} />
+                  )}
+                </FieldIcon>
+                <EduText>
+                  <FieldValue>{item.title}</FieldValue>
+                  <FieldLabel>{item.subtitle}</FieldLabel>
+                </EduText>
+                <EduYears>{item.years}</EduYears>
+              </EduRow>
+            ))}
+          </EduList>
+          <AddLink type="button">
+            <IconPlus size={16} stroke={1.75} aria-hidden />
+            {t('education.add')}
+          </AddLink>
+        </EducationCard>
 
         <SectionCard>
-          <SectionHead>
-            <SectionTitle>{t('profile:sections.contact')}</SectionTitle>
-            {editing !== 'contact' ? (
-              <EditLink type="button" onClick={() => startEdit('contact')}>
-                {t('profile:edit')}
-              </EditLink>
-            ) : null}
-          </SectionHead>
+          <ProfileSectionHeader
+            title={t('sections.contact')}
+            editLabel={t('edit')}
+            showEdit={editing !== 'contact'}
+            onEdit={() => {
+              setEditing('contact');
+            }}
+          />
           {editing === 'contact' ? (
             <>
               <FieldGrid>
                 <ProfileTextField
-                  label={t('profile:fields.phone')}
+                  label={t('fields.phone')}
                   value={profile.phone}
                   onChange={(event) => {
                     setProfile((current) => ({ ...current, phone: event.target.value }));
                   }}
                 />
                 <ProfileTextField
-                  label={t('profile:fields.email')}
+                  label={t('fields.email')}
                   value={profile.email}
                   onChange={(event) => {
                     setProfile((current) => ({ ...current, email: event.target.value }));
@@ -314,23 +408,27 @@ export const DoctorProfileView = () => {
                 />
               </FieldGrid>
               <ActionRow>
-                <Button onClick={cancelEdit}>{t('profile:cancel')}</Button>
+                <Button onClick={cancelEdit}>{t('cancel')}</Button>
                 <Button variant="contained" color="primary" onClick={saveEdit}>
-                  {t('profile:save')}
+                  {t('save')}
                 </Button>
               </ActionRow>
             </>
           ) : (
-            <FieldGrid>
-              <FieldBlock>
-                <FieldLabel>{t('profile:fields.phone')}</FieldLabel>
-                <FieldValue>{profile.phone}</FieldValue>
-              </FieldBlock>
-              <FieldBlock>
-                <FieldLabel>{t('profile:fields.email')}</FieldLabel>
-                <FieldValue>{profile.email}</FieldValue>
-              </FieldBlock>
-            </FieldGrid>
+            <FieldRows>
+              <FieldRow>
+                <ProfileFieldRow
+                  icon={<IconPhone size={18} stroke={1.75} />}
+                  label={t('fields.phone')}
+                  value={profile.phone}
+                />
+                <ProfileFieldRow
+                  icon={<IconMail size={18} stroke={1.75} />}
+                  label={t('fields.email')}
+                  value={profile.email}
+                />
+              </FieldRow>
+            </FieldRows>
           )}
         </SectionCard>
       </Content>
@@ -338,12 +436,11 @@ export const DoctorProfileView = () => {
       <DoctorPreviewDialog
         open={previewOpen}
         profile={profile}
-        cityName={cityName}
-        clinicName={clinicName}
         onClose={() => {
           setPreviewOpen(false);
         }}
       />
+      <ProfileSavingOverlay open={saving} />
     </Page>
   );
 };

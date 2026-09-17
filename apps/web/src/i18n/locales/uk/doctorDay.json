@@ -19,19 +19,29 @@
     "cancellations7d": "Скасування (7 днів)"
   },
   "tabs": {
-    "visits": "Візити",
+    "visits": "Візити сьогодні",
     "pending": "Очікують рішення",
     "free": "Вільні години",
-    "cancellations": "Скасування"
+    "cancellations": "Скасування · 7 днів",
+    "visitsShort": "Візити",
+    "pendingShort": "Очікують",
+    "freeShort": "Вільні",
+    "cancellationsShort": "Скасування"
   },
   "list": {
     "visitsTitle": "Візити",
     "visitsMeta": "{{total}} на сьогодні · показано {{shown}}",
     "showMore": "Показати ще",
-    "waitingPatient": "Очікує пацієнта",
+    "loading": "Завантаження…",
+    "waitingPatient": "Чекаємо пацієнта",
+    "proposalLabel": "Пропозиція",
+    "pendingNote": "Оригінал {{original}} · запропоновано {{proposed}} — обидва зайняті",
+    "reservedNote": "Слот зайнятий пропозицією — не вільний",
     "reason": "Причина: {{reason}}",
     "cancelledByPatient": "Скасовано пацієнтом",
-    "cancelledByDoctor": "Скасовано лікарем"
+    "cancelledByDoctor": "Скасовано лікарем",
+    "cancelledByPatientShort": "Скасував: пацієнт",
+    "cancelledByDoctorShort": "Скасував: лікар"
   },
   "status": {
     "upcoming": "Майбутній",
@@ -66,15 +76,33 @@
     "freeRow": "{{start}}–{{end}} · {{count}} слоти",
     "pendingTitle": "Очікують відповіді",
     "pendingRow": "{{patient}} · {{from}} → {{to}}",
+    "pendingRowTime": "{{from}} → {{to}}",
     "quickTitle": "Швидкі посилання",
     "mySchedule": "Мій графік",
     "myProfile": "Мій профіль"
   },
   "modals": {
     "proposeTitle": "Запропонувати час",
-    "proposeBody": "Оберіть вільний слот для {{patient}}",
+    "proposeStep": "Крок 1 з 2 · Оберіть новий час і формат",
+    "proposeSummaryTitle": "{{time}} · {{minutes}} хв",
+    "proposeSummaryMeta": "{{date}} · {{doctor}}",
+    "doctorShort": "Др. {{name}}",
+    "dateTime": "Дата і час",
+    "currentVisit": "Поточний візит",
+    "patientAlreadyBooked": "Пацієнт уже записаний на цей прийом",
+    "visitFormat": "Формат прийому",
     "dayScheduleTitle": "Розклад дня",
+    "dayScheduleMeta": "{{visits}} візитів · {{free}} вільні слоти",
     "visitCardTitle": "Картка прийому",
+    "statusWaitingShort": "Очікує",
+    "freeSlotTitle": "Вільний слот · {{minutes}} хв",
+    "freeSlotHint": "Натисніть, щоб запропонувати час",
+    "phone": "Телефон: {{value}}",
+    "email": "Email: {{value}}",
+    "prevMonth": "Попередній місяць",
+    "nextMonth": "Наступний місяць",
+    "next": "Далі",
+    "cancel": "Скасувати",
     "submit": "Надіслати",
     "close": "Закрити"
   },
