@@ -8,3 +8,12 @@ export const specialtyEnum = pgEnum("specialty", [
   "dermatologist",
   "paediatrician",
 ]);
+export const appointmentFormatEnum = pgEnum("appointment_format", ["offline", "online"]);
+export const appointmentStatusEnum = pgEnum("appointment_status", [
+  "Upcoming",
+  "Reschedule Pending",
+  "Completed",
+  "Cancelled",
+  "Rescheduled",
+]);
+export const cancelledByEnum = pgEnum("cancelled_by", ["patient", "doctor"]);
