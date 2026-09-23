@@ -11,8 +11,10 @@ import { closeDatabase } from "./db/client.js";
 import { config } from "./config.js";
 import { errorsPlugin } from "./plugins/errors.js";
 import { sessionPlugin } from "./plugins/session.js";
+import { appointmentsRoutes, startAutoCompleteJob } from "./routes/appointments.js";
 import { authRoutes } from "./routes/auth.js";
 import { doctorScheduleRoutes } from "./routes/doctor-schedule.js";
+import { doctorsRoutes } from "./routes/doctors.js";
 import { healthRoutes } from "./routes/health.js";
 import { legalRoutes } from "./routes/legal.js";
 import { referenceRoutes } from "./routes/reference.js";
@@ -41,6 +43,10 @@ await app.register(referenceRoutes);
 await app.register(authRoutes);
 await app.register(legalRoutes);
 await app.register(doctorScheduleRoutes);
+await app.register(doctorsRoutes);
+await app.register(appointmentsRoutes);
+
+let autoCompleteTimer: NodeJS.Timeout | undefined;
 
 const start = async () => {
   if (!config.databaseUrl) {
@@ -48,6 +54,9 @@ const start = async () => {
   }
   try {
     await app.listen({ port: config.port, host: config.host });
+    if (config.databaseUrl) {
+      autoCompleteTimer = startAutoCompleteJob();
+    }
   } catch (err) {
     app.log.error(err);
     process.exit(1);
@@ -55,6 +64,7 @@ const start = async () => {
 };
 
 const shutdown = async () => {
+  if (autoCompleteTimer) clearInterval(autoCompleteTimer);
   await app.close();
   await closeDatabase();
   process.exit(0);

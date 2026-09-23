@@ -5,3 +5,4 @@ export * from "./registrations.js";
 export * from "./profiles.js";
 export * from "./reference.js";
 export * from "./doctor-schedule.js";
+export * from "./appointments.js";

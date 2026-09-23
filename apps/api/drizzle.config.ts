@@ -17,6 +17,7 @@ export default defineConfig({
     "./src/db/schema/profiles.ts",
     "./src/db/schema/reference.ts",
     "./src/db/schema/doctor-schedule.ts",
+    "./src/db/schema/appointments.ts",
   ],
   out: "./drizzle",
   dialect: "postgresql",
