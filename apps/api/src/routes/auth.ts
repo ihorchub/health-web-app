@@ -1,6 +1,7 @@
 import { Type } from "@sinclair/typebox";
 import type { FastifyPluginAsync } from "fastify";
 
+import { SPECIALTY_IDS, type SpecialtyId } from "../constants/specialties.js";
 import { ApiError } from "../lib/errors.js";
 import { saveLicenseFile } from "../lib/uploads.js";
 import {
@@ -22,6 +23,7 @@ import {
 } from "../services/registration.js";
 
 const Role = Type.Union([Type.Literal("patient"), Type.Literal("doctor")]);
+const Specialty = Type.Union(SPECIALTY_IDS.map((id) => Type.Literal(id)));
 
 export const authRoutes: FastifyPluginAsync = async (app) => {
   app.post(
@@ -130,12 +132,7 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
     const dob = fields.dob;
     const cityId = fields.cityId;
     const clinicId = fields.clinicId;
-    const specialty = fields.specialty as
-      | "family_doctor"
-      | "cardiologist"
-      | "dermatologist"
-      | "paediatrician"
-      | undefined;
+    const specialty = fields.specialty as SpecialtyId | undefined;
     const yearsPractice = Number(fields.yearsPractice);
     const visitDurationMinutes = Number(fields.visitDurationMinutes) as 20 | 30 | 45;
 
@@ -166,14 +163,7 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
           gender: Type.Optional(Type.Union([Type.Literal("female"), Type.Literal("male")])),
           cityId: Type.String(),
           clinicId: Type.String(),
-          specialty: Type.Optional(
-            Type.Union([
-              Type.Literal("family_doctor"),
-              Type.Literal("cardiologist"),
-              Type.Literal("dermatologist"),
-              Type.Literal("paediatrician"),
-            ]),
-          ),
+          specialty: Type.Optional(Specialty),
           yearsPractice: Type.Optional(Type.Number()),
           visitDurationMinutes: Type.Optional(
             Type.Union([Type.Literal(20), Type.Literal(30), Type.Literal(45)]),
@@ -188,7 +178,7 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
         gender?: "female" | "male";
         cityId: string;
         clinicId: string;
-        specialty?: "family_doctor" | "cardiologist" | "dermatologist" | "paediatrician";
+        specialty?: SpecialtyId;
         yearsPractice?: number;
         visitDurationMinutes?: 20 | 30 | 45;
       };

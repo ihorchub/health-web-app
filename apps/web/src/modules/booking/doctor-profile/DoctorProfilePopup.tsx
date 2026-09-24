@@ -367,7 +367,7 @@ export const DoctorProfilePopup = () => {
           <>
             <DialogBody>
               <IdentityRow>
-                <Photo src={doctor.photoUrl} alt="" />
+                <Photo src={doctor.photoUrl ?? undefined} alt="" />
                 <IdentityMain>
                   <NameRow>
                     <NameBlock>

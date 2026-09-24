@@ -1,8 +1,17 @@
 import {
+  IconBone,
+  IconBrain,
   IconDots,
+  IconEar,
+  IconEye,
+  IconGenderFemale,
   IconHeartRateMonitor,
+  IconLungs,
   IconMoodSmile,
+  IconPill,
   IconStethoscope,
+  IconDroplet,
+  IconUserHeart,
 } from '@tabler/icons-react';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -29,6 +38,16 @@ const ICONS: Record<string, ReactNode> = {
   cardiologist: <IconHeartRateMonitor size={22} stroke={1.75} />,
   dermatologist: <IconMoodSmile size={22} stroke={1.75} />,
   paediatrician: <IconMoodSmile size={22} stroke={1.75} />,
+  neurologist: <IconBrain size={22} stroke={1.75} />,
+  ophthalmologist: <IconEye size={22} stroke={1.75} />,
+  orthopedist: <IconBone size={22} stroke={1.75} />,
+  endocrinologist: <IconDroplet size={22} stroke={1.75} />,
+  gastroenterologist: <IconPill size={22} stroke={1.75} />,
+  gynecologist: <IconGenderFemale size={22} stroke={1.75} />,
+  urologist: <IconUserHeart size={22} stroke={1.75} />,
+  otolaryngologist: <IconEar size={22} stroke={1.75} />,
+  psychiatrist: <IconBrain size={22} stroke={1.75} />,
+  pulmonologist: <IconLungs size={22} stroke={1.75} />,
 };
 
 interface SpecialtySectionProps {

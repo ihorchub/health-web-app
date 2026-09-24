@@ -1,5 +1,8 @@
 import { and, eq, gt } from "drizzle-orm";
 
+import { config } from "../config.js";
+import type { SpecialtyId } from "../constants/specialties.js";
+import { isSpecialtyId } from "../constants/specialties.js";
 import { getDb } from "../db/client.js";
 import {
   doctorProfiles,
@@ -14,9 +17,8 @@ import { newId, newToken } from "../lib/ids.js";
 import { hashPassword, validatePassword, verifyPassword } from "../lib/password.js";
 import { redirectForRole, type UserRole } from "../lib/redirect.js";
 import { parseDateOnly, validateEmail } from "../lib/validation.js";
-import { config } from "../config.js";
-import { createDefaultDoctorSchedule } from "./doctor-schedule.js";
 import { createSession } from "../plugins/session.js";
+import { createDefaultDoctorSchedule } from "./doctor-schedule.js";
 
 const REGISTRATION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 const VERIFY_TTL_MS = 24 * 60 * 60 * 1000;
@@ -231,7 +233,7 @@ export async function registerStep3Doctor(input: {
   dob: string;
   cityId: string;
   clinicId: string;
-  specialty: "family_doctor" | "cardiologist" | "dermatologist" | "paediatrician";
+  specialty: SpecialtyId;
   yearsPractice: number;
   visitDurationMinutes: 20 | 30 | 45;
   licenseFileUrl?: string | null;
@@ -242,6 +244,7 @@ export async function registerStep3Doctor(input: {
 
   const fields: Record<string, string> = {};
   if (!parseDateOnly(input.dob)) fields.dob = "INVALID";
+  if (!isSpecialtyId(input.specialty)) fields.specialty = "INVALID";
   if (input.yearsPractice < 0) fields.yearsPractice = "INVALID";
   if (![20, 30, 45].includes(input.visitDurationMinutes)) {
     fields.visitDurationMinutes = "INVALID";
@@ -315,7 +318,7 @@ export async function registerComplete(registrationId: string) {
         dob: String(data.dob),
         cityId: String(data.cityId),
         clinicId: String(data.clinicId),
-        specialty: data.specialty as "family_doctor" | "cardiologist" | "dermatologist" | "paediatrician",
+        specialty: data.specialty as SpecialtyId,
         yearsPractice: Number(data.yearsPractice),
         visitDurationMinutes,
         licenseFileUrl: data.licenseFileUrl ? String(data.licenseFileUrl) : null,

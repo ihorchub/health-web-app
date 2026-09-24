@@ -4,6 +4,7 @@ import type {
   DoctorDashboardParams,
   DoctorDashboardResponse,
 } from '@/api/doctors/dashboard.types';
+import { getDoctorById, getDoctorsSearch } from '@/api/doctors/doctors';
 import type {
   DoctorCalendarParams,
   DoctorCalendarResponse,
@@ -13,7 +14,6 @@ import type {
 } from '@/api/doctors/types';
 import { mockGetDoctorCalendar } from '@/api/mocks/doctorCalendar';
 import { mockGetDoctorMeDashboard } from '@/api/mocks/doctorDashboard';
-import { mockGetDoctorById, mockSearchDoctors } from '@/api/mocks/doctorsSearch';
 
 export const doctorsQueryKeys = {
   search: (params: DoctorsSearchParams, roleKey: string) =>
@@ -26,12 +26,12 @@ export const doctorsQueryKeys = {
 };
 
 interface UseGetDoctorsSearchOptions {
+  /** Distinguishes guest vs patient cache (session cookie enriches favourites/prefill). */
   isPatient?: boolean;
-  homeClinicId?: string | null;
   enabled?: boolean;
 }
 
-/** Orval-shaped — mocked until OpenAPI lands. */
+/** GET /api/v1/doctors/search */
 export const useGetDoctorsSearch = (
   params: DoctorsSearchParams,
   options: UseGetDoctorsSearchOptions = {},
@@ -40,11 +40,7 @@ export const useGetDoctorsSearch = (
 
   return useQuery<DoctorsSearchResponse>({
     queryKey: doctorsQueryKeys.search(params, roleKey),
-    queryFn: () =>
-      mockSearchDoctors(params, {
-        isPatient: options.isPatient,
-        homeClinicId: options.homeClinicId,
-      }),
+    queryFn: () => getDoctorsSearch(params),
     enabled: options.enabled ?? true,
     placeholderData: (previous) => previous,
   });
@@ -55,7 +51,7 @@ interface UseGetDoctorByIdOptions {
   enabled?: boolean;
 }
 
-/** Orval-shaped — GET /api/v1/doctors/:doctorId */
+/** GET /api/v1/doctors/:doctorId */
 export const useGetDoctorById = (
   doctorId: string | undefined,
   options: UseGetDoctorByIdOptions = {},
@@ -64,7 +60,7 @@ export const useGetDoctorById = (
 
   return useQuery<DoctorProfile>({
     queryKey: doctorsQueryKeys.byId(doctorId ?? '', roleKey),
-    queryFn: () => mockGetDoctorById(doctorId!, { isPatient: options.isPatient }),
+    queryFn: () => getDoctorById(doctorId!),
     enabled: Boolean(doctorId) && (options.enabled ?? true),
   });
 };

@@ -7,6 +7,16 @@ export const specialtyEnum = pgEnum("specialty", [
   "cardiologist",
   "dermatologist",
   "paediatrician",
+  "neurologist",
+  "ophthalmologist",
+  "orthopedist",
+  "endocrinologist",
+  "gastroenterologist",
+  "gynecologist",
+  "urologist",
+  "otolaryngologist",
+  "psychiatrist",
+  "pulmonologist",
 ]);
 export const appointmentFormatEnum = pgEnum("appointment_format", ["offline", "online"]);
 export const appointmentStatusEnum = pgEnum("appointment_status", [

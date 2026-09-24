@@ -5,13 +5,28 @@
  */
 import { eq, inArray } from "drizzle-orm";
 
+import type { SpecialtyId } from "../constants/specialties.js";
 import { getDb } from "../db/client.js";
 import { appointments } from "../db/schema/appointments.js";
 import { doctorSchedules } from "../db/schema/doctor-schedule.js";
 import type { WeeklyTemplate } from "../db/schema/doctor-schedule.js";
 import { doctorProfiles, patientProfiles } from "../db/schema/profiles.js";
+import { cities, clinics } from "../db/schema/reference.js";
 import { users } from "../db/schema/users.js";
 import { newId } from "../lib/ids.js";
+
+const TEST_CITY_ID = "test-city";
+const TEST_CLINIC_ID = "test-clinic";
+
+/** Ensure reference rows exist for test city/clinic (search joins cities/clinics). */
+export async function ensureTestReference(): Promise<void> {
+  const db = getDb();
+  await db.insert(cities).values({ id: TEST_CITY_ID, name: "Test City" }).onConflictDoNothing();
+  await db
+    .insert(clinics)
+    .values({ id: TEST_CLINIC_ID, cityId: TEST_CITY_ID, name: "Test Clinic" })
+    .onConflictDoNothing();
+}
 
 const ALL_DAYS_OFF: WeeklyTemplate = {
   monday: { works: false },
@@ -48,12 +63,33 @@ export type TestDoctorOptions = {
   weeklyTemplate?: WeeklyTemplate;
   visitDurationMinutes?: number;
   supportedFormats?: Array<"offline" | "online">;
+  firstName?: string;
+  lastName?: string;
+  specialty?: SpecialtyId;
+  cityId?: string;
+  clinicId?: string;
+  cityName?: string;
+  clinicName?: string;
+  basePriceUah?: number;
+  promoPriceUah?: number | null;
+  visibleInSearch?: boolean;
 };
 
 export async function createTestDoctor(options: TestDoctorOptions = {}): Promise<string> {
   const db = getDb();
   const userId = newId("test_doctor");
   const visitDurationMinutes = options.visitDurationMinutes ?? 30;
+  const cityId = options.cityId ?? TEST_CITY_ID;
+  const clinicId = options.clinicId ?? TEST_CLINIC_ID;
+
+  await db
+    .insert(cities)
+    .values({ id: cityId, name: options.cityName ?? "Test City" })
+    .onConflictDoNothing();
+  await db
+    .insert(clinics)
+    .values({ id: clinicId, cityId, name: options.clinicName ?? "Test Clinic" })
+    .onConflictDoNothing();
 
   await db.insert(users).values({
     id: userId,
@@ -63,21 +99,22 @@ export async function createTestDoctor(options: TestDoctorOptions = {}): Promise
   });
   await db.insert(doctorProfiles).values({
     userId,
-    firstName: "Test",
-    lastName: "Doctor",
+    firstName: options.firstName ?? "Test",
+    lastName: options.lastName ?? "Doctor",
     dob: "1980-01-01",
-    cityId: "test-city",
-    clinicId: "test-clinic",
-    specialty: "family_doctor",
+    cityId,
+    clinicId,
+    specialty: options.specialty ?? "family_doctor",
     yearsPractice: 5,
     visitDurationMinutes,
   });
   await db.insert(doctorSchedules).values({
     doctorUserId: userId,
-    basePriceUah: 600,
+    basePriceUah: options.basePriceUah ?? 600,
+    promoPriceUah: options.promoPriceUah ?? null,
     supportedFormats: options.supportedFormats ?? ["offline"],
     weeklyTemplate: options.weeklyTemplate ?? ALL_DAYS_OFF,
-    visibleInSearch: true,
+    visibleInSearch: options.visibleInSearch ?? true,
   });
   return userId;
 }
