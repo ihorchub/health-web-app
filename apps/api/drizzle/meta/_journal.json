@@ -22,6 +22,13 @@
       "when": 1789395000000,
       "tag": "0002_appointments",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1789990000000,
+      "tag": "0003_specialty_expand",
+      "breakpoints": true
     }
   ]
 }

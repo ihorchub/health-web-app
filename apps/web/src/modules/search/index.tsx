@@ -1,6 +1,6 @@
 import { Button } from '@mui/material';
 import { IconX } from '@tabler/icons-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { useGetDoctorsSearch, type SearchSort } from '@/api/doctors';
@@ -45,12 +45,6 @@ const DEFAULT_FILTERS: SearchFiltersState = {
   priceMax: 5000,
 };
 
-const PATIENT_PREFILL: SearchFiltersState = {
-  ...DEFAULT_FILTERS,
-  cityId: 'city_kyiv',
-  clinicId: 'clinic_kyiv_center',
-};
-
 const PAGE_SIZE = 6;
 
 export const SearchPage = () => {
@@ -62,7 +56,8 @@ export const SearchPage = () => {
   const [appliedQuery, setAppliedQuery] = useState('');
   const [guestFilters, setGuestFilters] = useState<SearchFiltersState>(DEFAULT_FILTERS);
   const [patientFilters, setPatientFilters] =
-    useState<SearchFiltersState>(PATIENT_PREFILL);
+    useState<SearchFiltersState>(DEFAULT_FILTERS);
+  const [patientPrefillApplied, setPatientPrefillApplied] = useState(false);
   const [sort, setSort] = useState<SearchSort>('rating');
   const [limit, setLimit] = useState(PAGE_SIZE);
   const [specialtiesExpanded, setSpecialtiesExpanded] = useState(false);
@@ -94,8 +89,29 @@ export const SearchPage = () => {
 
   const doctorsQuery = useGetDoctorsSearch(searchParams, {
     isPatient,
-    homeClinicId: isPatient ? 'clinic_kyiv_center' : null,
   });
+
+  useEffect(() => {
+    if (!isPatient || patientPrefillApplied) {
+      return;
+    }
+    const prefill = doctorsQuery.data?.prefill;
+    if (!prefill) {
+      return;
+    }
+    setPatientFilters((current) => ({
+      ...current,
+      cityId: prefill.cityId ?? current.cityId,
+      clinicId: prefill.clinicId ?? current.clinicId,
+    }));
+    setPatientPrefillApplied(true);
+  }, [doctorsQuery.data?.prefill, isPatient, patientPrefillApplied]);
+
+  useEffect(() => {
+    if (!isPatient) {
+      setPatientPrefillApplied(false);
+    }
+  }, [isPatient]);
 
   const doctorCityIds = useMemo(
     () => (doctorsQuery.data?.items ?? []).map((doctor) => doctor.cityId),
@@ -113,10 +129,13 @@ export const SearchPage = () => {
   };
 
   const resetFilters = () => {
-    setFilters(isPatient ? PATIENT_PREFILL : DEFAULT_FILTERS);
+    setFilters(DEFAULT_FILTERS);
     setAppliedQuery('');
     setQueryInput('');
     setLimit(PAGE_SIZE);
+    if (isPatient) {
+      setPatientPrefillApplied(false);
+    }
   };
 
   const applyQuery = (value: string) => {

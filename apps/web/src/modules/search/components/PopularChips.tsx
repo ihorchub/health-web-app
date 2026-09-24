@@ -6,8 +6,8 @@ const CHIPS = [
   { key: 'family', specialty: 'family_doctor' },
   { key: 'dermatologist', specialty: 'dermatologist' },
   { key: 'paediatrician', specialty: 'paediatrician' },
-  { key: 'neurologist', q: 'невролог' },
-  { key: 'gynecologist', q: 'гінеколог' },
+  { key: 'neurologist', specialty: 'neurologist' },
+  { key: 'gynecologist', specialty: 'gynecologist' },
   { key: 'cardiologist', specialty: 'cardiologist' },
 ] as const;
 
@@ -19,7 +19,6 @@ interface PopularChipsProps {
 
 export const PopularChips = ({
   activeSpecialty,
-  activeQuery,
   onSelect,
 }: PopularChipsProps) => {
   const { t } = useTranslation('search');
@@ -28,9 +27,7 @@ export const PopularChips = ({
     <PopularRow>
       <PopularLabel>{t('popular.label')}</PopularLabel>
       {CHIPS.map((chip) => {
-        const active =
-          ('specialty' in chip && chip.specialty === activeSpecialty) ||
-          ('q' in chip && chip.q === activeQuery);
+        const active = chip.specialty === activeSpecialty;
 
         return (
           <ChipButton
@@ -38,11 +35,7 @@ export const PopularChips = ({
             type="button"
             $active={active}
             onClick={() => {
-              if ('specialty' in chip) {
-                onSelect({ specialty: chip.specialty, q: undefined });
-              } else {
-                onSelect({ specialty: undefined, q: chip.q });
-              }
+              onSelect({ specialty: chip.specialty, q: undefined });
             }}
           >
             {t(`popular.${chip.key}`)}

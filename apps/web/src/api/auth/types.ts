@@ -1,7 +1,20 @@
 export type AuthRole = 'patient' | 'doctor';
 
 export type SpecialtyId =
-  'family_doctor' | 'cardiologist' | 'dermatologist' | 'paediatrician';
+  | 'family_doctor'
+  | 'cardiologist'
+  | 'dermatologist'
+  | 'paediatrician'
+  | 'neurologist'
+  | 'ophthalmologist'
+  | 'orthopedist'
+  | 'endocrinologist'
+  | 'gastroenterologist'
+  | 'gynecologist'
+  | 'urologist'
+  | 'otolaryngologist'
+  | 'psychiatrist'
+  | 'pulmonologist';
 
 export type VisitDurationMinutes = 20 | 30 | 45;
 

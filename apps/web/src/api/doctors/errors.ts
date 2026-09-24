@@ -1,3 +1,5 @@
+import { getApiErrorCode } from '@/api/errors';
+
 export class DoctorNotFoundError extends Error {
   code = 'DOCTOR_NOT_FOUND' as const;
 
@@ -7,12 +9,17 @@ export class DoctorNotFoundError extends Error {
   }
 }
 
-export const isDoctorNotFoundError = (error: unknown): error is DoctorNotFoundError => {
+export const isDoctorNotFoundError = (error: unknown): boolean => {
+  if (error instanceof DoctorNotFoundError) {
+    return true;
+  }
+  if (getApiErrorCode(error) === 'DOCTOR_NOT_FOUND') {
+    return true;
+  }
   return (
-    error instanceof DoctorNotFoundError ||
-    (typeof error === 'object' &&
-      error !== null &&
-      'code' in error &&
-      (error as { code: string }).code === 'DOCTOR_NOT_FOUND')
+    typeof error === 'object' &&
+    error !== null &&
+    'code' in error &&
+    (error as { code: string }).code === 'DOCTOR_NOT_FOUND'
   );
 };

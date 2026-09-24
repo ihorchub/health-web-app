@@ -143,7 +143,7 @@ export const DoctorCard = ({
       }}
     >
       <CardTop>
-        <Avatar src={doctor.photoUrl} alt="" />
+        <Avatar src={doctor.photoUrl ?? undefined} alt="" />
         <CardIdentity>
           <NameRow>
             <DoctorName>
@@ -397,8 +397,10 @@ export const DoctorsSection = ({
                 key={doctor.id}
                 doctor={doctor}
                 role={role}
-                clinicName={clinicNameById[doctor.clinicId] ?? ''}
-                cityName={cityNameById[doctor.cityId] ?? ''}
+                clinicName={
+                  clinicNameById[doctor.clinicId] ?? doctor.clinicName ?? ''
+                }
+                cityName={cityNameById[doctor.cityId] ?? doctor.cityName ?? ''}
                 onOpenProfile={openProfile}
                 onBook={handleBook}
                 onFavourite={handleFavourite}
