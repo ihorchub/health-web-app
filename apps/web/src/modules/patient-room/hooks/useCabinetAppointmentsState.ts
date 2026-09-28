@@ -1,66 +1,61 @@
-import { useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useMemo } from 'react';
 
+import { useGetPatientCabinet } from '@/api/patients';
+import type { CabinetAppointment, CabinetDoctorCard } from '@/modules/patient-room/types';
 import {
-  getCabinetFixtureAppointments,
-  MOCK_CABINET_APPOINTMENTS,
-} from '@/modules/patient-room/fixtures';
-import type { CabinetAppointment } from '@/modules/patient-room/types';
+  mapCabinetAppointment,
+  mapCabinetDoctorCard,
+} from '@/modules/patient-room/utils/mapCabinet';
 
 const isUpcomingGroup = (status: CabinetAppointment['status']) =>
   status === 'upcoming' || status === 'reschedule_pending';
 
-const UPCOMING_LOAD_MS = 720;
+export const useCabinetAppointmentsState = (options: { enabled?: boolean } = {}) => {
+  const cabinetQuery = useGetPatientCabinet({ enabled: options.enabled ?? true });
 
-export type CabinetPreviewParam = 'default' | 'empty' | 'upcoming-empty' | 'loading';
-
-export const useCabinetAppointmentsState = () => {
-  const [searchParams] = useSearchParams();
-  const previewParam = searchParams.get('cabinetPreview') as CabinetPreviewParam | null;
-
-  const fixture = useMemo(
-    () => getCabinetFixtureAppointments(previewParam),
-    [previewParam],
-  );
-
-  const [appointments, setAppointments] = useState<CabinetAppointment[]>(() =>
-    previewParam === 'loading' ? [] : fixture.filter((item) => !isUpcomingGroup(item.status)),
-  );
-  const [upcomingLoading, setUpcomingLoading] = useState(
-    () => previewParam === 'loading' || previewParam === 'default' || previewParam === null,
-  );
-
-  useEffect(() => {
-    if (previewParam === 'loading') {
-      setUpcomingLoading(true);
-      setAppointments([]);
-      return undefined;
+  const appointments = useMemo(() => {
+    if (!cabinetQuery.data) {
+      return [] as CabinetAppointment[];
     }
+    return [
+      ...cabinetQuery.data.upcoming.map(mapCabinetAppointment),
+      ...cabinetQuery.data.past.map(mapCabinetAppointment),
+    ];
+  }, [cabinetQuery.data]);
 
-    const past = fixture.filter((item) => !isUpcomingGroup(item.status));
-    const upcoming = fixture.filter((item) => isUpcomingGroup(item.status));
+  const favourites = useMemo(
+    (): CabinetDoctorCard[] =>
+      (cabinetQuery.data?.favourites ?? []).map(mapCabinetDoctorCard),
+    [cabinetQuery.data?.favourites],
+  );
 
-    setAppointments(past);
-    setUpcomingLoading(true);
+  const recentlyViewed = useMemo(
+    (): CabinetDoctorCard[] =>
+      (cabinetQuery.data?.recentlyViewed ?? []).map(mapCabinetDoctorCard),
+    [cabinetQuery.data?.recentlyViewed],
+  );
 
-    const delay =
-      previewParam === 'empty' || previewParam === 'upcoming-empty' ? 0 : UPCOMING_LOAD_MS;
-
-    const timer = window.setTimeout(() => {
-      setAppointments([...past, ...upcoming]);
-      setUpcomingLoading(false);
-    }, delay);
-
-    return () => {
-      window.clearTimeout(timer);
-    };
-  }, [fixture, previewParam]);
+  const miniCalendar = cabinetQuery.data?.miniCalendar ?? [];
+  const pendingBanner = cabinetQuery.data?.pendingBanner
+    ? mapCabinetAppointment(cabinetQuery.data.pendingBanner)
+    : null;
+  const nextAppointment = cabinetQuery.data?.nextAppointment
+    ? mapCabinetAppointment(cabinetQuery.data.nextAppointment)
+    : null;
+  const myReviews = cabinetQuery.data?.myReviews ?? { leftCount: 0, pendingCount: 0 };
 
   return {
     appointments,
-    setAppointments,
-    upcomingLoading,
-    previewParam,
-    resetToDefaultFixture: () => MOCK_CABINET_APPOINTMENTS,
+    favourites,
+    recentlyViewed,
+    miniCalendar,
+    pendingBanner,
+    nextAppointment,
+    myReviews,
+    zoneA: cabinetQuery.data?.zoneA,
+    upcomingLoading: cabinetQuery.isLoading,
+    isError: cabinetQuery.isError,
+    refetch: cabinetQuery.refetch,
+    isUpcomingGroup,
   };
 };

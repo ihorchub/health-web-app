@@ -1,6 +1,5 @@
 import { useTranslation } from 'react-i18next';
 
-import { findMockDoctor } from '@/api/mocks/doctorsFixtures';
 import {
   DangerOutlineButton,
   DoctorLine,
@@ -20,6 +19,7 @@ import {
 } from '@/modules/patient-room/styles';
 import type { CabinetAppointment } from '@/modules/patient-room/types';
 import { formatTime } from '@/modules/patient-room/utils/formatCabinetDate';
+import { doctorDisplayName } from '@/modules/patient-room/utils/mapCabinet';
 
 interface NextVisitHeroProps {
   appointment: CabinetAppointment;
@@ -38,12 +38,13 @@ export const NextVisitHero = ({
 }: NextVisitHeroProps) => {
   const { t, i18n } = useTranslation(['cabinet', 'search']);
   const isPending = appointment.status === 'reschedule_pending';
-  const doctor = findMockDoctor(appointment.doctorId);
-  const doctorName = doctor
-    ? `${doctor.firstName} ${doctor.lastName}`
-    : appointment.doctorId;
-  const specialty = doctor ? t(`search:specialties.${doctor.specialty}`) : '';
-  const clinicLabel = t('cabinet:demoClinic');
+  const doctorName = doctorDisplayName(appointment);
+  const specialty = appointment.specialty
+    ? t(`search:specialties.${appointment.specialty}`, {
+        defaultValue: appointment.specialty,
+      })
+    : '';
+  const clinicLabel = appointment.clinicName;
 
   return (
     <NextVisitCard

@@ -2,7 +2,6 @@ import { CircularProgress, Switch, TextField, useTheme } from '@mui/material';
 import { IconInfoCircle } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
 
-import { MOCK_WORKING_HOURS } from '@/modules/working-hours/fixtures';
 import {
   Callout,
   DurationCustomField,
@@ -27,6 +26,7 @@ import { formatDisplayDate } from '@/modules/working-hours/utils/calendarGrid';
 interface ZoneBPanelProps {
   form: ZoneBFormState;
   locale: string;
+  zoneBStartYmd: string;
   isSaving: boolean;
   onChange: (patch: Partial<ZoneBFormState>) => void;
   onSaveClick: () => void;
@@ -38,6 +38,7 @@ const DURATIONS: VisitDurationMinutes[] = [20, 30, 45];
 export const ZoneBPanel = ({
   form,
   locale,
+  zoneBStartYmd,
   isSaving,
   onChange,
   onSaveClick,
@@ -45,7 +46,7 @@ export const ZoneBPanel = ({
 }: ZoneBPanelProps) => {
   const { t } = useTranslation('workingHours');
   const theme = useTheme();
-  const zoneBStart = MOCK_WORKING_HOURS.zoneBStartYmd;
+  const zoneBStart = zoneBStartYmd;
 
   const formatOptions: { value: SupportedFormat; label: string }[] = [
     { value: 'offline', label: t('zoneB.formatOffline') },
@@ -118,10 +119,12 @@ export const ZoneBPanel = ({
               size="small"
               type="number"
               placeholder="—"
-              InputProps={{
-                endAdornment: (
-                  <DurationCustomHint>{t('zoneB.durationUnit')}</DurationCustomHint>
-                ),
+              slotProps={{
+                input: {
+                  endAdornment: (
+                    <DurationCustomHint>{t('zoneB.durationUnit')}</DurationCustomHint>
+                  ),
+                },
               }}
               value={form.customDuration ?? ''}
               onChange={(event) => {

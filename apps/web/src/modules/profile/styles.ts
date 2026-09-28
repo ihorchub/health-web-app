@@ -1,4 +1,5 @@
-import { Button, Dialog, TextField, styled } from '@mui/material';
+import { Button, Dialog, TextField } from '@mui/material';
+import { styled } from '@/theme/styled';
 
 const cardShadow = '0 1px 2px rgba(22, 62, 82, 0.04)';
 const iconSoftBg = '#E6F7F1';

@@ -26,7 +26,7 @@ export const WizardDoctorStrip = ({
 
   return (
     <DoctorStrip>
-      <StripPhoto src={doctor.photoUrl} alt="" />
+      <StripPhoto src={doctor.photoUrl ?? undefined} alt="" />
       <StripText>
         <StripName>
           {doctorPrefix} {doctor.firstName} {doctor.lastName}

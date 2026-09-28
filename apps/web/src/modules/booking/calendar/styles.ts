@@ -1,4 +1,4 @@
-import { styled } from '@mui/material';
+import { styled } from '@/theme/styled';
 
 export const CalendarBody = styled('div')(({ theme }) => ({
   display: 'flex',

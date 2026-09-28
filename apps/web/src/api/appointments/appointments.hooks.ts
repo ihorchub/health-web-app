@@ -1,28 +1,33 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
+import {
+  postAcceptProposal,
+  postBookAppointment,
+  postCancelAppointment,
+  postCompleteAppointment,
+  postProposeAppointment,
+  postRescheduleAppointment,
+} from '@/api/appointments/appointments';
 import type {
   AppointmentDto,
   BookAppointmentBody,
   BookAppointmentResponse,
+  RescheduleAppointmentBody,
+  RescheduleAppointmentResponse,
 } from '@/api/appointments/types';
 import type {
   ProposeAppointmentBody,
   ProposeAppointmentResponse,
 } from '@/api/doctors/dashboard.types';
 import { doctorsQueryKeys } from '@/api/doctors/doctors.hooks';
-import { mockPostBookAppointment } from '@/api/mocks/bookAppointment';
-import {
-  mockPostCancelAppointment,
-  mockPostCompleteAppointment,
-  mockPostProposeAppointment,
-} from '@/api/mocks/doctorDashboard';
+import { patientsQueryKeys } from '@/api/patients/patients.hooks';
 
-/** Orval-shaped — POST /api/v1/appointments */
+/** POST /api/v1/appointments */
 export const usePostBookAppointment = () => {
   const queryClient = useQueryClient();
 
   return useMutation<BookAppointmentResponse, Error, BookAppointmentBody>({
-    mutationFn: (body) => mockPostBookAppointment(body),
+    mutationFn: (body) => postBookAppointment(body),
     onSuccess: (_data, variables) => {
       void queryClient.invalidateQueries({
         queryKey: ['doctors', variables.doctorId, 'calendar'],
@@ -30,35 +35,57 @@ export const usePostBookAppointment = () => {
       void queryClient.invalidateQueries({
         queryKey: doctorsQueryKeys.byId(variables.doctorId, 'patient'),
       });
+      void queryClient.invalidateQueries({ queryKey: patientsQueryKeys.cabinet() });
+      void queryClient.invalidateQueries({ queryKey: ['notifications'] });
     },
   });
 };
 
-/** Orval-shaped — POST /api/v1/appointments/:id/complete */
+/** POST /api/v1/appointments/:id/reschedule */
+export const usePostRescheduleAppointment = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    RescheduleAppointmentResponse,
+    Error,
+    { id: string; body: RescheduleAppointmentBody }
+  >({
+    mutationFn: ({ id, body }) => postRescheduleAppointment(id, body),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: patientsQueryKeys.cabinet() });
+      void queryClient.invalidateQueries({ queryKey: ['doctors'] });
+      void queryClient.invalidateQueries({ queryKey: ['notifications'] });
+    },
+  });
+};
+
+/** POST /api/v1/appointments/:id/complete */
 export const usePostCompleteAppointment = () => {
   const queryClient = useQueryClient();
 
   return useMutation<AppointmentDto, Error, { id: string }>({
-    mutationFn: ({ id }) => mockPostCompleteAppointment(id),
+    mutationFn: ({ id }) => postCompleteAppointment(id),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['doctors', 'me', 'dashboard'] });
     },
   });
 };
 
-/** Orval-shaped — POST /api/v1/appointments/:id/cancel (doctor one-visit) */
+/** POST /api/v1/appointments/:id/cancel (patient or doctor) */
 export const usePostCancelAppointment = () => {
   const queryClient = useQueryClient();
 
   return useMutation<AppointmentDto, Error, { id: string }>({
-    mutationFn: ({ id }) => mockPostCancelAppointment(id),
+    mutationFn: ({ id }) => postCancelAppointment(id),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['doctors', 'me', 'dashboard'] });
+      void queryClient.invalidateQueries({ queryKey: patientsQueryKeys.cabinet() });
+      void queryClient.invalidateQueries({ queryKey: ['notifications'] });
     },
   });
 };
 
-/** Orval-shaped — POST /api/v1/appointments/:id/propose */
+/** POST /api/v1/appointments/:id/propose */
 export const usePostProposeAppointment = () => {
   const queryClient = useQueryClient();
 
@@ -67,9 +94,23 @@ export const usePostProposeAppointment = () => {
     Error,
     { id: string; body: ProposeAppointmentBody }
   >({
-    mutationFn: ({ id, body }) => mockPostProposeAppointment(id, body),
+    mutationFn: ({ id, body }) => postProposeAppointment(id, body),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['doctors', 'me', 'dashboard'] });
+      void queryClient.invalidateQueries({ queryKey: ['notifications'] });
+    },
+  });
+};
+
+/** POST /api/v1/appointments/:id/accept-proposal */
+export const usePostAcceptProposal = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<RescheduleAppointmentResponse, Error, { id: string }>({
+    mutationFn: ({ id }) => postAcceptProposal(id),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: patientsQueryKeys.cabinet() });
+      void queryClient.invalidateQueries({ queryKey: ['notifications'] });
     },
   });
 };
@@ -79,6 +120,9 @@ export type {
   AppointmentFormat,
   BookAppointmentBody,
   BookAppointmentResponse,
+  PendingDecisionResponse,
+  RescheduleAppointmentBody,
+  RescheduleAppointmentResponse,
 } from '@/api/appointments/types';
 
 export type {

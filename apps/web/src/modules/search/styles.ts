@@ -1,4 +1,5 @@
-import { Button, Drawer, MenuItem, TextField, styled } from '@mui/material';
+import { Button, Drawer, MenuItem, TextField } from '@mui/material';
+import { styled } from '@/theme/styled';
 
 export const Page = styled('section')(({ theme }) => ({
   display: 'flex',

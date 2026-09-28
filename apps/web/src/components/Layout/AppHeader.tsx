@@ -1,5 +1,6 @@
 import { IconMenu2, IconX } from '@tabler/icons-react';
-import { styled } from '@mui/material';
+import { styled } from '@/theme/styled';
+
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link as RouterLink } from 'react-router-dom';

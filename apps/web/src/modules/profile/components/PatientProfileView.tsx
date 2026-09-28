@@ -8,15 +8,20 @@ import {
   IconUser,
   IconWorld,
 } from '@tabler/icons-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
+import {
+  useGetPatientProfile,
+  usePatchPatientProfile,
+  type PatientProfileDto,
+} from '@/api/patients';
+import { useGetReferenceCities, useGetReferenceClinics } from '@/api/reference';
 import { ProfileAvatar } from '@/modules/profile/components/ProfileAvatar';
 import { ProfileFieldRow } from '@/modules/profile/components/ProfileFieldRow';
 import { ProfileSavingOverlay } from '@/modules/profile/components/ProfileSavingOverlay';
 import { ProfileSectionHeader } from '@/modules/profile/components/ProfileSectionHeader';
-import { MOCK_PATIENT_PROFILE } from '@/modules/profile/fixtures';
 import {
   ActionRow,
   Content,
@@ -39,23 +44,79 @@ import {
 import type { PatientProfileData, ProfileSection } from '@/modules/profile/types';
 import { formatProfileDate } from '@/modules/profile/utils/formatProfileDate';
 
+const mapPatientDto = (
+  dto: PatientProfileDto,
+  cityName: string,
+  clinicName: string,
+): PatientProfileData => ({
+  firstName: dto.firstName,
+  lastName: dto.lastName,
+  phone: dto.phone ?? '',
+  email: dto.email,
+  dateOfBirth: dto.dob,
+  cityId: dto.homeCityId ?? '',
+  clinicId: dto.homeClinicId ?? '',
+  cityName,
+  clinicName,
+  photoUrl: dto.photoUrl ?? undefined,
+});
+
 export const PatientProfileView = () => {
   const { t, i18n } = useTranslation('profile');
-  const [profile, setProfile] = useState<PatientProfileData>(MOCK_PATIENT_PROFILE);
+  const profileQuery = useGetPatientProfile();
+  const patchMutation = usePatchPatientProfile();
+  const citiesQuery = useGetReferenceCities();
+  const clinicsQuery = useGetReferenceClinics(profileQuery.data?.homeCityId ?? undefined);
+
+  const [profile, setProfile] = useState<PatientProfileData | null>(null);
   const [editing, setEditing] = useState<ProfileSection | null>(null);
   const [saving, setSaving] = useState(false);
+
+  const cityName =
+    citiesQuery.data?.items.find((city) => city.id === profileQuery.data?.homeCityId)?.name ??
+    '';
+  const clinicName =
+    clinicsQuery.data?.items.find((clinic) => clinic.id === profileQuery.data?.homeClinicId)
+      ?.name ?? '';
+
+  useEffect(() => {
+    if (!profileQuery.data) {
+      return;
+    }
+    setProfile(mapPatientDto(profileQuery.data, cityName, clinicName));
+  }, [profileQuery.data, cityName, clinicName]);
+
+  if (!profile) {
+    return null;
+  }
 
   const initials = `${profile.firstName.charAt(0)}${profile.lastName.charAt(0)}`;
   const dobLabel = formatProfileDate(profile.dateOfBirth, i18n.language);
 
+  const cancelEdit = () => {
+    if (profileQuery.data) {
+      setProfile(mapPatientDto(profileQuery.data, cityName, clinicName));
+    }
+    setEditing(null);
+  };
+
   const saveEdit = async () => {
     setSaving(true);
-    await new Promise((resolve) => {
-      setTimeout(resolve, 400);
-    });
-    setSaving(false);
-    setEditing(null);
-    toast.success(t('saved'));
+    try {
+      await patchMutation.mutateAsync({
+        firstName: profile.firstName,
+        lastName: profile.lastName,
+        phone: profile.phone || null,
+        email: profile.email,
+        dob: profile.dateOfBirth,
+        ...(profile.cityId ? { homeCityId: profile.cityId } : {}),
+        ...(profile.clinicId ? { homeClinicId: profile.clinicId } : {}),
+      });
+      setEditing(null);
+      toast.success(t('saved'));
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -101,66 +162,82 @@ export const PatientProfileView = () => {
                   label={t('fields.firstName')}
                   value={profile.firstName}
                   onChange={(event) => {
-                    setProfile((current) => ({
-                      ...current,
-                      firstName: event.target.value,
-                    }));
+                    setProfile((current) =>
+                      current
+                        ? {
+                            ...current,
+                            firstName: event.target.value,
+                          }
+                        : current,
+                    );
                   }}
                 />
                 <ProfileTextField
                   label={t('fields.lastName')}
                   value={profile.lastName}
                   onChange={(event) => {
-                    setProfile((current) => ({
-                      ...current,
-                      lastName: event.target.value,
-                    }));
+                    setProfile((current) =>
+                      current
+                        ? {
+                            ...current,
+                            lastName: event.target.value,
+                          }
+                        : current,
+                    );
                   }}
                 />
                 <ProfileTextField
                   label={t('fields.dob')}
                   value={profile.dateOfBirth}
                   onChange={(event) => {
-                    setProfile((current) => ({
-                      ...current,
-                      dateOfBirth: event.target.value,
-                    }));
+                    setProfile((current) =>
+                      current
+                        ? {
+                            ...current,
+                            dateOfBirth: event.target.value,
+                          }
+                        : current,
+                    );
                   }}
                 />
                 <ProfileTextField
                   label={t('fields.city')}
                   value={profile.cityName}
                   onChange={(event) => {
-                    setProfile((current) => ({
-                      ...current,
-                      cityName: event.target.value,
-                    }));
+                    setProfile((current) =>
+                      current
+                        ? {
+                            ...current,
+                            cityName: event.target.value,
+                          }
+                        : current,
+                    );
                   }}
                 />
                 <ProfileTextField
                   label={t('fields.homeClinic')}
                   value={profile.clinicName}
                   onChange={(event) => {
-                    setProfile((current) => ({
-                      ...current,
-                      clinicName: event.target.value,
-                    }));
+                    setProfile((current) =>
+                      current
+                        ? {
+                            ...current,
+                            clinicName: event.target.value,
+                          }
+                        : current,
+                    );
                   }}
                 />
               </FieldGrid>
               <ActionRow>
-                <Button
-                  onClick={() => {
-                    setEditing(null);
-                  }}
-                >
-                  {t('cancel')}
-                </Button>
+                <Button onClick={cancelEdit}>{t('cancel')}</Button>
                 <Button
                   variant="contained"
                   color="primary"
                   disabled={saving}
-                  onClick={saveEdit}
+                  onClick={() => {
+                    void saveEdit();
+                  }}
                 >
                   {saving ? t('saving') : t('save')}
                 </Button>
@@ -219,30 +296,30 @@ export const PatientProfileView = () => {
                   label={t('fields.phone')}
                   value={profile.phone}
                   onChange={(event) => {
-                    setProfile((current) => ({ ...current, phone: event.target.value }));
+                    setProfile((current) =>
+                      current ? { ...current, phone: event.target.value } : current,
+                    );
                   }}
                 />
                 <ProfileTextField
                   label={t('fields.email')}
                   value={profile.email}
                   onChange={(event) => {
-                    setProfile((current) => ({ ...current, email: event.target.value }));
+                    setProfile((current) =>
+                      current ? { ...current, email: event.target.value } : current,
+                    );
                   }}
                 />
               </FieldGrid>
               <ActionRow>
-                <Button
-                  onClick={() => {
-                    setEditing(null);
-                  }}
-                >
-                  {t('cancel')}
-                </Button>
+                <Button onClick={cancelEdit}>{t('cancel')}</Button>
                 <Button
                   variant="contained"
                   color="primary"
                   disabled={saving}
-                  onClick={saveEdit}
+                  onClick={() => {
+                    void saveEdit();
+                  }}
                 >
                   {saving ? t('saving') : t('save')}
                 </Button>

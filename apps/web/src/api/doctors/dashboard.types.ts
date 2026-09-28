@@ -1,6 +1,6 @@
 import type { AppointmentFormat, AppointmentStatus } from '@/api/appointments/types';
 
-/** GET /api/v1/doctors/me/dashboard?date= — SCR-08 */
+/** GET /api/v1/doctors/me/dashboard?date= — SCR-08 (matches live API). */
 
 export interface DoctorDashboardMetrics {
   visitsToday: number;
@@ -11,41 +11,12 @@ export interface DoctorDashboardMetrics {
 
 export interface DoctorDashboardVisit {
   id: string;
-  patientId: string;
-  patientFirstName: string;
-  patientLastName: string;
-  patientPhone: string | null;
-  patientEmail: string | null;
+  patientDisplayName: string;
   startAt: string;
-  endAt: string;
   format: AppointmentFormat;
-  status: AppointmentStatus;
   reason: string | null;
-  visitDurationMinutes: number;
-  cancelledBy: 'patient' | 'doctor' | null;
-  /** Present when status is Reschedule Pending */
+  status: AppointmentStatus | string;
   proposedStartAt: string | null;
-  /**
-   * True when this row is the reserved proposed slot (same patient),
-   * not the original pending appointment.
-   */
-  isProposalHold: boolean;
-}
-
-export interface DoctorDashboardPendingPatient {
-  id: string;
-  patientId: string;
-  patientFirstName: string;
-  patientLastName: string;
-  originalStartAt: string;
-  proposedStartAt: string;
-}
-
-export interface DoctorDashboardFreeWindow {
-  id: string;
-  startAt: string;
-  endAt: string;
-  slotsCount: number;
 }
 
 export interface DoctorDashboardResponse {
@@ -53,10 +24,9 @@ export interface DoctorDashboardResponse {
   metrics: DoctorDashboardMetrics;
   visits: DoctorDashboardVisit[];
   nextVisit: DoctorDashboardVisit | null;
-  pendingPatients: DoctorDashboardPendingPatient[];
-  freeWindowsToday: DoctorDashboardFreeWindow[];
-  /** Free start times the doctor can propose for this day (Zone A). */
-  proposeSlots: string[];
+  pendingPatients: DoctorDashboardVisit[];
+  /** Free slot start times (ISO) for the requested day. */
+  freeWindowsToday: string[];
 }
 
 export interface DoctorDashboardParams {
@@ -69,6 +39,17 @@ export interface ProposeAppointmentBody {
 }
 
 export interface ProposeAppointmentResponse {
-  appointment: DoctorDashboardVisit;
-  proposalHold: DoctorDashboardVisit;
+  appointment: {
+    id: string;
+    doctorId: string;
+    patientId: string;
+    startAt: string;
+    endAt: string;
+    format: AppointmentFormat;
+    status: AppointmentStatus;
+    reason: string | null;
+    visitDurationMinutes: number;
+    proposedStartAt: string | null;
+    cancelledBy: 'patient' | 'doctor' | null;
+  };
 }

@@ -3,8 +3,6 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
-import type { DoctorSearchCard } from '@/api/doctors';
-import { findMockDoctor } from '@/api/mocks/doctorsFixtures';
 import {
   CalendarGrid,
   CalendarHeader,
@@ -22,9 +20,10 @@ import {
   WidgetTitle,
   WeekdayCell,
 } from '@/modules/patient-room/styles';
-import type { CabinetAppointment } from '@/modules/patient-room/types';
+import type { CabinetAppointment, CabinetDoctorCard } from '@/modules/patient-room/types';
 import { appointmentDays } from '@/modules/patient-room/utils/appointmentsByDay';
-import { formatTime } from '@/modules/patient-room/utils/formatCabinetDate';
+import { formatTime, todayYmdKyiv } from '@/modules/patient-room/utils/formatCabinetDate';
+import { doctorDisplayName } from '@/modules/patient-room/utils/mapCabinet';
 import { AppRoute } from '@/utils/routeUtils/routes';
 
 const WEEKDAYS_UK = ['пн', 'вт', 'ср', 'чт', 'пт', 'сб', 'нд'];
@@ -37,7 +36,8 @@ interface CabinetSidebarProps {
   appointments: CabinetAppointment[];
   /** Reminder only for today/tomorrow Upcoming — pass null to hide. */
   reminderVisit: CabinetAppointment | null;
-  promoDoctor: DoctorSearchCard | null;
+  promoDoctor: CabinetDoctorCard | null;
+  myReviews?: { leftCount: number; pendingCount: number };
   showCalendar?: boolean;
   showReviews?: boolean;
   onOpenVisit: () => void;
@@ -51,6 +51,7 @@ export const CabinetSidebar = ({
   appointments,
   reminderVisit,
   promoDoctor,
+  myReviews = { leftCount: 0, pendingCount: 0 },
   showCalendar = true,
   showReviews = true,
   onOpenVisit,
@@ -61,11 +62,12 @@ export const CabinetSidebar = ({
   const { t, i18n } = useTranslation(['cabinet', 'search']);
   const navigate = useNavigate();
   const [monthOffset, setMonthOffset] = useState(0);
+  const todayYmd = todayYmdKyiv();
 
   const viewDate = useMemo(() => {
-    const base = new Date('2026-08-01T12:00:00+03:00');
-    return new Date(base.getFullYear(), base.getMonth() + monthOffset, 1);
-  }, [monthOffset]);
+    const [year, month] = todayYmd.split('-').map(Number);
+    return new Date(year!, (month ?? 1) - 1 + monthOffset, 1);
+  }, [monthOffset, todayYmd]);
 
   const monthLabel = new Intl.DateTimeFormat(i18n.language === 'uk' ? 'uk-UA' : 'en-GB', {
     month: 'long',
@@ -93,7 +95,6 @@ export const CabinetSidebar = ({
   }, [viewDate]);
 
   const weekdays = i18n.language === 'uk' ? WEEKDAYS_UK : WEEKDAYS_EN;
-  const nextDoctor = reminderVisit ? findMockDoctor(reminderVisit.doctorId) : null;
   const markedDays = useMemo(() => appointmentDays(appointments), [appointments]);
 
   const showCalendarBlock =
@@ -101,6 +102,12 @@ export const CabinetSidebar = ({
   const showEarlyWidgets = variant === 'desktop' || variant === 'mobile-early';
   const showReviewsBlock = showReviews && variant === 'desktop';
   const showHowBlock = variant === 'desktop' || variant === 'mobile-early';
+
+  const reminderSpecialty = reminderVisit?.specialty
+    ? t(`search:specialties.${reminderVisit.specialty}`, {
+        defaultValue: reminderVisit.specialty,
+      })
+    : '';
 
   return (
     <>
@@ -138,7 +145,7 @@ export const CabinetSidebar = ({
                 type="button"
                 disabled={!cell.day}
                 $muted={!cell.day}
-                $today={cell.ymd === '2026-08-27'}
+                $today={cell.ymd === todayYmd}
                 $marked={cell.ymd ? markedDays.includes(cell.ymd) : false}
                 onClick={() => {
                   if (cell.ymd && markedDays.includes(cell.ymd)) {
@@ -157,20 +164,20 @@ export const CabinetSidebar = ({
         </CalendarShell>
       ) : null}
 
-      {showEarlyWidgets && reminderVisit && nextDoctor ? (
+      {showEarlyWidgets && reminderVisit ? (
         <WidgetCard>
           <WidgetTitle>{t('cabinet:sidebar.reminderTitle')}</WidgetTitle>
           <WidgetBody>
             {t('cabinet:sidebar.reminderLine', {
               time: formatTime(reminderVisit.startsAt, i18n.language),
-              doctor: `${nextDoctor.firstName} ${nextDoctor.lastName}`,
+              doctor: doctorDisplayName(reminderVisit),
             })}
           </WidgetBody>
           <WidgetMeta>
             {t('cabinet:sidebar.reminderMeta', {
               format: t(`cabinet:format.${reminderVisit.format}`),
-              specialty: t(`search:specialties.${nextDoctor.specialty}`),
-              clinic: t('cabinet:demoClinic'),
+              specialty: reminderSpecialty,
+              clinic: reminderVisit.clinicName,
             })}
           </WidgetMeta>
           <WidgetAction variant="outlined" color="inherit" onClick={onOpenVisit}>
@@ -183,12 +190,16 @@ export const CabinetSidebar = ({
         <WidgetCard>
           <WidgetTitle>{t('cabinet:sidebar.newDoctor')}</WidgetTitle>
           <PromoDoctorRow>
-            <PromoAvatar src={promoDoctor.photoUrl} alt="" />
+            <PromoAvatar src={promoDoctor.photoUrl ?? undefined} alt="" />
             <div>
               <WidgetBody>
                 {promoDoctor.firstName} {promoDoctor.lastName}
               </WidgetBody>
-              <WidgetMeta>{t(`search:specialties.${promoDoctor.specialty}`)}</WidgetMeta>
+              <WidgetMeta>
+                {t(`search:specialties.${promoDoctor.specialty}`, {
+                  defaultValue: promoDoctor.specialty,
+                })}
+              </WidgetMeta>
             </div>
           </PromoDoctorRow>
           <WidgetAction variant="contained" color="primary" onClick={onBookPromo}>
@@ -200,8 +211,12 @@ export const CabinetSidebar = ({
       {showReviewsBlock ? (
         <WidgetCard>
           <WidgetTitle>{t('cabinet:sidebar.reviewsTitle')}</WidgetTitle>
-          <WidgetBody>{t('cabinet:sidebar.reviewsSummary', { left: 2 })}</WidgetBody>
-          <WidgetMeta>{t('cabinet:sidebar.reviewsPending', { count: 1 })}</WidgetMeta>
+          <WidgetBody>
+            {t('cabinet:sidebar.reviewsSummary', { left: myReviews.leftCount })}
+          </WidgetBody>
+          <WidgetMeta>
+            {t('cabinet:sidebar.reviewsPending', { count: myReviews.pendingCount })}
+          </WidgetMeta>
           <WidgetAction variant="text" color="primary" onClick={onViewReviews}>
             {t('cabinet:sidebar.reviewsView')}
           </WidgetAction>

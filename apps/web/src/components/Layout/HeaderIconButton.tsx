@@ -1,4 +1,5 @@
-import { styled } from '@mui/material';
+import { styled } from '@/theme/styled';
+
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
 
 const ButtonRoot = styled('button')<{ $size?: 'sm' | 'md' }>(

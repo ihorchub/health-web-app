@@ -8,15 +8,15 @@ import {
 import { useGetDoctorMeDashboard } from '@/api/doctors';
 import {
   buildWeekStrip,
-  DEMO_DOCTOR_DAY,
   mapDashboardVisit,
-  mapFreeWindow,
+  mapFreeWindowsFromSlots,
   mapMetrics,
   mapPendingPatient,
   mapProposeSlotLabels,
+  todayDoctorDayYmd,
 } from '@/modules/doctor-day/utils/mapDashboard';
 
-export const useDoctorDayDashboard = (date = DEMO_DOCTOR_DAY) => {
+export const useDoctorDayDashboard = (date = todayDoctorDayYmd()) => {
   const dashboardQuery = useGetDoctorMeDashboard({ date });
   const completeMutation = usePostCompleteAppointment();
   const cancelMutation = usePostCancelAppointment();
@@ -35,7 +35,7 @@ export const useDoctorDayDashboard = (date = DEMO_DOCTOR_DAY) => {
   );
 
   const freeWindows = useMemo(
-    () => (data?.freeWindowsToday ?? []).map(mapFreeWindow),
+    () => mapFreeWindowsFromSlots(data?.freeWindowsToday ?? []),
     [data?.freeWindowsToday],
   );
 
@@ -57,12 +57,12 @@ export const useDoctorDayDashboard = (date = DEMO_DOCTOR_DAY) => {
     [data?.metrics],
   );
 
-  const proposeSlots = useMemo(
-    () => mapProposeSlotLabels(data?.proposeSlots ?? []),
-    [data?.proposeSlots],
-  );
+  const proposeSlotIsos = data?.freeWindowsToday ?? [];
 
-  const proposeSlotIsos = data?.proposeSlots ?? [];
+  const proposeSlots = useMemo(
+    () => mapProposeSlotLabels(proposeSlotIsos),
+    [proposeSlotIsos],
+  );
 
   const weekDays = useMemo(() => buildWeekStrip(date), [date]);
 

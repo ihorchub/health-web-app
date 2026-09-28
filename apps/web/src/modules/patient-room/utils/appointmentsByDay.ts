@@ -1,6 +1,14 @@
 import type { CabinetAppointment } from '@/modules/patient-room/types';
 
-export const ymdFromStartsAt = (startsAt: string): string => startsAt.slice(0, 10);
+const ymdInKyiv = (iso: string): string =>
+  new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Europe/Kyiv',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date(iso));
+
+export const ymdFromStartsAt = (startsAt: string): string => ymdInKyiv(startsAt);
 
 export const appointmentsOnDay = (
   items: CabinetAppointment[],

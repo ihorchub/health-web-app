@@ -1,10 +1,6 @@
 import { IconX } from '@tabler/icons-react';
-import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { findMockDoctor } from '@/api/mocks/doctorsFixtures';
-import { useGetReferenceCities } from '@/api/reference';
-import { cityNameMap, useClinicNamesByCityIds } from '@/hooks/useClinicNamesByCityIds';
 import {
   DangerOutlineButton,
   OutlineButton,
@@ -31,6 +27,7 @@ import {
 } from '@/modules/patient-room/styles';
 import type { CabinetAppointment } from '@/modules/patient-room/types';
 import { formatTime } from '@/modules/patient-room/utils/formatCabinetDate';
+import { doctorDisplayName } from '@/modules/patient-room/utils/mapCabinet';
 
 interface VisitDetailDialogProps {
   appointment: CabinetAppointment | null;
@@ -80,33 +77,24 @@ export const VisitDetailDialog = ({
 }: VisitDetailDialogProps) => {
   const { t, i18n } = useTranslation(['cabinet', 'search']);
 
-  const citiesQuery = useGetReferenceCities();
-  const cityNames = useMemo(
-    () => cityNameMap(citiesQuery.data?.items ?? []),
-    [citiesQuery.data?.items],
-  );
-
-  const doctor = appointment ? findMockDoctor(appointment.doctorId) : undefined;
-  const clinicNames = useClinicNamesByCityIds(doctor ? [doctor.cityId] : []);
-
   if (!appointment) {
     return null;
   }
 
-  const doctorName = doctor
-    ? t('cabinet:visitModal.doctorName', {
-        name: `${doctor.firstName} ${doctor.lastName}`,
+  const doctorName = t('cabinet:visitModal.doctorName', {
+    name: doctorDisplayName(appointment),
+  });
+  const specialty = appointment.specialty
+    ? t(`search:specialties.${appointment.specialty}`, {
+        defaultValue: appointment.specialty,
       })
-    : appointment.doctorId;
-  const specialty = doctor ? t(`search:specialties.${doctor.specialty}`) : '';
-  const clinicName = doctor
-    ? (clinicNames[doctor.clinicId] ?? t('cabinet:demoClinic'))
-    : t('cabinet:demoClinic');
-  const cityName = doctor ? (cityNames[doctor.cityId] ?? '') : '';
-  const price = doctor ? (doctor.promoPrice ?? doctor.basePrice) : null;
+    : '';
+  const clinicName = appointment.clinicName;
+  const cityName = appointment.cityName;
   const canAct = appointment.status === 'upcoming';
   const canReview =
-    appointment.status === 'completed' && !appointment.hasPatientReview;
+    appointment.status === 'completed' &&
+    (appointment.canReview ?? !appointment.hasPatientReview);
 
   return (
     <VisitDetailDialogRoot open={open} onClose={onClose} fullWidth>
@@ -129,7 +117,7 @@ export const VisitDetailDialog = ({
 
       <VisitDetailBody>
         <VisitDetailMeta>
-          <VisitDetailAvatar src={doctor?.photoUrl} alt="" />
+          <VisitDetailAvatar alt="" />
           <VisitDetailMetaCopy>
             <VisitDetailSpecialty>{specialty}</VisitDetailSpecialty>
             <span>
@@ -138,7 +126,6 @@ export const VisitDetailDialog = ({
                 city: cityName,
               })}
             </span>
-            {doctor?.address ? <span>{doctor.address}</span> : null}
           </VisitDetailMetaCopy>
         </VisitDetailMeta>
       </VisitDetailBody>
@@ -158,14 +145,6 @@ export const VisitDetailDialog = ({
             })}
           </VisitDetailFieldValue>
         </VisitDetailField>
-        {price !== null ? (
-          <VisitDetailField>
-            <VisitDetailFieldLabel>{t('cabinet:visitModal.price')}</VisitDetailFieldLabel>
-            <VisitDetailFieldValue>
-              {t('cabinet:visitModal.priceValue', { amount: price })}
-            </VisitDetailFieldValue>
-          </VisitDetailField>
-        ) : null}
         {appointment.reason ? (
           <VisitDetailField>
             <VisitDetailFieldLabel>{t('cabinet:visitModal.reason')}</VisitDetailFieldLabel>

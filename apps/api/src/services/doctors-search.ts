@@ -5,7 +5,7 @@
  */
 import { and, eq, ilike, inArray, or, sql, type SQL } from "drizzle-orm";
 
-import { SPECIALTIES, isSpecialtyId } from "../constants/specialties.js";
+import { isSpecialtyId, specialtyIdsMatchingQuery } from "../constants/specialties.js";
 import { getDb } from "../db/client.js";
 import { doctorSchedules } from "../db/schema/doctor-schedule.js";
 import { doctorProfiles, patientProfiles } from "../db/schema/profiles.js";
@@ -190,9 +190,7 @@ function buildTextFilter(q: string): SQL | undefined {
   const needle = `%${q.trim()}%`;
   if (!q.trim()) return undefined;
 
-  const specialtyIds = SPECIALTIES.filter((s) => s.name.toLowerCase().includes(q.trim().toLowerCase())).map(
-    (s) => s.id,
-  );
+  const specialtyIds = specialtyIdsMatchingQuery(q);
 
   const parts: SQL[] = [
     ilike(doctorProfiles.firstName, needle),

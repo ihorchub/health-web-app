@@ -1,4 +1,5 @@
-import { Button, MenuItem, TextField, styled } from '@mui/material';
+import { Button, MenuItem, TextField } from '@mui/material';
+import { styled } from '@/theme/styled';
 
 const zoneAFill = (mode: 'light' | 'dark') =>
   mode === 'light' ? 'rgba(232, 197, 192, 0.27)' : 'rgba(74, 56, 54, 0.55)';

@@ -1,5 +1,6 @@
 import { IconMoon, IconSun } from '@tabler/icons-react';
-import { styled } from '@mui/material';
+import { styled } from '@/theme/styled';
+
 import { useTranslation } from 'react-i18next';
 
 import { useThemeMode } from '@/hooks/useThemeMode';

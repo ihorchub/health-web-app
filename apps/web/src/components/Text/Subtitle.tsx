@@ -1,4 +1,6 @@
-import { styled, Typography } from '@mui/material';
+import { Typography } from '@mui/material';
+import { styled } from '@/theme/styled';
+
 import type { TypographyProps } from '@mui/material';
 
 const Root = styled(Typography)(({ theme }) => ({

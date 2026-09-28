@@ -1,4 +1,5 @@
-import { Dialog, styled } from '@mui/material';
+import { Dialog } from '@mui/material';
+import { styled } from '@/theme/styled';
 
 /** Full-screen on small viewports; themed surface for cabinet / doctor modals. */
 export const SheetDialog = styled(Dialog)(({ theme }) => ({

@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import type { DoctorSearchCard, SearchSort } from '@/api/doctors';
+import { useDeleteFavourite, usePostFavourite } from '@/api/patients';
 import {
   Avatar,
   BookButton,
@@ -288,6 +289,8 @@ export const DoctorsSection = ({
 }: DoctorsSectionProps) => {
   const { t, i18n } = useTranslation('search');
   const navigate = useNavigate();
+  const postFavouriteMutation = usePostFavourite();
+  const deleteFavouriteMutation = useDeleteFavourite();
 
   const openProfile = (doctor: DoctorSearchCard) => {
     void navigate(doctorProfilePath(doctor.id));
@@ -310,9 +313,28 @@ export const DoctorsSection = ({
       goLogin(doctorProfilePath(doctor.id));
       return;
     }
-    toast.message(t('card.bookingSoon'), {
-      description: `${doctor.firstName} ${doctor.lastName}`,
-    });
+    if (role !== AppRole.PATIENT) {
+      return;
+    }
+    if (doctor.isFavourite) {
+      deleteFavouriteMutation.mutate(
+        { doctorId: doctor.id },
+        {
+          onSuccess: () => {
+            toast.success(t('card.unfavorite'));
+          },
+        },
+      );
+      return;
+    }
+    postFavouriteMutation.mutate(
+      { doctorId: doctor.id },
+      {
+        onSuccess: () => {
+          toast.success(t('card.favorite'));
+        },
+      },
+    );
   };
 
   const handleViewHours = (doctor: DoctorSearchCard) => {

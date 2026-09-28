@@ -1,4 +1,5 @@
-import { Button, styled } from '@mui/material';
+import { Button } from '@mui/material';
+import { styled } from '@/theme/styled';
 
 import { SheetDialog } from '@/components/Dialog/SheetDialog';
 

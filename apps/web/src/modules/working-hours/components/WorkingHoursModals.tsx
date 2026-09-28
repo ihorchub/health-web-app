@@ -6,7 +6,7 @@ import {
 } from '@tabler/icons-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { styled } from '@mui/material';
+import { styled } from '@/theme/styled';
 
 import { SheetDialog } from '@/components/Dialog/SheetDialog';
 import type { ZoneBFormState } from '@/modules/working-hours/types';

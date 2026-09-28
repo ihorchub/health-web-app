@@ -2,17 +2,18 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
-  useState,
   type ReactNode,
 } from 'react';
 
 import { useGetAuthMe } from '@/api/auth';
-import { usePreviewRole } from '@/hooks/usePreviewRole';
-import { mockNotificationsForRole } from '@/modules/notifications/fixtures';
-import type { AppNotification } from '@/modules/notifications/types';
-import { AppRole } from '@/types/role';
+import {
+  type ApiNotificationItem,
+  useGetNotifications,
+  usePostNotificationRead,
+  usePostNotificationsReadAll,
+} from '@/api/notifications';
+import type { AppNotification, NotificationEventType } from '@/modules/notifications/types';
 
 interface NotificationsContextValue {
   items: AppNotification[];
@@ -23,27 +24,103 @@ interface NotificationsContextValue {
 
 const NotificationsContext = createContext<NotificationsContextValue | null>(null);
 
-const roleFromMe = (role: 'patient' | 'doctor'): AppRole =>
-  role === 'patient' ? AppRole.PATIENT : AppRole.DOCTOR;
+const FE_TYPES = new Set<NotificationEventType>([
+  'patient_booked',
+  'patient_cancelled',
+  'patient_rescheduled',
+  'patient_accepted_proposal',
+  'patient_picked_other_slot',
+  'doctor_cancelled',
+  'doctor_proposed_time',
+]);
+
+const payloadString = (payload: Record<string, unknown>, key: string): string => {
+  const value = payload[key];
+  return typeof value === 'string' ? value : '';
+};
+
+const mapApiNotification = (item: ApiNotificationItem): AppNotification | null => {
+  const payload = item.payload ?? {};
+  const cancelledBy = payload.cancelledBy;
+
+  let type: NotificationEventType | null = null;
+  switch (item.type) {
+    case 'appointment_booked':
+      type = 'patient_booked';
+      break;
+    case 'appointment_cancelled':
+      type = cancelledBy === 'doctor' ? 'doctor_cancelled' : 'patient_cancelled';
+      break;
+    case 'appointment_rescheduled':
+      type = 'patient_rescheduled';
+      break;
+    case 'reschedule_proposed':
+      type = 'doctor_proposed_time';
+      break;
+    case 'proposal_accepted':
+      type = 'patient_accepted_proposal';
+      break;
+    default:
+      if (FE_TYPES.has(item.type as NotificationEventType)) {
+        type = item.type as NotificationEventType;
+      }
+      break;
+  }
+
+  if (!type) {
+    return null;
+  }
+
+  const visitAt =
+    payloadString(payload, 'proposedStartAt') ||
+    payloadString(payload, 'visitAt') ||
+    payloadString(payload, 'startAt') ||
+    undefined;
+
+  return {
+    id: item.id,
+    type,
+    createdAt: item.createdAt,
+    patientName: payloadString(payload, 'patientName') || undefined,
+    doctorName: payloadString(payload, 'doctorName') || undefined,
+    visitAt: visitAt || undefined,
+  };
+};
 
 export const NotificationsProvider = ({ children }: { children: ReactNode }) => {
   const { data: me } = useGetAuthMe();
-  const preview = usePreviewRole();
-  const effectiveRole = me ? roleFromMe(me.role) : preview.role;
+  const isLoggedIn = Boolean(me);
 
-  const [items, setItems] = useState<AppNotification[]>([]);
+  const notificationsQuery = useGetNotifications({ enabled: isLoggedIn });
+  const readMutation = usePostNotificationRead();
+  const readAllMutation = usePostNotificationsReadAll();
 
-  useEffect(() => {
-    setItems(mockNotificationsForRole(effectiveRole));
-  }, [effectiveRole]);
+  const items = useMemo(() => {
+    if (!isLoggedIn) {
+      return [] as AppNotification[];
+    }
+    return (notificationsQuery.data?.items ?? [])
+      .map(mapApiNotification)
+      .filter((item): item is AppNotification => item !== null);
+  }, [isLoggedIn, notificationsQuery.data?.items]);
 
-  const markRead = useCallback((id: string) => {
-    setItems((prev) => prev.filter((item) => item.id !== id));
-  }, []);
+  const markRead = useCallback(
+    (id: string) => {
+      if (!isLoggedIn) {
+        return;
+      }
+      readMutation.mutate({ id });
+    },
+    [isLoggedIn, readMutation],
+  );
 
   const markAllRead = useCallback(() => {
-    setItems([]);
-  }, []);
+    if (!isLoggedIn) {
+      return;
+    }
+    readAllMutation.mutate();
+  }, [isLoggedIn, readAllMutation],
+  );
 
   const value = useMemo(
     () => ({

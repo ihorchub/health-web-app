@@ -1,4 +1,5 @@
-import { Dialog, styled } from '@mui/material';
+import { Dialog } from '@mui/material';
+import { styled } from '@/theme/styled';
 
 export const ProfileDialog = styled(Dialog)(({ theme }) => ({
   '& .MuiBackdrop-root': {

@@ -1,7 +1,5 @@
 import type {
-  DoctorDashboardFreeWindow,
   DoctorDashboardMetrics,
-  DoctorDashboardPendingPatient,
   DoctorDashboardVisit,
 } from '@/api/doctors/dashboard.types';
 import type {
@@ -11,7 +9,7 @@ import type {
   WeekDaySummary,
 } from '@/modules/doctor-day/types';
 
-const STATUS_MAP: Record<DoctorDashboardVisit['status'], DoctorDayVisit['status']> = {
+const STATUS_MAP: Record<string, DoctorDayVisit['status']> = {
   Upcoming: 'upcoming',
   'Reschedule Pending': 'reschedule_pending',
   Completed: 'completed',
@@ -19,58 +17,74 @@ const STATUS_MAP: Record<DoctorDashboardVisit['status'], DoctorDayVisit['status'
   Rescheduled: 'rescheduled',
 };
 
+const DEFAULT_VISIT_MINUTES = 30;
+
 export const mapDashboardVisit = (visit: DoctorDashboardVisit): DoctorDayVisit => {
-  const patientName = `${visit.patientFirstName} ${visit.patientLastName}`.trim();
+  const status = STATUS_MAP[visit.status] ?? 'upcoming';
 
-  if (visit.isProposalHold) {
-    return {
-      id: visit.id,
-      startsAt: visit.startAt,
-      durationMinutes: visit.visitDurationMinutes,
-      patientName,
-      status: 'reserved',
-      format: visit.format,
-      phone: visit.patientPhone ?? undefined,
-      email: visit.patientEmail ?? undefined,
-    };
-  }
-
-  const mapped: DoctorDayVisit = {
+  return {
     id: visit.id,
     startsAt: visit.startAt,
-    durationMinutes: visit.visitDurationMinutes,
-    patientName,
-    status: STATUS_MAP[visit.status],
+    durationMinutes: DEFAULT_VISIT_MINUTES,
+    patientName: visit.patientDisplayName,
+    status,
     format: visit.format,
     reason: visit.reason ?? undefined,
-    cancelledBy: visit.cancelledBy ?? undefined,
     proposedTime: visit.proposedStartAt ?? undefined,
-    phone: visit.patientPhone ?? undefined,
-    email: visit.patientEmail ?? undefined,
   };
-
-  return mapped;
 };
 
-export const mapFreeWindow = (window: DoctorDashboardFreeWindow): FreeWindowSlot => ({
-  id: window.id,
-  start: formatClock(window.startAt),
-  end: formatClock(window.endAt),
-  slotsCount: window.slotsCount,
-});
+/** Collapse consecutive free ISO starts into windows for the free-hours list. */
+export const mapFreeWindowsFromSlots = (
+  freeStarts: string[],
+  visitDurationMinutes = DEFAULT_VISIT_MINUTES,
+): FreeWindowSlot[] => {
+  if (freeStarts.length === 0) {
+    return [];
+  }
 
-export const mapPendingPatient = (
-  row: DoctorDashboardPendingPatient,
-): PendingPatientRow => {
-  const originalDay = row.originalStartAt.slice(0, 10);
-  const demoDay = '2026-08-27';
-  const fromClock = formatClock(row.originalStartAt);
-  const toClock = formatClock(row.proposedStartAt);
+  const sorted = [...freeStarts].sort();
+  const windows: FreeWindowSlot[] = [];
+  let windowStart = sorted[0]!;
+  let prev = sorted[0]!;
+  let count = 1;
+
+  const flush = (endIso: string, slotsCount: number) => {
+    const endMs = Date.parse(endIso) + visitDurationMinutes * 60_000;
+    windows.push({
+      id: `fw_${windowStart}`,
+      start: formatClock(windowStart),
+      end: formatClock(new Date(endMs).toISOString()),
+      slotsCount,
+    });
+  };
+
+  for (let i = 1; i < sorted.length; i += 1) {
+    const current = sorted[i]!;
+    const gapMs = Date.parse(current) - Date.parse(prev);
+    if (gapMs === visitDurationMinutes * 60_000) {
+      count += 1;
+      prev = current;
+      continue;
+    }
+    flush(prev, count);
+    windowStart = current;
+    prev = current;
+    count = 1;
+  }
+  flush(prev, count);
+
+  return windows;
+};
+
+export const mapPendingPatient = (row: DoctorDashboardVisit): PendingPatientRow => {
+  const fromClock = formatClock(row.startAt);
+  const toClock = row.proposedStartAt ? formatClock(row.proposedStartAt) : '—';
 
   return {
     id: row.id,
-    patientName: `${row.patientFirstName} ${row.patientLastName}`.trim(),
-    fromTime: originalDay === demoDay ? fromClock : `Завтра ${fromClock}`,
+    patientName: row.patientDisplayName,
+    fromTime: fromClock,
     toTime: toClock,
   };
 };
@@ -92,7 +106,7 @@ const formatClock = (iso: string) =>
     timeZone: 'Europe/Kyiv',
   }).format(new Date(iso));
 
-/** UI-only week strip — not part of dashboard Out; derived for chrome. */
+/** UI-only week strip — derived around the selected day (no per-day API yet). */
 export const buildWeekStrip = (selectedYmd: string): WeekDaySummary[] => {
   const selected = new Date(`${selectedYmd}T12:00:00+03:00`);
   const mondayOffset = (selected.getDay() + 6) % 7;
@@ -100,28 +114,21 @@ export const buildWeekStrip = (selectedYmd: string): WeekDaySummary[] => {
   monday.setDate(selected.getDate() - mondayOffset);
 
   const labels = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд'];
-  const pattern: Array<Pick<WeekDaySummary, 'visits' | 'free' | 'pending' | 'cancelled'>> = [
-    { visits: 1, free: 0, pending: 0, cancelled: 0 },
-    { visits: 1, free: 0, pending: 1, cancelled: 0 },
-    { visits: 1, free: 0, pending: 0, cancelled: 0 },
-    { visits: 1, free: 0, pending: 1, cancelled: 1 },
-    { visits: 1, free: 0, pending: 0, cancelled: 1 },
-    { visits: 0, free: 1, pending: 0, cancelled: 0 },
-    { visits: 0, free: 1, pending: 0, cancelled: 0 },
-  ];
 
   return labels.map((weekdayShort, index) => {
     const day = new Date(monday);
     day.setDate(monday.getDate() + index);
     const ymd = toYmd(day);
-    const counts = pattern[index] ?? { visits: 0, free: 0, pending: 0, cancelled: 0 };
 
     return {
       ymd,
       weekdayShort,
       dayNumber: day.getDate(),
-      ...counts,
-      isToday: ymd === selectedYmd,
+      visits: 0,
+      free: 0,
+      pending: 0,
+      cancelled: 0,
+      isToday: ymd === toYmd(new Date()),
       isSelected: ymd === selectedYmd,
     };
   });
@@ -134,12 +141,28 @@ const toYmd = (date: Date) => {
   return `${year}-${month}-${day}`;
 };
 
-export const DEMO_DOCTOR_DAY = '2026-08-27';
+/** Local calendar date in Europe/Kyiv for dashboard `?date=`. */
+export const todayDoctorDayYmd = (now = new Date()): string =>
+  new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Europe/Kyiv',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(now);
 
-export const PROPOSE_DATE_CHIPS = [
-  { day: 25, ymd: '2026-08-25', disabled: true },
-  { day: 26, ymd: '2026-08-26', disabled: true },
-  { day: 27, ymd: '2026-08-27', disabled: false },
-  { day: 28, ymd: '2026-08-28', disabled: false },
-  { day: 29, ymd: '2026-08-29', disabled: false },
-];
+export const DEMO_DOCTOR_DAY = todayDoctorDayYmd();
+
+export const PROPOSE_DATE_CHIPS = (() => {
+  const today = todayDoctorDayYmd();
+  const base = new Date(`${today}T12:00:00+03:00`);
+  return [-2, -1, 0, 1, 2].map((offset) => {
+    const day = new Date(base);
+    day.setDate(base.getDate() + offset);
+    const ymd = toYmd(day);
+    return {
+      day: day.getDate(),
+      ymd,
+      disabled: offset < 0,
+    };
+  });
+})();

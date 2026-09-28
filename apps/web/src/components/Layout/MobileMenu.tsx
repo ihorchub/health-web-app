@@ -8,7 +8,9 @@ import {
   IconUser,
   IconUserPlus,
 } from '@tabler/icons-react';
-import { Button, styled } from '@mui/material';
+import { Button } from '@mui/material';
+import { styled } from '@/theme/styled';
+
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';

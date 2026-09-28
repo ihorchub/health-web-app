@@ -98,7 +98,11 @@ export const formatConfirmDate = (isoDate: string, language: string) => {
   return `${d} ${MONTHS_EN[m - 1]} ${y} · ${WEEKDAY_LONG_EN[date.getDay()]}`;
 };
 
-export const formatSlotTime = (startAt: string) => {
-  const match = startAt.match(/T(\d{2}:\d{2})/);
-  return match?.[1] ?? startAt;
-};
+/** Slot chip / confirm time — always Europe/Kyiv wall clock (API sends UTC ISO). */
+export const formatSlotTime = (startAt: string) =>
+  new Intl.DateTimeFormat('en-GB', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+    timeZone: 'Europe/Kyiv',
+  }).format(new Date(startAt));

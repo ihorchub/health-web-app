@@ -1,4 +1,6 @@
-import { Button, styled } from '@mui/material';
+import { Button } from '@mui/material';
+import { styled } from '@/theme/styled';
+
 import {
   IconCalendarEvent,
   IconChevronLeft,
@@ -229,8 +231,8 @@ export const ProposeTimeDialog = ({
   const slotIso = slotIsos[slotIndex] ?? slotIsos[0];
 
   const doctorLabel = me
-    ? t('modals.doctorShort', { name: `${me.firstName} ${me.lastName}` })
-    : t('modals.doctorShort', { name: 'Оксана Коваленко' });
+    ? t('modals.doctorShort', { name: me.firstName })
+    : t('modals.doctorShort', { name: '—' });
 
   return (
     <ProposeDialog open={open} onClose={onClose} fullWidth>

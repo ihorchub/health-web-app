@@ -4,7 +4,9 @@ import {
   IconLogout,
   IconUser,
 } from '@tabler/icons-react';
-import { Divider, Menu, MenuItem, styled } from '@mui/material';
+import { Divider, Menu, MenuItem } from '@mui/material';
+import { styled } from '@/theme/styled';
+
 import { useState, type MouseEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';

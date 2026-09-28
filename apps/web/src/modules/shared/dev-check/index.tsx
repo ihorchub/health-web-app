@@ -1,4 +1,6 @@
-import { Button, styled } from '@mui/material';
+import { Button } from '@mui/material';
+import { styled } from '@/theme/styled';
+
 import { useTranslation } from 'react-i18next';
 
 import { Body, Overline, PageTitle, Subtitle } from '@/components/Text';

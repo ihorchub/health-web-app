@@ -1,4 +1,5 @@
-import { styled } from '@mui/material';
+import { styled } from '@/theme/styled';
+
 import { useTranslation } from 'react-i18next';
 
 import {

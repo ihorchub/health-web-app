@@ -1,0 +1,95 @@
+import { customInstance } from '@/api/mutator/customInstance';
+
+export type DoctorEducationDto = {
+  id: string;
+  kind: 'university' | 'certificate' | 'training';
+  title: string;
+  subtitle: string | null;
+  yearFrom: number;
+  yearTo: number | null;
+};
+
+export interface DoctorMeProfileDto {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  dob: string;
+  phone: string | null;
+  cityId: string;
+  clinicId: string;
+  specialty: string;
+  yearsPractice: number;
+  photoUrl: string | null;
+  licenseFileUrl: string | null;
+  bio: string | null;
+  languages: string[] | null;
+  language: string | null;
+  theme: string | null;
+  education: DoctorEducationDto[];
+  consultationCount: number;
+}
+
+export type DoctorMeProfilePatch = Partial<{
+  email: string;
+  firstName: string;
+  lastName: string;
+  phone: string | null;
+  dob: string;
+  cityId: string;
+  clinicId: string;
+  specialty: string;
+  yearsPractice: number;
+  bio: string | null;
+  languages: string[];
+  language: string;
+  theme: string;
+  education: Array<{
+    id?: string;
+    kind: 'university' | 'certificate' | 'training';
+    title: string;
+    subtitle?: string;
+    yearFrom: number;
+    yearTo?: number;
+  }>;
+  photo: File;
+}>;
+
+/** GET /api/v1/doctors/me/profile */
+export const getDoctorMeProfile = () => {
+  return customInstance<DoctorMeProfileDto>({
+    url: '/v1/doctors/me/profile',
+    method: 'GET',
+  });
+};
+
+/** PATCH /api/v1/doctors/me/profile */
+export const patchDoctorMeProfile = (body: DoctorMeProfilePatch) => {
+  if (body.photo instanceof File) {
+    const formData = new FormData();
+    for (const [key, value] of Object.entries(body)) {
+      if (key === 'photo') {
+        formData.append('photo', value as File);
+        continue;
+      }
+      if (value === undefined) continue;
+      if (key === 'education' || key === 'languages') {
+        formData.append(key, JSON.stringify(value));
+        continue;
+      }
+      formData.append(key, value === null ? '' : String(value));
+    }
+    return customInstance<DoctorMeProfileDto>({
+      url: '/v1/doctors/me/profile',
+      method: 'PATCH',
+      data: formData,
+    });
+  }
+
+  const { photo: _photo, ...json } = body;
+  return customInstance<DoctorMeProfileDto>({
+    url: '/v1/doctors/me/profile',
+    method: 'PATCH',
+    data: json,
+  });
+};

@@ -14,6 +14,11 @@ import {
   useGetDoctorCalendar,
   isDoctorNotFoundError,
 } from '@/api/doctors';
+import {
+  useDeleteFavourite,
+  usePostFavourite,
+  usePostRecentlyViewed,
+} from '@/api/patients';
 import { useGetReferenceCities, useGetReferenceClinics } from '@/api/reference';
 import { useAppRole } from '@/hooks/useAppRole';
 import { usePopups } from '@/hooks/usePopups';
@@ -156,6 +161,9 @@ export const DoctorProfilePopup = () => {
   const citiesQuery = useGetReferenceCities();
   const clinicsQuery = useGetReferenceClinics(profileQuery.data?.cityId);
   const bookMutation = usePostBookAppointment();
+  const postFavouriteMutation = usePostFavourite();
+  const deleteFavouriteMutation = useDeleteFavourite();
+  const postRecentlyViewedMutation = usePostRecentlyViewed();
 
   const calendarQuery = useGetDoctorCalendar(
     doctorId,
@@ -191,6 +199,15 @@ export const DoctorProfilePopup = () => {
       setConfirmError(null);
     }
   }, [open, payload]);
+
+  useEffect(() => {
+    if (!open || !isPatient || !doctorId) {
+      return;
+    }
+    postRecentlyViewedMutation.mutate({ doctorId });
+    // Intentionally omit mutation identity — status changes would re-fire.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- open + doctorId only
+  }, [open, isPatient, doctorId]);
 
   useEffect(() => {
     if (open && doctor) {
@@ -236,7 +253,28 @@ export const DoctorProfilePopup = () => {
       goLogin();
       return;
     }
-    toast.message(t('favoriteSoon'));
+    if (!isPatient || !doctor) {
+      return;
+    }
+    if (doctor.isFavourite) {
+      deleteFavouriteMutation.mutate(
+        { doctorId: doctor.id },
+        {
+          onSuccess: () => {
+            toast.success(t('unfavorite'));
+          },
+        },
+      );
+      return;
+    }
+    postFavouriteMutation.mutate(
+      { doctorId: doctor.id },
+      {
+        onSuccess: () => {
+          toast.success(t('favorite'));
+        },
+      },
+    );
   };
 
   const handleChooseTime = () => {

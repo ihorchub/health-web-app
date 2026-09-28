@@ -2,7 +2,6 @@ import { IconStar, IconStarFilled, IconX } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { findMockDoctor } from '@/api/mocks/doctorsFixtures';
 import {
   ReviewCancelButton,
   ReviewCommentLabelRow,
@@ -24,6 +23,7 @@ import {
   VisitDetailClose,
 } from '@/modules/patient-room/styles';
 import type { CabinetAppointment } from '@/modules/patient-room/types';
+import { doctorDisplayName } from '@/modules/patient-room/utils/mapCabinet';
 
 interface WriteReviewDialogProps {
   appointment: CabinetAppointment | null;
@@ -66,13 +66,14 @@ export const WriteReviewDialog = ({
     return null;
   }
 
-  const doctor = findMockDoctor(appointment.doctorId);
-  const doctorName = doctor
-    ? t('cabinet:visitModal.doctorName', {
-        name: `${doctor.firstName} ${doctor.lastName}`,
+  const doctorName = t('cabinet:visitModal.doctorName', {
+    name: doctorDisplayName(appointment),
+  });
+  const specialty = appointment.specialty
+    ? t(`search:specialties.${appointment.specialty}`, {
+        defaultValue: appointment.specialty,
       })
-    : appointment.doctorId;
-  const specialty = doctor ? t(`search:specialties.${doctor.specialty}`) : '';
+    : '';
 
   return (
     <ReviewDialogRoot open={open} onClose={handleClose} fullWidth>

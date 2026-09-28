@@ -1,7 +1,6 @@
 import { IconStarFilled } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
 
-import { findMockDoctor } from '@/api/mocks/doctorsFixtures';
 import {
   DangerOutlineButton,
   FormatChip,
@@ -21,6 +20,7 @@ import {
   formatRelativeDayLabel,
   formatTime,
 } from '@/modules/patient-room/utils/formatCabinetDate';
+import { doctorDisplayName } from '@/modules/patient-room/utils/mapCabinet';
 
 interface AppointmentRowProps {
   appointment: CabinetAppointment;
@@ -43,12 +43,13 @@ export const AppointmentRow = ({
 }: AppointmentRowProps) => {
   const { t, i18n } = useTranslation(['cabinet', 'search']);
   const isPending = appointment.status === 'reschedule_pending';
-  const doctor = findMockDoctor(appointment.doctorId);
-  const doctorName = doctor
-    ? `${doctor.firstName} ${doctor.lastName}`
-    : appointment.doctorId;
-  const specialty = doctor ? t(`search:specialties.${doctor.specialty}`) : '';
-  const clinicLabel = t('cabinet:demoClinic');
+  const doctorName = doctorDisplayName(appointment);
+  const specialty = appointment.specialty
+    ? t(`search:specialties.${appointment.specialty}`, {
+        defaultValue: appointment.specialty,
+      })
+    : '';
+  const clinicLabel = appointment.clinicName;
 
   const dayLabel =
     variant === 'upcoming'

@@ -4,10 +4,6 @@ import { useTheme } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 
 import {
-  DEMO_SCHEDULE_ANCHOR,
-  MOCK_WORKING_HOURS,
-} from '@/modules/working-hours/fixtures';
-import {
   Card,
   CardHeader,
   CardTitle,
@@ -44,6 +40,9 @@ export interface CalendarSelection {
 interface WorkingHoursCalendarProps {
   anchorYm: string;
   todayYmd: string;
+  zoneAStartYmd: string;
+  zoneAEndYmd: string;
+  zoneBStartYmd: string;
   appointmentDays: Set<string>;
   selection: CalendarSelection;
   onDaySelect: (ymd: string, zone: 'a' | 'b') => void;
@@ -63,13 +62,15 @@ const isInRange = (ymd: string, start: string | null, end: string | null) => {
 export const WorkingHoursCalendar = ({
   anchorYm,
   todayYmd,
+  zoneAStartYmd,
+  zoneAEndYmd,
+  zoneBStartYmd,
   appointmentDays,
   selection,
   onDaySelect,
 }: WorkingHoursCalendarProps) => {
   const { t, i18n } = useTranslation('workingHours');
   const theme = useTheme();
-  const { zoneAStartYmd, zoneAEndYmd, zoneBStartYmd } = MOCK_WORKING_HOURS;
 
   const months = useMemo(() => buildThreeMonthBlocks(anchorYm), [anchorYm]);
 
@@ -180,5 +181,3 @@ export const WorkingHoursCalendar = ({
     </Card>
   );
 };
-
-export const WORKING_HOURS_DEMO_TODAY = DEMO_SCHEDULE_ANCHOR;
