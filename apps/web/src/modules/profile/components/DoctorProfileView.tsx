@@ -15,7 +15,7 @@ import {
   IconUser,
   IconWorld,
 } from '@tabler/icons-react';
-import { useEffect, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
@@ -165,39 +165,10 @@ export const DoctorProfileView = () => {
   const citiesQuery = useGetReferenceCities();
   const clinicsQuery = useGetReferenceClinics(profileQuery.data?.cityId);
 
-  const [profile, setProfile] = useState<DoctorProfileData | null>(null);
+  const [draft, setDraft] = useState<DoctorProfileData | null>(null);
   const [editing, setEditing] = useState<ProfileSection | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [saving, setSaving] = useState(false);
-
-  const { openPicker, fileInput, cropDialog } = useProfilePhotoInput(async (file) => {
-    setSaving(true);
-    try {
-      const updated = await patchMutation.mutateAsync({ photo: file });
-      setProfile((current) =>
-        current
-          ? {
-              ...current,
-              photoUrl: updated.photoUrl ?? '',
-            }
-          : current,
-      );
-      toast.success(t('photoSaved'));
-    } finally {
-      setSaving(false);
-    }
-  });
-
-  const removePhoto = async () => {
-    setSaving(true);
-    try {
-      await patchMutation.mutateAsync({ photoUrl: null });
-      setProfile((current) => (current ? { ...current, photoUrl: '' } : current));
-      toast.success(t('photoRemoved'));
-    } finally {
-      setSaving(false);
-    }
-  };
 
   const cityName =
     citiesQuery.data?.items.find((city) => city.id === profileQuery.data?.cityId)?.name ?? '';
@@ -210,20 +181,49 @@ export const DoctorProfileView = () => {
       })
     : '';
 
-  useEffect(() => {
+  const serverProfile = useMemo(() => {
     if (!profileQuery.data) {
-      return;
+      return null;
     }
-    setProfile(
-      mapDoctorDto(
-        profileQuery.data,
-        scheduleQuery.data,
-        cityName,
-        clinicName,
-        specialtyLabel,
-      ),
+    return mapDoctorDto(
+      profileQuery.data,
+      scheduleQuery.data,
+      cityName,
+      clinicName,
+      specialtyLabel,
     );
   }, [profileQuery.data, scheduleQuery.data, cityName, clinicName, specialtyLabel]);
+
+  const profile = draft ?? serverProfile;
+
+  const applyPhotoUrl = (photoUrl: string) => {
+    setDraft((current) => {
+      const base = current ?? serverProfile;
+      return base ? { ...base, photoUrl } : current;
+    });
+  };
+
+  const { openPicker, fileInput, cropDialog } = useProfilePhotoInput(async (file) => {
+    setSaving(true);
+    try {
+      const updated = await patchMutation.mutateAsync({ photo: file });
+      applyPhotoUrl(updated.photoUrl ?? '');
+      toast.success(t('photoSaved'));
+    } finally {
+      setSaving(false);
+    }
+  });
+
+  const removePhoto = async () => {
+    setSaving(true);
+    try {
+      await patchMutation.mutateAsync({ photoUrl: null });
+      applyPhotoUrl('');
+      toast.success(t('photoRemoved'));
+    } finally {
+      setSaving(false);
+    }
+  };
 
   if (!profile) {
     return null;
@@ -241,19 +241,21 @@ export const DoctorProfileView = () => {
     i18n.language,
   );
 
+  const beginEdit = (section: ProfileSection) => {
+    setDraft((current) => current ?? serverProfile);
+    setEditing(section);
+  };
+
   const cancelEdit = () => {
-    if (profileQuery.data) {
-      setProfile(
-        mapDoctorDto(
-          profileQuery.data,
-          scheduleQuery.data,
-          cityName,
-          clinicName,
-          specialtyLabel,
-        ),
-      );
-    }
+    setDraft(null);
     setEditing(null);
+  };
+
+  const updateDraft = (patch: Partial<DoctorProfileData>) => {
+    setDraft((current) => {
+      const base = current ?? serverProfile;
+      return base ? { ...base, ...patch } : current;
+    });
   };
 
   const saveEdit = async () => {
@@ -276,6 +278,7 @@ export const DoctorProfileView = () => {
         bio,
         languages,
       });
+      setDraft(null);
       setEditing(null);
       toast.success(t('saved'));
     } finally {
@@ -350,7 +353,7 @@ export const DoctorProfileView = () => {
             editLabel={t('edit')}
             showEdit={editing !== 'basic'}
             onEdit={() => {
-              setEditing('basic');
+              beginEdit('basic');
             }}
           />
           {editing === 'basic' ? (
@@ -360,70 +363,35 @@ export const DoctorProfileView = () => {
                   label={t('fields.firstName')}
                   value={profile.firstName}
                   onChange={(event) => {
-                    setProfile((current) =>
-                      current
-                        ? {
-                            ...current,
-                            firstName: event.target.value,
-                          }
-                        : current,
-                    );
+                    updateDraft({ firstName: event.target.value });
                   }}
                 />
                 <ProfileTextField
                   label={t('fields.lastName')}
                   value={profile.lastName}
                   onChange={(event) => {
-                    setProfile((current) =>
-                      current
-                        ? {
-                            ...current,
-                            lastName: event.target.value,
-                          }
-                        : current,
-                    );
+                    updateDraft({ lastName: event.target.value });
                   }}
                 />
                 <ProfileTextField
                   label={t('fields.languages')}
                   value={profile.languages}
                   onChange={(event) => {
-                    setProfile((current) =>
-                      current
-                        ? {
-                            ...current,
-                            languages: event.target.value,
-                          }
-                        : current,
-                    );
+                    updateDraft({ languages: event.target.value });
                   }}
                 />
                 <ProfileTextField
                   label={t('fields.city')}
                   value={profile.cityName}
                   onChange={(event) => {
-                    setProfile((current) =>
-                      current
-                        ? {
-                            ...current,
-                            cityName: event.target.value,
-                          }
-                        : current,
-                    );
+                    updateDraft({ cityName: event.target.value });
                   }}
                 />
                 <ProfileTextField
                   label={t('fields.clinic')}
                   value={profile.clinicName}
                   onChange={(event) => {
-                    setProfile((current) =>
-                      current
-                        ? {
-                            ...current,
-                            clinicName: event.target.value,
-                          }
-                        : current,
-                    );
+                    updateDraft({ clinicName: event.target.value });
                   }}
                 />
               </FieldGrid>
@@ -496,7 +464,7 @@ export const DoctorProfileView = () => {
             editLabel={t('edit')}
             showEdit={editing !== 'about'}
             onEdit={() => {
-              setEditing('about');
+              beginEdit('about');
             }}
           />
           {editing === 'about' ? (
@@ -507,15 +475,10 @@ export const DoctorProfileView = () => {
                 minRows={2}
                 value={profile.shortBioUk}
                 onChange={(event) => {
-                  setProfile((current) =>
-                    current
-                      ? {
-                          ...current,
-                          shortBioUk: event.target.value,
-                          shortBioEn: event.target.value,
-                        }
-                      : current,
-                  );
+                  updateDraft({
+                    shortBioUk: event.target.value,
+                    shortBioEn: event.target.value,
+                  });
                 }}
               />
               <ProfileTextField
@@ -524,15 +487,10 @@ export const DoctorProfileView = () => {
                 minRows={4}
                 value={profile.fullBioUk}
                 onChange={(event) => {
-                  setProfile((current) =>
-                    current
-                      ? {
-                          ...current,
-                          fullBioUk: event.target.value,
-                          fullBioEn: event.target.value,
-                        }
-                      : current,
-                  );
+                  updateDraft({
+                    fullBioUk: event.target.value,
+                    fullBioEn: event.target.value,
+                  });
                 }}
               />
               <ActionRow>
@@ -578,7 +536,7 @@ export const DoctorProfileView = () => {
             title={t('sections.education')}
             editLabel={t('edit')}
             onEdit={() => {
-              setEditing('education');
+              beginEdit('education');
             }}
           />
           <EduList>
@@ -611,7 +569,7 @@ export const DoctorProfileView = () => {
             editLabel={t('edit')}
             showEdit={editing !== 'contact'}
             onEdit={() => {
-              setEditing('contact');
+              beginEdit('contact');
             }}
           />
           {editing === 'contact' ? (
@@ -621,18 +579,14 @@ export const DoctorProfileView = () => {
                   label={t('fields.phone')}
                   value={profile.phone}
                   onChange={(event) => {
-                    setProfile((current) =>
-                      current ? { ...current, phone: event.target.value } : current,
-                    );
+                    updateDraft({ phone: event.target.value });
                   }}
                 />
                 <ProfileTextField
                   label={t('fields.email')}
                   value={profile.email}
                   onChange={(event) => {
-                    setProfile((current) =>
-                      current ? { ...current, email: event.target.value } : current,
-                    );
+                    updateDraft({ email: event.target.value });
                   }}
                 />
               </FieldGrid>

@@ -154,9 +154,31 @@ export const DoctorProfilePopup = () => {
   const [step, setStep] = useState<BookingWizardStep>('profile');
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [selectedStartAt, setSelectedStartAt] = useState<string | null>(null);
-  const [visitFormat, setVisitFormat] = useState<BookingVisitFormat>('offline');
+  const [visitFormatOverride, setVisitFormatOverride] = useState<BookingVisitFormat | null>(
+    null,
+  );
   const [selection, setSelection] = useState<BookingSelection | null>(null);
   const [confirmError, setConfirmError] = useState<string | null>(null);
+
+  const popupPayload = payload as DoctorProfilePopupPayload | undefined;
+  const sessionKey = open
+    ? `${doctorId ?? ''}:${popupPayload?.initialStep ?? 'profile'}`
+    : 'closed';
+  const [activeSession, setActiveSession] = useState(sessionKey);
+
+  if (sessionKey !== activeSession) {
+    setActiveSession(sessionKey);
+    const initialStep =
+      open && popupPayload?.initialStep && popupPayload.initialStep !== 'profile'
+        ? popupPayload.initialStep
+        : 'profile';
+    setStep(initialStep);
+    setSelectedDate('');
+    setSelectedStartAt(null);
+    setSelection(null);
+    setConfirmError(null);
+    setVisitFormatOverride(null);
+  }
 
   const profileQuery = useGetDoctorById(doctorId, { isPatient });
   const citiesQuery = useGetReferenceCities();
@@ -177,30 +199,20 @@ export const DoctorProfilePopup = () => {
   );
 
   const doctor = profileQuery.data;
+  const visitFormat =
+    visitFormatOverride ??
+    (doctor ? defaultFormat(doctor.supportedFormats) : 'offline');
+  const resolvedSelectedDate =
+    selectedDate ||
+    (calendarQuery.data
+      ? (calendarQuery.data.days.find((day) => day.flag === 'has_free')?.date ??
+        calendarQuery.data.zoneAStart)
+      : '');
   const cityName =
     citiesQuery.data?.items.find((city) => city.id === doctor?.cityId)?.name ?? '';
   const clinicName =
     clinicsQuery.data?.items.find((clinic) => clinic.id === doctor?.clinicId)?.name ??
     '';
-
-  useEffect(() => {
-    if (!open) {
-      setStep('profile');
-      setSelectedDate('');
-      setSelectedStartAt(null);
-      setSelection(null);
-      setConfirmError(null);
-      return;
-    }
-
-    const popupPayload = payload as DoctorProfilePopupPayload | undefined;
-    if (popupPayload?.initialStep && popupPayload.initialStep !== 'profile') {
-      setStep(popupPayload.initialStep);
-      setSelectedStartAt(null);
-      setSelection(null);
-      setConfirmError(null);
-    }
-  }, [open, payload]);
 
   useEffect(() => {
     if (!open || !isPatient || !doctorId) {
@@ -210,22 +222,6 @@ export const DoctorProfilePopup = () => {
     // Intentionally omit mutation identity — status changes would re-fire.
     // eslint-disable-next-line react-hooks/exhaustive-deps -- open + doctorId only
   }, [open, isPatient, doctorId]);
-
-  useEffect(() => {
-    if (open && doctor) {
-      setVisitFormat(defaultFormat(doctor.supportedFormats));
-    }
-  }, [open, doctor?.id, doctor?.supportedFormats]);
-
-  useEffect(() => {
-    if (!calendarQuery.data || selectedDate) {
-      return;
-    }
-    const firstFree =
-      calendarQuery.data.days.find((day) => day.flag === 'has_free')?.date ??
-      calendarQuery.data.zoneAStart;
-    setSelectedDate(firstFree);
-  }, [calendarQuery.data, selectedDate]);
 
   const stepNumber = step === 'profile' ? 1 : step === 'calendar' ? 2 : 3;
 
@@ -294,11 +290,11 @@ export const DoctorProfilePopup = () => {
   };
 
   const handleContinueFromCalendar = () => {
-    if (!calendarQuery.data || !selectedStartAt || !selectedDate) {
+    if (!calendarQuery.data || !selectedStartAt || !resolvedSelectedDate) {
       return;
     }
     setSelection({
-      date: selectedDate,
+      date: resolvedSelectedDate,
       startAt: selectedStartAt,
       format: visitFormat,
       visitDurationMinutes: calendarQuery.data.visitDurationMinutes,
@@ -548,7 +544,7 @@ export const DoctorProfilePopup = () => {
               isSlotsLoading={
                 calendarQuery.isFetching && Boolean(calendarQuery.isPlaceholderData)
               }
-              selectedDate={selectedDate || calendarQuery.data?.zoneAStart || ''}
+              selectedDate={resolvedSelectedDate}
               selectedStartAt={selectedStartAt}
               format={visitFormat}
               onSelectDate={(date) => {
@@ -556,7 +552,7 @@ export const DoctorProfilePopup = () => {
                 setSelectedStartAt(null);
               }}
               onSelectSlot={setSelectedStartAt}
-              onFormatChange={setVisitFormat}
+              onFormatChange={setVisitFormatOverride}
             />
             <DialogFooter>
               <Button

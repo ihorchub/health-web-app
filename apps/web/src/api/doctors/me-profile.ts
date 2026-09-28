@@ -85,7 +85,8 @@ export const patchDoctorMeProfile = (body: DoctorMeProfilePatch) => {
     });
   }
 
-  const { photo: _photo, ...json } = body;
+  const { photo: _ignoredPhoto, ...json } = body;
+  void _ignoredPhoto;
   return customInstance<DoctorMeProfileDto>({
     url: '/v1/doctors/me/profile',
     method: 'PATCH',

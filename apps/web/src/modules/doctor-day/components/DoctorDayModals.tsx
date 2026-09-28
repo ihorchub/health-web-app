@@ -8,7 +8,7 @@ import {
   IconSearch,
   IconX,
 } from '@tabler/icons-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { SheetDialog } from '@/components/Dialog/SheetDialog';
@@ -214,14 +214,16 @@ export const ProposeTimeDialog = ({
   const [selectedYmd, setSelectedYmd] = useState(DEMO_DOCTOR_DAY);
   const [slotIndex, setSlotIndex] = useState(0);
   const [format, setFormat] = useState<VisitFormat>('offline');
+  const [sessionOpen, setSessionOpen] = useState(false);
 
-  useEffect(() => {
+  if (open !== sessionOpen) {
+    setSessionOpen(open);
     if (open && visit) {
       setSelectedYmd(DEMO_DOCTOR_DAY);
       setSlotIndex(0);
       setFormat(visit.format);
     }
-  }, [open, visit]);
+  }
 
   if (!visit) {
     return null;

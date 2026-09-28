@@ -83,7 +83,8 @@ export const patchPatientProfile = (body: PatientProfilePatch) => {
     });
   }
 
-  const { photo: _photo, ...json } = body;
+  const { photo: _ignoredPhoto, ...json } = body;
+  void _ignoredPhoto;
   return customInstance<PatientProfileDto>({
     url: '/v1/patients/me/profile',
     method: 'PATCH',

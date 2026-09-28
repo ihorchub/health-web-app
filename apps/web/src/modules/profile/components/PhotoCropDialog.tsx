@@ -1,5 +1,5 @@
 import { Button } from '@mui/material';
-import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
+import { useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import {
@@ -51,17 +51,6 @@ export const PhotoCropDialog = ({
   const [dragging, setDragging] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
-    setZoom(1);
-    setOffsetX(0);
-    setOffsetY(0);
-    setNaturalSize({ width: 0, height: 0 });
-    setSaving(false);
-  }, [open, imageUrl]);
-
   const handleImageLoad = () => {
     const image = imageRef.current;
     if (!image?.naturalWidth) {
@@ -72,16 +61,6 @@ export const PhotoCropDialog = ({
     setOffsetX(0);
     setOffsetY(0);
   };
-
-  useEffect(() => {
-    if (!open || !imageUrl) {
-      return;
-    }
-    const image = imageRef.current;
-    if (image?.complete && image.naturalWidth) {
-      handleImageLoad();
-    }
-  }, [open, imageUrl]);
 
   const applyOffsets = (nextZoom: number, nextX: number, nextY: number) => {
     if (!naturalSize.width || !naturalSize.height) {

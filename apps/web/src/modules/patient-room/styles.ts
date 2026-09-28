@@ -979,12 +979,12 @@ export const CalendarDayRowMain = styled('div')({
   minWidth: 0,
 });
 
-export const CalendarDayRowNameLine = styled('div')(({ theme }) => ({
+export const CalendarDayRowNameLine = styled('div')({
   display: 'flex',
   flexWrap: 'wrap',
   alignItems: 'center',
   gap: 8,
-}));
+});
 
 export const CalendarDayRowDoctor = styled('span')(({ theme }) => ({
   fontFamily: theme.typography.fontFamily,
@@ -1353,11 +1353,11 @@ export const VisitDetailBody = styled('div')(({ theme }) => ({
   padding: theme.spacing(2.5, 3.5),
 }));
 
-export const VisitDetailMeta = styled('div')(({ theme }) => ({
+export const VisitDetailMeta = styled('div')({
   display: 'flex',
   alignItems: 'flex-start',
   gap: 14,
-}));
+});
 
 export const VisitDetailAvatar = styled('img')(({ theme }) => ({
   width: 64,

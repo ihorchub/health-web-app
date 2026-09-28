@@ -1,5 +1,5 @@
 import { IconChevronLeft, IconChevronRight, IconX } from '@tabler/icons-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
@@ -108,14 +108,17 @@ export const CalendarDayDialog = ({
     return new Date(year!, (month ?? 1) - 1, 1);
   });
   const [activeVisitId, setActiveVisitId] = useState<string | null>(null);
+  const [syncedOpenInitial, setSyncedOpenInitial] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (open && initialYmd) {
-      setSelectedYmd(initialYmd);
-      const [year, month] = initialYmd.split('-').map(Number);
+  const openInitialKey = open && initialYmd ? initialYmd : null;
+  if (openInitialKey !== syncedOpenInitial) {
+    setSyncedOpenInitial(openInitialKey);
+    if (openInitialKey) {
+      setSelectedYmd(openInitialKey);
+      const [year, month] = openInitialKey.split('-').map(Number);
       setAnchorMonth(new Date(year!, (month ?? 1) - 1, 1));
     }
-  }, [initialYmd, open]);
+  }
 
   const secondMonth = useMemo(
     () => new Date(anchorMonth.getFullYear(), anchorMonth.getMonth() + 1, 1),
@@ -135,9 +138,10 @@ export const CalendarDayDialog = ({
     [appointments, selectedYmd],
   );
 
-  useEffect(() => {
-    setActiveVisitId(dayVisits[0]?.id ?? null);
-  }, [dayVisits]);
+  const resolvedActiveVisitId =
+    activeVisitId && dayVisits.some((visit) => visit.id === activeVisitId)
+      ? activeVisitId
+      : (dayVisits[0]?.id ?? null);
 
   const dayHeading = new Intl.DateTimeFormat(i18n.language === 'uk' ? 'uk-UA' : 'en-GB', {
     day: 'numeric',
@@ -251,7 +255,7 @@ export const CalendarDayDialog = ({
                 <DayModalSlotChip
                   key={`chip-${visit.id}`}
                   type="button"
-                  $active={visit.id === activeVisitId}
+                  $active={visit.id === resolvedActiveVisitId}
                   onClick={() => {
                     setActiveVisitId(visit.id);
                   }}
@@ -276,7 +280,7 @@ export const CalendarDayDialog = ({
                 : '';
 
               return (
-                <CalendarDayRow key={visit.id} $active={visit.id === activeVisitId}>
+                <CalendarDayRow key={visit.id} $active={visit.id === resolvedActiveVisitId}>
                   <CalendarDayRowTimeCol>
                     <CalendarDayRowTime>
                       {formatTime(visit.startsAt, i18n.language)}

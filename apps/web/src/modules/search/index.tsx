@@ -1,6 +1,6 @@
 import { Button } from '@mui/material';
 import { IconX } from '@tabler/icons-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { useGetDoctorsSearch, type SearchSort } from '@/api/doctors';
@@ -90,27 +90,19 @@ export const SearchPage = () => {
     isPatient,
   });
 
-  useEffect(() => {
-    if (!isPatient || patientPrefillApplied) {
-      return;
-    }
-    const prefill = doctorsQuery.data?.prefill;
-    if (!prefill) {
-      return;
-    }
+  if (isPatient && !patientPrefillApplied && doctorsQuery.data?.prefill) {
+    const prefill = doctorsQuery.data.prefill;
+    setPatientPrefillApplied(true);
     setPatientFilters((current) => ({
       ...current,
       cityId: prefill.cityId ?? current.cityId,
       clinicId: prefill.clinicId ?? current.clinicId,
     }));
-    setPatientPrefillApplied(true);
-  }, [doctorsQuery.data?.prefill, isPatient, patientPrefillApplied]);
+  }
 
-  useEffect(() => {
-    if (!isPatient) {
-      setPatientPrefillApplied(false);
-    }
-  }, [isPatient]);
+  if (!isPatient && patientPrefillApplied) {
+    setPatientPrefillApplied(false);
+  }
 
   const updateFilters = (next: Partial<SearchFiltersState>) => {
     setFilters((current) => ({ ...current, ...next }));

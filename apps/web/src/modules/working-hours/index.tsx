@@ -1,5 +1,5 @@
 import { IconChevronLeft, IconInfoCircle } from '@tabler/icons-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -139,13 +139,14 @@ export const WorkingHoursPage = () => {
     endYmd: null,
   });
 
-  useEffect(() => {
-    if (!settings) {
-      return;
+  if (settings) {
+    if (zoneB === null) {
+      setZoneB(settings.zoneB);
     }
-    setZoneB(settings.zoneB);
-    setAnchorYm((current) => current ?? settings.zoneAStartYmd.slice(0, 7));
-  }, [settings]);
+    if (anchorYm === null) {
+      setAnchorYm(settings.zoneAStartYmd.slice(0, 7));
+    }
+  }
 
   const monthOptions = useMemo(() => {
     if (!scheduleQuery.data) {

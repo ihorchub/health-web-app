@@ -1,5 +1,5 @@
 import { IconStar, IconStarFilled, IconX } from '@tabler/icons-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import {
@@ -50,13 +50,15 @@ export const WriteReviewDialog = ({
   const { t, i18n } = useTranslation(['cabinet', 'search']);
   const [rating, setRating] = useState(4);
   const [text, setText] = useState('');
+  const [sessionOpen, setSessionOpen] = useState(false);
 
-  useEffect(() => {
+  if (open !== sessionOpen) {
+    setSessionOpen(open);
     if (open) {
       setRating(4);
       setText('');
     }
-  }, [open]);
+  }
 
   const handleClose = () => {
     onClose();

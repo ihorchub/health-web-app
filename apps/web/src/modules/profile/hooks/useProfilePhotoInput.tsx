@@ -63,6 +63,7 @@ export const useProfilePhotoInput = (
 
   const cropDialog = (
     <PhotoCropDialog
+      key={sourceUrl ?? 'closed'}
       open={Boolean(sourceUrl)}
       imageUrl={sourceUrl}
       onCancel={clearSource}
