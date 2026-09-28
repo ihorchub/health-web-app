@@ -18,6 +18,7 @@ import {
   CalendarGrid,
   CalendarHeader,
   CalendarMonth,
+  CalendarNavButton,
   DayCell,
   DayModalActions,
   DayModalBody,
@@ -183,7 +184,7 @@ export const CalendarDayDialog = ({
           {months.map((month, monthIndex) => (
             <DayModalMonthCard key={month.date.toISOString()}>
               <CalendarHeader>
-                <button
+                <CalendarNavButton
                   type="button"
                   aria-label={t('cabinet:dayModal.prevMonth')}
                   onClick={() => {
@@ -191,9 +192,9 @@ export const CalendarDayDialog = ({
                   }}
                 >
                   <IconChevronLeft size={18} />
-                </button>
+                </CalendarNavButton>
                 <CalendarMonth>{formatMonthLabel(month.date)}</CalendarMonth>
-                <button
+                <CalendarNavButton
                   type="button"
                   aria-label={t('cabinet:dayModal.nextMonth')}
                   onClick={() => {
@@ -201,7 +202,7 @@ export const CalendarDayDialog = ({
                   }}
                 >
                   <IconChevronRight size={18} />
-                </button>
+                </CalendarNavButton>
               </CalendarHeader>
               <CalendarGrid>
                 {weekdays.map((label) => (

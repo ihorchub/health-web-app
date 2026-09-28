@@ -4,42 +4,54 @@ import { useTranslation } from 'react-i18next';
 
 import { AppLanguage, setAppLanguage } from '@/i18n';
 
-const ToggleRoot = styled('div')(({ theme }) => ({
-  display: 'flex',
-  alignItems: 'center',
+const ToggleRoot = styled('div')<{ $fullWidth?: boolean }>(({ theme, $fullWidth }) => ({
+  display: 'grid',
+  gridTemplateColumns: '1fr 1fr',
   flexShrink: 0,
-  height: 36,
-  overflow: 'hidden',
+  width: $fullWidth ? '100%' : 'fit-content',
+  minWidth: $fullWidth ? undefined : 128,
+  padding: 3,
+  borderRadius: 999,
+  backgroundColor:
+    theme.palette.mode === 'light' ? theme.palette.action.hover : 'rgba(255, 255, 255, 0.06)',
   border: `1px solid ${theme.palette.divider}`,
-  borderRadius: 8,
+  boxSizing: 'border-box',
 }));
 
 const Option = styled('button')<{ $active: boolean }>(({ theme, $active }) => ({
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  height: '100%',
+  minHeight: 32,
   paddingInline: 12,
   border: 'none',
+  borderRadius: 999,
   cursor: 'pointer',
   fontFamily: theme.typography.fontFamily,
   fontSize: 13,
   lineHeight: '16px',
-  fontWeight: $active ? 600 : 500,
-  backgroundColor: $active ? theme.palette.primary.main : theme.palette.background.paper,
+  fontWeight: $active ? 700 : 500,
+  transition: 'background-color 140ms ease, color 140ms ease, box-shadow 140ms ease',
+  backgroundColor: $active ? theme.palette.primary.main : 'transparent',
   color: $active ? '#FFFFFF' : theme.palette.text.secondary,
+  boxShadow: $active ? '0 1px 3px rgba(0, 0, 0, 0.18)' : 'none',
 
   '&:hover': {
+    color: $active ? '#FFFFFF' : theme.palette.text.primary,
     backgroundColor: $active ? theme.palette.primary.light : theme.palette.action.hover,
   },
 }));
 
-export const LanguageToggle = () => {
+interface LanguageToggleProps {
+  fullWidth?: boolean;
+}
+
+export const LanguageToggle = ({ fullWidth = false }: LanguageToggleProps) => {
   const { t, i18n } = useTranslation('common');
   const active = i18n.language === AppLanguage.EN ? AppLanguage.EN : AppLanguage.UK;
 
   return (
-    <ToggleRoot role="group" aria-label={t('header.language')}>
+    <ToggleRoot role="group" aria-label={t('header.language')} $fullWidth={fullWidth}>
       <Option
         type="button"
         $active={active === AppLanguage.UK}

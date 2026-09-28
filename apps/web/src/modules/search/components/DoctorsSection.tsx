@@ -5,12 +5,14 @@ import {
   IconStarFilled,
 } from '@tabler/icons-react';
 import { Button } from '@mui/material';
+import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import type { DoctorSearchCard, SearchSort } from '@/api/doctors';
 import { useDeleteFavourite, usePostFavourite } from '@/api/patients';
+import { StateMascot } from '@/components/StateMascot/StateMascot';
 import {
   Avatar,
   BookButton,
@@ -18,6 +20,7 @@ import {
   CardIdentity,
   CardTop,
   ClinicText,
+  ContentRow,
   DoctorCardRoot,
   DoctorGrid,
   DoctorName,
@@ -27,6 +30,7 @@ import {
   HeartButton,
   HintText,
   LinkishButton,
+  LeftColumn,
   MetaBlock,
   MetaRow,
   NameRow,
@@ -34,8 +38,10 @@ import {
   PriceRow,
   PromoBadge,
   RatingRow,
+  ResultsWrap,
   SectionTitle,
   ShowMoreButton,
+  ShowMoreRow,
   SkeletonBar,
   SkeletonCard,
   SkeletonCircle,
@@ -46,15 +52,12 @@ import {
   Stars,
   StateBody,
   StateBox,
-  StateMascot,
   StateTitle,
   StatusBadge,
   StruckPrice,
   TitleRow,
   FilterMenuItem,
   LoadingBanner,
-  LoadingBannerMascot,
-  ResultsWrap,
 } from '@/modules/search/styles';
 import { AppRole } from '@/types/role';
 import { AppRoute, doctorProfilePath } from '@/utils/routeUtils/routes';
@@ -90,7 +93,7 @@ const reviewKey = (count: number) => {
 };
 
 const foundKey = (count: number, language: string) => {
-  if (language.startsWith('en')) {
+  if (language === 'en') {
     return count === 1 ? 'results.foundOne' : 'results.found';
   }
   const mod10 = count % 10;
@@ -132,6 +135,7 @@ export const DoctorCard = ({
 
   return (
     <DoctorCardRoot
+      data-doctor-card
       role="link"
       tabIndex={0}
       onClick={() => {
@@ -272,6 +276,8 @@ interface DoctorsSectionProps {
   onSortChange: (sort: SearchSort) => void;
   onShowMore: () => void;
   onRetry: () => void;
+  /** Height locked to sort + 2 doctor card rows (no stretch / no scroll). */
+  filtersSlot?: (heightPx?: number) => ReactNode;
 }
 
 export const DoctorsSection = ({
@@ -287,11 +293,35 @@ export const DoctorsSection = ({
   onSortChange,
   onShowMore,
   onRetry,
+  filtersSlot,
 }: DoctorsSectionProps) => {
   const { t, i18n } = useTranslation('search');
   const navigate = useNavigate();
   const postFavouriteMutation = usePostFavourite();
   const deleteFavouriteMutation = useDeleteFavourite();
+  const doctorGridRef = useRef<HTMLDivElement>(null);
+  const [filtersHeightPx, setFiltersHeightPx] = useState<number | undefined>();
+
+  useLayoutEffect(() => {
+    const measure = () => {
+      const gridEl = doctorGridRef.current;
+      const firstCard = gridEl?.querySelector<HTMLElement>('[data-doctor-card]');
+      if (!firstCard || !gridEl) {
+        setFiltersHeightPx(undefined);
+        return;
+      }
+      const cardHeight = firstCard.getBoundingClientRect().height;
+      const columnGap = Number.parseFloat(getComputedStyle(gridEl).rowGap || '0') || 0;
+      // Exactly two card rows + the gap between them (sort stays in the header).
+      setFiltersHeightPx(Math.round(cardHeight * 2 + columnGap));
+    };
+
+    measure();
+    window.addEventListener('resize', measure);
+    return () => {
+      window.removeEventListener('resize', measure);
+    };
+  }, [isLoading, isError, items.length, sort]);
 
   const openProfile = (doctor: DoctorSearchCard) => {
     void navigate(doctorProfilePath(doctor.id));
@@ -379,71 +409,77 @@ export const DoctorsSection = ({
         ) : null}
       </DoctorsHeader>
 
-      {isLoading ? (
-        <>
-          <LoadingBanner aria-live="polite">
-            <LoadingBannerMascot src={LIKA_LOADING} alt="" />
-            <StateBody>{t('results.loadingBody')}</StateBody>
-          </LoadingBanner>
-          <DoctorGrid aria-busy aria-label={t('results.loadingBadge')}>
-            {Array.from({ length: SKELETON_COUNT }).map((_, index) => (
-              <DoctorCardSkeleton key={index} />
-            ))}
-          </DoctorGrid>
-        </>
-      ) : null}
-
-      {isError ? (
-        <StateBox role="alert">
-          <StateMascot src={LIKA_ERROR} alt="" />
-          <StateTitle>{t('results.errorTitle')}</StateTitle>
-          <StateBody>{t('results.errorBody')}</StateBody>
-          <Button variant="contained" color="primary" onClick={onRetry}>
-            {t('results.retry')}
-          </Button>
-        </StateBox>
-      ) : null}
-
-      {showEmpty ? (
-        <StateBox>
-          <StateMascot src={LIKA_EMPTY} alt="" />
-          <StateTitle>{t('results.emptyTitle')}</StateTitle>
-          <StateBody>{t('results.emptyBody')}</StateBody>
-        </StateBox>
-      ) : null}
-
-      {showResults ? (
-        <>
-          <DoctorGrid>
-            {items.map((doctor) => (
-              <DoctorCard
-                key={doctor.id}
-                doctor={doctor}
-                role={role}
-                clinicName={
-                  clinicNameById[doctor.clinicId] ?? doctor.clinicName ?? ''
-                }
-                cityName={cityNameById[doctor.cityId] ?? doctor.cityName ?? ''}
-                onOpenProfile={openProfile}
-                onBook={handleBook}
-                onFavourite={handleFavourite}
-                onViewHours={handleViewHours}
-              />
-            ))}
-          </DoctorGrid>
-
-          {hasMore ? (
-            <ShowMoreButton
-              type="button"
-              variant="outlined"
-              color="inherit"
-              endIcon={<IconChevronDown size={18} />}
-              onClick={onShowMore}
-            >
-              {t('results.showMore')}
-            </ShowMoreButton>
+      <ContentRow>
+        <LeftColumn>
+          {isLoading ? (
+            <>
+              <LoadingBanner aria-live="polite">
+                <StateMascot src={LIKA_LOADING} size={56} />
+                <StateBody>{t('results.loadingBody')}</StateBody>
+              </LoadingBanner>
+              <DoctorGrid aria-busy aria-label={t('results.loadingBadge')}>
+                {Array.from({ length: SKELETON_COUNT }).map((_, index) => (
+                  <DoctorCardSkeleton key={index} />
+                ))}
+              </DoctorGrid>
+            </>
           ) : null}
-        </>
+
+          {isError ? (
+            <StateBox role="alert">
+              <StateMascot src={LIKA_ERROR} />
+              <StateTitle>{t('results.errorTitle')}</StateTitle>
+              <StateBody>{t('results.errorBody')}</StateBody>
+              <Button variant="contained" color="primary" onClick={onRetry}>
+                {t('results.retry')}
+              </Button>
+            </StateBox>
+          ) : null}
+
+          {showEmpty ? (
+            <StateBox>
+              <StateMascot src={LIKA_EMPTY} />
+              <StateTitle>{t('results.emptyTitle')}</StateTitle>
+              <StateBody>{t('results.emptyBody')}</StateBody>
+            </StateBox>
+          ) : null}
+
+          {showResults ? (
+            <DoctorGrid ref={doctorGridRef}>
+              {items.map((doctor) => (
+                <DoctorCard
+                  key={doctor.id}
+                  doctor={doctor}
+                  role={role}
+                  clinicName={
+                    clinicNameById[doctor.clinicId] ?? doctor.clinicName ?? ''
+                  }
+                  cityName={cityNameById[doctor.cityId] ?? doctor.cityName ?? ''}
+                  onOpenProfile={openProfile}
+                  onBook={handleBook}
+                  onFavourite={handleFavourite}
+                  onViewHours={handleViewHours}
+                />
+              ))}
+            </DoctorGrid>
+          ) : null}
+        </LeftColumn>
+
+        {filtersSlot?.(filtersHeightPx)}
+      </ContentRow>
+
+      {showResults && hasMore ? (
+        <ShowMoreRow>
+          <ShowMoreButton
+            type="button"
+            variant="outlined"
+            color="inherit"
+            endIcon={<IconChevronDown size={18} />}
+            onClick={onShowMore}
+          >
+            {t('results.showMore')}
+          </ShowMoreButton>
+        </ShowMoreRow>
       ) : null}
     </ResultsWrap>
   );

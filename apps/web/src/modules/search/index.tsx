@@ -21,13 +21,11 @@ import { SearchHero } from '@/modules/search/components/SearchHero';
 import { SpecialtySection } from '@/modules/search/components/SpecialtySection';
 import {
   Content,
-  ContentRow,
   DrawerCloseButton,
   DrawerScroll,
   DrawerStickyFooter,
   DrawerTopBar,
   FiltersDrawer,
-  LeftColumn,
   Page,
   SectionTitle,
 } from '@/modules/search/styles';
@@ -53,17 +51,11 @@ export const SearchPage = () => {
 
   const [queryInput, setQueryInput] = useState('');
   const [appliedQuery, setAppliedQuery] = useState('');
-  const [guestFilters, setGuestFilters] = useState<SearchFiltersState>(DEFAULT_FILTERS);
-  const [patientFilters, setPatientFilters] =
-    useState<SearchFiltersState>(DEFAULT_FILTERS);
-  const [patientPrefillApplied, setPatientPrefillApplied] = useState(false);
+  const [filters, setFilters] = useState<SearchFiltersState>(DEFAULT_FILTERS);
   const [sort, setSort] = useState<SearchSort>('rating');
   const [limit, setLimit] = useState(PAGE_SIZE);
   const [specialtiesExpanded, setSpecialtiesExpanded] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
-
-  const filters = isPatient ? patientFilters : guestFilters;
-  const setFilters = isPatient ? setPatientFilters : setGuestFilters;
 
   const citiesQuery = useGetReferenceCities();
   const specialtiesQuery = useGetReferenceSpecialties();
@@ -90,20 +82,6 @@ export const SearchPage = () => {
     isPatient,
   });
 
-  if (isPatient && !patientPrefillApplied && doctorsQuery.data?.prefill) {
-    const prefill = doctorsQuery.data.prefill;
-    setPatientPrefillApplied(true);
-    setPatientFilters((current) => ({
-      ...current,
-      cityId: prefill.cityId ?? current.cityId,
-      clinicId: prefill.clinicId ?? current.clinicId,
-    }));
-  }
-
-  if (!isPatient && patientPrefillApplied) {
-    setPatientPrefillApplied(false);
-  }
-
   const updateFilters = (next: Partial<SearchFiltersState>) => {
     setFilters((current) => ({ ...current, ...next }));
     setLimit(PAGE_SIZE);
@@ -114,9 +92,6 @@ export const SearchPage = () => {
     setAppliedQuery('');
     setQueryInput('');
     setLimit(PAGE_SIZE);
-    if (isPatient) {
-      setPatientPrefillApplied(false);
-    }
   };
 
   const applyQuery = (value: string) => {
@@ -173,37 +148,35 @@ export const SearchPage = () => {
           }}
         />
 
-        <ContentRow>
-          <LeftColumn>
-            <DoctorsSection
-              role={role}
-              items={doctorsQuery.data?.items ?? []}
-              total={doctorsQuery.data?.total ?? 0}
-              sort={sort}
-              cityNameById={{}}
-              clinicNameById={{}}
-              isLoading={doctorsQuery.isLoading && !doctorsQuery.data}
-              isError={doctorsQuery.isError}
-              hasMore={Boolean(doctorsQuery.data?.nextCursor)}
-              onSortChange={changeSort}
-              onShowMore={() => {
-                setLimit((value) => value + PAGE_SIZE);
-              }}
-              onRetry={() => {
-                void doctorsQuery.refetch();
-              }}
+        <DoctorsSection
+          role={role}
+          items={doctorsQuery.data?.items ?? []}
+          total={doctorsQuery.data?.total ?? 0}
+          sort={sort}
+          cityNameById={{}}
+          clinicNameById={{}}
+          isLoading={doctorsQuery.isLoading && !doctorsQuery.data}
+          isError={doctorsQuery.isError}
+          hasMore={Boolean(doctorsQuery.data?.nextCursor)}
+          onSortChange={changeSort}
+          onShowMore={() => {
+            setLimit((value) => value + PAGE_SIZE);
+          }}
+          onRetry={() => {
+            void doctorsQuery.refetch();
+          }}
+          filtersSlot={(heightPx) => (
+            <FilterPanel
+              filters={filters}
+              cities={citiesQuery.data?.items ?? []}
+              clinics={clinicsQuery.data?.items ?? []}
+              specialties={specialtiesQuery.data?.items ?? []}
+              onChange={updateFilters}
+              onReset={resetFilters}
+              heightPx={heightPx}
             />
-          </LeftColumn>
-
-          <FilterPanel
-            filters={filters}
-            cities={citiesQuery.data?.items ?? []}
-            clinics={clinicsQuery.data?.items ?? []}
-            specialties={specialtiesQuery.data?.items ?? []}
-            onChange={updateFilters}
-            onReset={resetFilters}
-          />
-        </ContentRow>
+          )}
+        />
       </Content>
 
       <FiltersDrawer

@@ -235,6 +235,10 @@ export const appointmentsRoutes: FastifyPluginAsync = async (app) => {
 };
 
 export function startAutoCompleteJob(intervalMs = 60_000): NodeJS.Timeout {
+  void autoCompleteDueAppointments().catch((err) => {
+    // eslint-disable-next-line no-console
+    console.error("autoCompleteDueAppointments failed", err);
+  });
   return setInterval(() => {
     autoCompleteDueAppointments().catch((err) => {
       // eslint-disable-next-line no-console

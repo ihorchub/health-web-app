@@ -18,6 +18,7 @@ export const mapCabinetAppointment = (row: CabinetAppointmentRow): CabinetAppoin
   doctorId: row.doctorId,
   doctorFirstName: row.doctorFirstName,
   doctorLastName: row.doctorLastName,
+  doctorPhotoUrl: row.doctorPhotoUrl ?? null,
   specialty: row.specialty,
   clinicName: row.clinicName,
   cityName: row.cityName,

@@ -1,9 +1,9 @@
 import { useTranslation } from 'react-i18next';
 
+import { StateMascot } from '@/components/StateMascot/StateMascot';
 import {
   SavingDialog,
   SavingHint,
-  SavingLika,
   SavingScrim,
   SavingTitle,
 } from '@/modules/profile/styles';
@@ -24,7 +24,7 @@ export const ProfileSavingOverlay = ({ open }: ProfileSavingOverlayProps) => {
   return (
     <SavingScrim role="alertdialog" aria-busy="true" aria-live="polite">
       <SavingDialog>
-        <SavingLika src={LIKA_SAVING} alt="" />
+        <StateMascot src={LIKA_SAVING} size={96} />
         <SavingTitle>{t('savingOverlay.title')}</SavingTitle>
         <SavingHint>{t('savingOverlay.hint')}</SavingHint>
       </SavingDialog>

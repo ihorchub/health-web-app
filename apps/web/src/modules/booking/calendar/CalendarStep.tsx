@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import type { DayAvailabilityFlag, DoctorCalendarResponse } from '@/api/doctors';
+import { StateMascot } from '@/components/StateMascot/StateMascot';
 import {
   CalendarBody,
   DayCell,
@@ -10,7 +11,6 @@ import {
   DayGrid,
   DayRow,
   EmptyCopy,
-  EmptyMascot,
   EmptyState,
   FormatBlock,
   FormatSideLabel,
@@ -225,7 +225,7 @@ export const CalendarStep = ({
     if (isLoading && !calendar) {
       return (
         <LoadingState>
-          <EmptyMascot src={LIKA_LOADING} alt="" />
+          <StateMascot src={LIKA_LOADING} size={72} />
           <EmptyCopy>{t('calendar.loading')}</EmptyCopy>
         </LoadingState>
       );
@@ -244,7 +244,7 @@ export const CalendarStep = ({
     if (!calendar || calendar.slots.length === 0) {
       return (
         <EmptyState>
-          <EmptyMascot src={LIKA_EMPTY} alt="" />
+          <StateMascot src={LIKA_EMPTY} size={72} />
           <EmptyCopy>{t('calendar.emptyDay')}</EmptyCopy>
         </EmptyState>
       );

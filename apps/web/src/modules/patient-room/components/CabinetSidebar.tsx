@@ -8,6 +8,7 @@ import {
   CalendarHeader,
   CalendarLegend,
   CalendarMonth,
+  CalendarNavButton,
   CalendarShell,
   DayCell,
   LegendItem,
@@ -115,7 +116,7 @@ export const CabinetSidebar = ({
         <CalendarShell>
           <WidgetTitle>{t('cabinet:sidebar.calendar')}</WidgetTitle>
           <CalendarHeader>
-            <button
+            <CalendarNavButton
               type="button"
               aria-label={t('cabinet:dayModal.prevMonth')}
               onClick={() => {
@@ -123,9 +124,9 @@ export const CabinetSidebar = ({
               }}
             >
               <IconChevronLeft size={18} />
-            </button>
+            </CalendarNavButton>
             <CalendarMonth>{monthLabel}</CalendarMonth>
-            <button
+            <CalendarNavButton
               type="button"
               aria-label={t('cabinet:dayModal.nextMonth')}
               onClick={() => {
@@ -133,7 +134,7 @@ export const CabinetSidebar = ({
               }}
             >
               <IconChevronRight size={18} />
-            </button>
+            </CalendarNavButton>
           </CalendarHeader>
           <CalendarGrid>
             {weekdays.map((label) => (

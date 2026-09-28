@@ -39,6 +39,7 @@ interface FilterPanelProps {
   onReset: () => void;
   embedded?: boolean;
   showHeader?: boolean;
+  heightPx?: number;
 }
 
 export const FilterPanel = ({
@@ -50,6 +51,7 @@ export const FilterPanel = ({
   onReset,
   embedded,
   showHeader = true,
+  heightPx,
 }: FilterPanelProps) => {
   const { t } = useTranslation('search');
 
@@ -203,5 +205,5 @@ export const FilterPanel = ({
     return body;
   }
 
-  return <Sidebar>{body}</Sidebar>;
+  return <Sidebar $heightPx={heightPx}>{body}</Sidebar>;
 };

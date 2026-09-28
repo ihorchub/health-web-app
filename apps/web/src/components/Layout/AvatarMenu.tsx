@@ -39,12 +39,29 @@ const AvatarButton = styled('button')(({ theme }) => ({
   fontWeight: 600,
 }));
 
+const AccountMenu = styled(Menu)(({ theme }) => ({
+  '& .MuiPaper-root': {
+    minWidth: 280,
+    width: 280,
+    marginTop: theme.spacing(1),
+    borderRadius: 14,
+    border: `1px solid ${theme.palette.divider}`,
+    backgroundColor: theme.palette.background.paper,
+    boxShadow:
+      theme.palette.mode === 'light'
+        ? '0px 8px 28px rgba(22, 62, 82, 0.14)'
+        : '0px 10px 32px rgba(0, 0, 0, 0.45)',
+  },
+}));
+
 const MenuSection = styled('div')(({ theme }) => ({
   display: 'flex',
   flexDirection: 'column',
   gap: theme.spacing(1),
   paddingInline: theme.spacing(2),
-  paddingBlock: theme.spacing(1.5),
+  paddingTop: theme.spacing(1),
+  paddingBottom: theme.spacing(1.75),
+  marginInline: theme.spacing(0.5),
 }));
 
 const ItemIcon = styled('span')(({ theme }) => ({
@@ -55,7 +72,13 @@ const ItemIcon = styled('span')(({ theme }) => ({
 }));
 
 const DangerItem = styled(MenuItem)(({ theme }) => ({
-  color: theme.palette.error.main,
+  fontWeight: 600,
+  color: theme.palette.mode === 'light' ? '#D32F2F' : '#FF5252',
+
+  '&:hover': {
+    backgroundColor:
+      theme.palette.mode === 'light' ? 'rgba(211, 47, 47, 0.08)' : 'rgba(255, 82, 82, 0.12)',
+  },
 }));
 
 export const AvatarMenu = () => {
@@ -108,7 +131,7 @@ export const AvatarMenu = () => {
       >
         {initials}
       </AvatarButton>
-      <Menu
+      <AccountMenu
         anchorEl={anchorEl}
         open={open}
         onClose={handleClose}
@@ -148,18 +171,18 @@ export const AvatarMenu = () => {
           </MenuItem>
         ) : null}
         <Divider />
-        <MenuSection>
-          <Meta>{t('header.language')}</Meta>
-          <LanguageToggle />
-        </MenuSection>
-        <Divider />
         <DangerItem onClick={handleLogOut}>
           <ItemIcon>
             <IconLogout size={18} stroke={1.75} />
           </ItemIcon>
           {t('header.logOut')}
         </DangerItem>
-      </Menu>
+        <Divider />
+        <MenuSection>
+          <Meta>{t('header.language')}</Meta>
+          <LanguageToggle fullWidth />
+        </MenuSection>
+      </AccountMenu>
     </>
   );
 };

@@ -15,7 +15,7 @@
     "label": "Next visit",
     "statusUpcoming": "Upcoming",
     "statusPending": "Pending decision",
-    "todayDuration": "today · {{minutes}} min",
+    "dayDuration": "{{day}} · {{minutes}} min",
     "move": "Reschedule",
     "cancel": "Cancel"
   },

@@ -15,7 +15,7 @@
     "label": "Наступний візит",
     "statusUpcoming": "Майбутній",
     "statusPending": "Очікує рішення",
-    "todayDuration": "сьогодні · {{minutes}} хв",
+    "dayDuration": "{{day}} · {{minutes}} хв",
     "move": "Перенести",
     "cancel": "Скасувати"
   },

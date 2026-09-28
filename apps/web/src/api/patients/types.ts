@@ -17,6 +17,7 @@ export interface CabinetAppointmentRow {
   doctorId: string;
   doctorFirstName: string;
   doctorLastName: string;
+  doctorPhotoUrl: string | null;
   specialty: string;
   clinicName: string;
   cityName: string;

@@ -13,6 +13,7 @@ import {
 } from "../lib/booking-horizon.js";
 import { getZonedDateParts, zonedTimeToUtc } from "../lib/timezone.js";
 import { ApiError } from "../lib/errors.js";
+import { autoCompleteDueAppointments } from "./appointments.js";
 import { dayBoundsUtc, loadDoctorForBooking, loadOccupancyInRange } from "./booking-validation.js";
 import { generateDaySlots } from "./slots.js";
 
@@ -69,6 +70,9 @@ export async function getDoctorDashboard(input: {
   now?: Date;
 }): Promise<DoctorDashboardResult> {
   const now = input.now ?? new Date();
+  // R-02: flush due Upcoming → Completed before building the day view.
+  await autoCompleteDueAppointments(now);
+
   const zoneBounds = getZoneABounds(now);
   let dateLocal: CalendarDate = zoneBounds.zoneAStartDate;
   if (input.date) {

@@ -321,6 +321,7 @@ export const CabinetAppointmentRow = Type.Object({
   doctorId: Type.String(),
   doctorFirstName: Type.String(),
   doctorLastName: Type.String(),
+  doctorPhotoUrl: NullableString,
   specialty: Type.String(),
   clinicName: Type.String(),
   cityName: Type.String(),

@@ -275,13 +275,6 @@ export const EmptyState = styled('div')(({ theme }) => ({
   minHeight: 96,
 }));
 
-export const EmptyMascot = styled('img')({
-  width: 72,
-  height: 72,
-  flexShrink: 0,
-  objectFit: 'contain',
-});
-
 export const EmptyCopy = styled('div')(({ theme }) => ({
   fontFamily: theme.typography.fontFamily,
   fontSize: 14,

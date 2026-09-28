@@ -7,6 +7,8 @@ import {
   OutlineButton,
   ReviewBadge,
   RowActions,
+  RowAvatar,
+  RowAvatarFallback,
   RowDateLabel,
   RowDoctorName,
   RowMain,
@@ -21,6 +23,7 @@ import {
   formatTime,
 } from '@/modules/patient-room/utils/formatCabinetDate';
 import { doctorDisplayName } from '@/modules/patient-room/utils/mapCabinet';
+import { resolveMediaUrl } from '@/utils/mediaUrl';
 
 interface AppointmentRowProps {
   appointment: CabinetAppointment;
@@ -50,6 +53,8 @@ export const AppointmentRow = ({
       })
     : '';
   const clinicLabel = appointment.clinicName;
+  const photoUrl = resolveMediaUrl(appointment.doctorPhotoUrl);
+  const initials = `${appointment.doctorFirstName.charAt(0)}${appointment.doctorLastName.charAt(0)}`;
 
   const dayLabel =
     variant === 'upcoming'
@@ -80,6 +85,12 @@ export const AppointmentRow = ({
         }
       }}
     >
+      {photoUrl ? (
+        <RowAvatar src={photoUrl} alt="" />
+      ) : (
+        <RowAvatarFallback aria-hidden>{initials}</RowAvatarFallback>
+      )}
+
       {variant === 'upcoming' ? <RowDateLabel>{dayLabel}</RowDateLabel> : null}
 
       <RowMain>
