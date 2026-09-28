@@ -2,6 +2,11 @@ import { Type } from "@sinclair/typebox";
 import type { FastifyPluginAsync } from "fastify";
 
 import { ApiError } from "../lib/errors.js";
+import {
+  DoctorCalendarResponse,
+  DoctorProfileDto,
+  DoctorsSearchResponse,
+} from "../openapi/schemas.js";
 import { getDoctorCalendar } from "../services/calendar.js";
 import { getDoctorById } from "../services/doctors-profile.js";
 import { searchDoctors } from "../services/doctors-search.js";
@@ -13,6 +18,8 @@ export const doctorsRoutes: FastifyPluginAsync = async (app) => {
     "/api/v1/doctors/search",
     {
       schema: {
+        tags: ["doctors"],
+        operationId: "getDoctorsSearch",
         querystring: Type.Object({
           q: Type.Optional(Type.String()),
           cityId: Type.Optional(Type.String()),
@@ -35,6 +42,7 @@ export const doctorsRoutes: FastifyPluginAsync = async (app) => {
           cursor: Type.Optional(Type.String()),
           limit: Type.Optional(Type.Number()),
         }),
+        response: { 200: DoctorsSearchResponse },
       },
     },
     async (request) => {
@@ -64,7 +72,10 @@ export const doctorsRoutes: FastifyPluginAsync = async (app) => {
     "/api/v1/doctors/:doctorId",
     {
       schema: {
+        tags: ["doctors"],
+        operationId: "getDoctorById",
         params: Type.Object({ doctorId: Type.String() }),
+        response: { 200: DoctorProfileDto },
       },
     },
     async (request) => {
@@ -80,6 +91,8 @@ export const doctorsRoutes: FastifyPluginAsync = async (app) => {
     "/api/v1/doctors/:doctorId/calendar",
     {
       schema: {
+        tags: ["doctors"],
+        operationId: "getDoctorCalendar",
         params: Type.Object({ doctorId: Type.String() }),
         querystring: Type.Object({
           date: Type.Optional(Type.String()),
@@ -87,6 +100,7 @@ export const doctorsRoutes: FastifyPluginAsync = async (app) => {
           to: Type.Optional(Type.String()),
           contextAppointmentId: Type.Optional(Type.String()),
         }),
+        response: { 200: DoctorCalendarResponse },
       },
     },
     async (request) => {

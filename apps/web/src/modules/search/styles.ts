@@ -1,4 +1,5 @@
-import { Button, Drawer, MenuItem, TextField, styled } from '@mui/material';
+import { Button, Drawer, MenuItem, TextField } from '@mui/material';
+import { styled } from '@/theme/styled';
 
 export const Page = styled('section')(({ theme }) => ({
   display: 'flex',
@@ -432,18 +433,30 @@ export const SpecialtyName = styled('span')({
 
 export const ContentRow = styled('div')(({ theme }) => ({
   display: 'flex',
-  alignItems: 'flex-start',
-  gap: theme.spacing(3),
+  flexDirection: 'column',
+  alignItems: 'stretch',
+  gap: theme.spacing(2),
   width: '100%',
+
+  [theme.breakpoints.up('md')]: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
+    gap: theme.spacing(3),
+    alignItems: 'start',
+  },
 }));
 
-export const LeftColumn = styled('div')({
+export const LeftColumn = styled('div')(({ theme }) => ({
   display: 'flex',
   flexDirection: 'column',
-  flex: 1,
   minWidth: 0,
-  gap: 16,
-});
+  gap: theme.spacing(2),
+  width: '100%',
+
+  [theme.breakpoints.up('md')]: {
+    gridColumn: '1 / span 3',
+  },
+}));
 
 export const ResultsWrap = styled('div')(({ theme }) => ({
   display: 'flex',
@@ -452,13 +465,34 @@ export const ResultsWrap = styled('div')(({ theme }) => ({
   width: '100%',
 }));
 
-export const Sidebar = styled('aside')(({ theme }) => ({
+export const SortBar = styled('div')(({ theme }) => ({
+  display: 'flex',
+  justifyContent: 'flex-end',
+  width: '100%',
+
+  [theme.breakpoints.down('sm')]: {
+    justifyContent: 'stretch',
+  },
+}));
+
+export const ShowMoreRow = styled('div')(({ theme }) => ({
+  display: 'grid',
+  gridTemplateColumns: '1fr',
+  width: '100%',
+
+  [theme.breakpoints.up('md')]: {
+    gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
+    gap: theme.spacing(3),
+  },
+}));
+
+export const Sidebar = styled('aside')<{ $heightPx?: number }>(({ theme, $heightPx }) => ({
   display: 'none',
-  width: 318,
-  flexShrink: 0,
+  width: '100%',
+  minWidth: 0,
   flexDirection: 'column',
-  gap: 20,
-  padding: 20,
+  gap: 12,
+  padding: 16,
   borderRadius: 16,
   backgroundColor: theme.palette.background.paper,
   border: `1px solid ${theme.palette.divider}`,
@@ -470,6 +504,15 @@ export const Sidebar = styled('aside')(({ theme }) => ({
 
   [theme.breakpoints.up('md')]: {
     display: 'flex',
+    gridColumn: '4 / span 1',
+    alignSelf: 'start',
+    ...($heightPx
+      ? {
+          height: $heightPx,
+          maxHeight: $heightPx,
+          overflow: 'hidden',
+        }
+      : null),
   },
 }));
 
@@ -496,9 +539,13 @@ export const FilterField = styled(TextField)(({ theme }) => ({
   width: '100%',
 
   '& .MuiOutlinedInput-root': {
-    minHeight: 44,
+    minHeight: 36,
     borderRadius: 10,
     backgroundColor: theme.palette.background.paper,
+  },
+
+  '& .MuiOutlinedInput-input': {
+    paddingBlock: 8,
   },
 }));
 
@@ -507,7 +554,7 @@ export const FilterMenuItem = styled(MenuItem)({});
 export const FilterGroup = styled('div')({
   display: 'flex',
   flexDirection: 'column',
-  gap: 10,
+  gap: 4,
   width: '100%',
 });
 
@@ -522,12 +569,16 @@ export const FilterGroupTitle = styled('div')(({ theme }) => ({
 export const CheckRow = styled('label')(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
-  gap: 10,
+  gap: 6,
   cursor: 'pointer',
   fontFamily: theme.typography.fontFamily,
   fontSize: 14,
   lineHeight: '18px',
   color: theme.palette.text.primary,
+
+  '& .MuiCheckbox-root': {
+    padding: 4,
+  },
 }));
 
 export const RatingPills = styled('div')(({ theme }) => ({
@@ -541,8 +592,8 @@ export const RatingPill = styled('button')<{ $active?: boolean }>(
     display: 'inline-flex',
     alignItems: 'center',
     gap: 6,
-    height: 36,
-    paddingInline: 12,
+    height: 32,
+    paddingInline: 10,
     borderRadius: 8,
     border: `1px solid ${$active ? theme.palette.primary.main : theme.palette.divider}`,
     backgroundColor: $active ? 'rgba(46, 177, 145, 0.12)' : 'transparent',
@@ -551,7 +602,11 @@ export const RatingPill = styled('button')<{ $active?: boolean }>(
     fontSize: 13,
     lineHeight: '16px',
     fontWeight: 600,
-    color: theme.palette.brand.main,
+    color: theme.palette.text.primary,
+
+    '& svg': {
+      color: 'inherit',
+    },
   }),
 );
 
@@ -604,14 +659,16 @@ export const SortSelect = styled(TextField)(({ theme }) => ({
 export const DoctorGrid = styled('div')(({ theme }) => ({
   display: 'grid',
   gridTemplateColumns: '1fr',
-  gap: theme.spacing(3),
+  gap: theme.spacing(2),
+  width: '100%',
 
   [theme.breakpoints.up('sm')]: {
     gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
   },
 
-  [theme.breakpoints.up('lg')]: {
+  [theme.breakpoints.up('md')]: {
     gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+    gap: theme.spacing(3),
   },
 }));
 
@@ -776,7 +833,8 @@ export const PromoBadge = styled('span')(({ theme }) => ({
   height: 22,
   paddingInline: 8,
   borderRadius: 6,
-  backgroundColor: theme.palette.error.main,
+  /** Warm orange — common ecommerce “promo/sale” accent (vs brand mint / error red). */
+  backgroundColor: theme.palette.mode === 'light' ? '#F97316' : '#FB923C',
   color: '#FFFFFF',
   fontFamily: theme.typography.fontFamily,
   fontSize: 11,
@@ -820,10 +878,14 @@ export const HintText = styled('div')(({ theme }) => ({
 }));
 
 export const ShowMoreButton = styled(Button)(({ theme }) => ({
-  alignSelf: 'center',
+  width: '100%',
   minHeight: 48,
   borderColor: theme.palette.divider,
   color: theme.palette.text.primary,
+
+  [theme.breakpoints.up('md')]: {
+    gridColumn: '1 / span 3',
+  },
 }));
 
 export const StateBox = styled('div')(({ theme }) => ({
@@ -839,13 +901,6 @@ export const StateBox = styled('div')(({ theme }) => ({
   backgroundColor: theme.palette.background.paper,
   border: `1px solid ${theme.palette.divider}`,
 }));
-
-export const StateMascot = styled('img')({
-  width: 120,
-  height: 120,
-  objectFit: 'contain',
-  flexShrink: 0,
-});
 
 export const StateTitle = styled('div')(({ theme }) => ({
   fontFamily: theme.typography.fontFamily,
@@ -947,13 +1002,6 @@ export const LoadingBanner = styled('div')(({ theme }) => ({
   border: `1px solid ${theme.palette.divider}`,
   backgroundColor: theme.palette.background.paper,
 }));
-
-export const LoadingBannerMascot = styled('img')({
-  width: 56,
-  height: 56,
-  flexShrink: 0,
-  objectFit: 'contain',
-});
 
 export const FiltersDrawer = styled(Drawer)(({ theme }) => ({
   '& .MuiDrawer-paper': {

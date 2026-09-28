@@ -1,24 +1,42 @@
-import type { DoctorSearchCard } from '@/api/doctors';
-import { DoctorCard } from '@/modules/search/components/DoctorsSection';
+import { IconHeart, IconHeartFilled } from '@tabler/icons-react';
+import { useTranslation } from 'react-i18next';
+
+import {
+  Avatar,
+  BookButton,
+  CardActions,
+  CardIdentity,
+  CardTop,
+  ClinicText,
+  DoctorCardRoot,
+  DoctorName,
+  HeartButton,
+  LinkishButton,
+  NameRow,
+  Price,
+  PriceRow,
+  PromoBadge,
+  SpecialtyText,
+  StruckPrice,
+} from '@/modules/search/styles';
 import {
   CarouselTrack,
   SectionHead,
   SectionLink,
   SectionTitle,
 } from '@/modules/patient-room/styles';
-import { AppRole } from '@/types/role';
+import type { CabinetDoctorCard } from '@/modules/patient-room/types';
 
 interface DoctorCarouselSectionProps {
   title: string;
   linkLabel?: string;
   onLink?: () => void;
-  doctors: DoctorSearchCard[];
-  clinicNames: Record<string, string>;
-  cityNames: Record<string, string>;
-  onOpenProfile: (doctor: DoctorSearchCard) => void;
-  onBook: (doctor: DoctorSearchCard) => void;
-  onFavourite: (doctor: DoctorSearchCard) => void;
-  onViewHours: (doctor: DoctorSearchCard) => void;
+  doctors: CabinetDoctorCard[];
+  favouriteIds?: ReadonlySet<string>;
+  onOpenProfile: (doctor: CabinetDoctorCard) => void;
+  onBook: (doctor: CabinetDoctorCard) => void;
+  onFavourite: (doctor: CabinetDoctorCard) => void;
+  onViewHours: (doctor: CabinetDoctorCard) => void;
 }
 
 export const DoctorCarouselSection = ({
@@ -26,13 +44,14 @@ export const DoctorCarouselSection = ({
   linkLabel,
   onLink,
   doctors,
-  clinicNames,
-  cityNames,
+  favouriteIds,
   onOpenProfile,
   onBook,
   onFavourite,
   onViewHours,
 }: DoctorCarouselSectionProps) => {
+  const { t } = useTranslation('search');
+
   return (
     <section>
       <SectionHead>
@@ -45,19 +64,87 @@ export const DoctorCarouselSection = ({
       </SectionHead>
 
       <CarouselTrack>
-        {doctors.map((doctor) => (
-          <DoctorCard
-            key={doctor.id}
-            doctor={doctor}
-            role={AppRole.PATIENT}
-            clinicName={clinicNames[doctor.clinicId] ?? ''}
-            cityName={cityNames[doctor.cityId] ?? ''}
-            onOpenProfile={onOpenProfile}
-            onBook={onBook}
-            onFavourite={onFavourite}
-            onViewHours={onViewHours}
-          />
-        ))}
+        {doctors.map((doctor) => {
+          const isFavourite = favouriteIds?.has(doctor.id) ?? false;
+          const displayPrice = doctor.promoPrice ?? doctor.basePrice;
+          const place = [doctor.clinicName, doctor.cityName].filter(Boolean).join(', ');
+          const specialty = t(`specialties.${doctor.specialty}`, {
+            defaultValue: doctor.specialty,
+          });
+
+          return (
+            <DoctorCardRoot
+              key={doctor.id}
+              role="link"
+              tabIndex={0}
+              onClick={() => {
+                onOpenProfile(doctor);
+              }}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault();
+                  onOpenProfile(doctor);
+                }
+              }}
+            >
+              <CardTop>
+                <Avatar src={doctor.photoUrl ?? undefined} alt="" />
+                <CardIdentity>
+                  <NameRow>
+                    <DoctorName>
+                      {doctor.firstName} {doctor.lastName}
+                    </DoctorName>
+                    <HeartButton
+                      type="button"
+                      aria-label={isFavourite ? t('card.unfavorite') : t('card.favorite')}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        onFavourite(doctor);
+                      }}
+                    >
+                      {isFavourite ? <IconHeartFilled size={20} /> : <IconHeart size={20} />}
+                    </HeartButton>
+                  </NameRow>
+                  <SpecialtyText>{specialty}</SpecialtyText>
+                  {place ? <ClinicText>{place}</ClinicText> : null}
+                </CardIdentity>
+              </CardTop>
+
+              <PriceRow>
+                <Price>{displayPrice} ₴</Price>
+                {doctor.promoPrice !== null ? (
+                  <>
+                    <StruckPrice>{doctor.basePrice} ₴</StruckPrice>
+                    <PromoBadge>{t('card.promo')}</PromoBadge>
+                  </>
+                ) : null}
+              </PriceRow>
+
+              <CardActions>
+                <BookButton
+                  type="button"
+                  variant="contained"
+                  color="primary"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onBook(doctor);
+                  }}
+                >
+                  {t('card.book')}
+                </BookButton>
+                <LinkishButton
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onViewHours(doctor);
+                  }}
+                >
+                  {t('card.viewHours')}
+                </LinkishButton>
+              </CardActions>
+            </DoctorCardRoot>
+          );
+        })}
       </CarouselTrack>
     </section>
   );

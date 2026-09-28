@@ -1,5 +1,3 @@
-import { useMemo } from 'react';
-
 import {
   usePostCancelAppointment,
   usePostCompleteAppointment,
@@ -8,15 +6,15 @@ import {
 import { useGetDoctorMeDashboard } from '@/api/doctors';
 import {
   buildWeekStrip,
-  DEMO_DOCTOR_DAY,
   mapDashboardVisit,
-  mapFreeWindow,
+  mapFreeWindowsFromSlots,
   mapMetrics,
   mapPendingPatient,
   mapProposeSlotLabels,
+  todayDoctorDayYmd,
 } from '@/modules/doctor-day/utils/mapDashboard';
 
-export const useDoctorDayDashboard = (date = DEMO_DOCTOR_DAY) => {
+export const useDoctorDayDashboard = (date = todayDoctorDayYmd()) => {
   const dashboardQuery = useGetDoctorMeDashboard({ date });
   const completeMutation = usePostCompleteAppointment();
   const cancelMutation = usePostCancelAppointment();
@@ -24,47 +22,22 @@ export const useDoctorDayDashboard = (date = DEMO_DOCTOR_DAY) => {
 
   const data = dashboardQuery.data;
 
-  const visits = useMemo(
-    () => (data?.visits ?? []).map(mapDashboardVisit),
-    [data?.visits],
-  );
+  const visits = (data?.visits ?? []).map(mapDashboardVisit);
+  const nextVisit = data?.nextVisit ? mapDashboardVisit(data.nextVisit) : null;
+  const freeWindows = mapFreeWindowsFromSlots(data?.freeWindowsToday ?? []);
+  const pendingPatients = (data?.pendingPatients ?? []).map(mapPendingPatient);
+  const metrics = data?.metrics
+    ? mapMetrics(data.metrics)
+    : {
+        visitsToday: 0,
+        pendingDecisions: 0,
+        freeHoursToday: 0,
+        cancellations7d: 0,
+      };
 
-  const nextVisit = useMemo(
-    () => (data?.nextVisit ? mapDashboardVisit(data.nextVisit) : null),
-    [data?.nextVisit],
-  );
-
-  const freeWindows = useMemo(
-    () => (data?.freeWindowsToday ?? []).map(mapFreeWindow),
-    [data?.freeWindowsToday],
-  );
-
-  const pendingPatients = useMemo(
-    () => (data?.pendingPatients ?? []).map(mapPendingPatient),
-    [data?.pendingPatients],
-  );
-
-  const metrics = useMemo(
-    () =>
-      data?.metrics
-        ? mapMetrics(data.metrics)
-        : {
-            visitsToday: 0,
-            pendingDecisions: 0,
-            freeHoursToday: 0,
-            cancellations7d: 0,
-          },
-    [data?.metrics],
-  );
-
-  const proposeSlots = useMemo(
-    () => mapProposeSlotLabels(data?.proposeSlots ?? []),
-    [data?.proposeSlots],
-  );
-
-  const proposeSlotIsos = data?.proposeSlots ?? [];
-
-  const weekDays = useMemo(() => buildWeekStrip(date), [date]);
+  const proposeSlotIsos = data?.freeWindowsToday ?? [];
+  const proposeSlots = mapProposeSlotLabels(proposeSlotIsos);
+  const weekDays = buildWeekStrip(date);
 
   return {
     date,

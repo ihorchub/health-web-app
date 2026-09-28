@@ -21,12 +21,12 @@ describe("searchDoctors", () => {
     const doctorId = await createTestDoctor({
       weeklyTemplate: workingWeeklyTemplate(),
       firstName: "Olena",
-      lastName: "Koval",
+      lastName: "KovalSearchUnique",
       specialty: "cardiologist",
     });
     createdUserIds.push(doctorId);
 
-    const result = await searchDoctors({ now: NOW });
+    const result = await searchDoctors({ q: "KovalSearchUnique", now: NOW, limit: 50 });
 
     const card = result.items.find((item) => item.id === doctorId);
     expect(card).toBeDefined();
@@ -44,20 +44,22 @@ describe("searchDoctors", () => {
       weeklyTemplate: workingWeeklyTemplate(),
       specialty: "cardiologist",
       supportedFormats: ["offline"],
+      firstName: "CardioFilt",
     });
     const dermaOnline = await createTestDoctor({
       weeklyTemplate: workingWeeklyTemplate(),
       specialty: "dermatologist",
       supportedFormats: ["online", "offline"],
+      firstName: "DermaFilt",
     });
     createdUserIds.push(cardio, dermaOnline);
 
-    const bySpecialty = await searchDoctors({ specialty: "cardiologist", now: NOW });
+    const bySpecialty = await searchDoctors({ specialty: "cardiologist", q: "CardioFilt", now: NOW });
     expect(bySpecialty.items.every((d) => d.specialty === "cardiologist")).toBe(true);
     expect(bySpecialty.items.some((d) => d.id === cardio)).toBe(true);
     expect(bySpecialty.items.some((d) => d.id === dermaOnline)).toBe(false);
 
-    const byFormat = await searchDoctors({ format: "online", now: NOW });
+    const byFormat = await searchDoctors({ format: "online", q: "DermaFilt", now: NOW });
     expect(byFormat.items.some((d) => d.id === dermaOnline)).toBe(true);
     expect(byFormat.items.some((d) => d.id === cardio)).toBe(false);
   });
@@ -117,7 +119,7 @@ describe("searchDoctors", () => {
       weeklyTemplate: workingWeeklyTemplate(),
       clinicId: "test-clinic",
       cityId: "test-city",
-      firstName: "HomeClinic",
+      firstName: "HomeClinicRank",
     });
     const otherDoctor = await createTestDoctor({
       weeklyTemplate: workingWeeklyTemplate(),
@@ -125,13 +127,15 @@ describe("searchDoctors", () => {
       clinicId: "test-clinic-other",
       cityName: "Other City",
       clinicName: "Other Clinic",
-      firstName: "OtherClinic",
+      firstName: "OtherClinicRank",
     });
     const patientId = await createTestPatient();
     createdUserIds.push(homeClinicDoctor, otherDoctor, patientId);
 
     const result = await searchDoctors({
       now: NOW,
+      q: "ClinicRank",
+      limit: 50,
       sessionUser: {
         id: patientId,
         email: "p@test.local",
@@ -152,14 +156,15 @@ describe("searchDoctors", () => {
   it("filters by date when that day has no free slots", async () => {
     const doctorId = await createTestDoctor({
       weeklyTemplate: workingWeeklyTemplate(),
+      firstName: "DateFilterDoc",
     });
     createdUserIds.push(doctorId);
 
     // Sunday 16 Aug 2026 is day_off under workingWeeklyTemplate
-    const empty = await searchDoctors({ date: "2026-08-16", now: NOW });
+    const empty = await searchDoctors({ date: "2026-08-16", q: "DateFilterDoc", now: NOW });
     expect(empty.items.some((d) => d.id === doctorId)).toBe(false);
 
-    const monday = await searchDoctors({ date: "2026-08-10", now: NOW });
+    const monday = await searchDoctors({ date: "2026-08-10", q: "DateFilterDoc", now: NOW });
     expect(monday.items.some((d) => d.id === doctorId)).toBe(true);
   });
 });

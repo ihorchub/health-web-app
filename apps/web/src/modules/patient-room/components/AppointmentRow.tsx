@@ -1,13 +1,14 @@
 import { IconStarFilled } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
 
-import { findMockDoctor } from '@/api/mocks/doctorsFixtures';
 import {
   DangerOutlineButton,
   FormatChip,
   OutlineButton,
   ReviewBadge,
   RowActions,
+  RowAvatar,
+  RowAvatarFallback,
   RowDateLabel,
   RowDoctorName,
   RowMain,
@@ -21,6 +22,8 @@ import {
   formatRelativeDayLabel,
   formatTime,
 } from '@/modules/patient-room/utils/formatCabinetDate';
+import { doctorDisplayName } from '@/modules/patient-room/utils/mapCabinet';
+import { resolveMediaUrl } from '@/utils/mediaUrl';
 
 interface AppointmentRowProps {
   appointment: CabinetAppointment;
@@ -43,12 +46,15 @@ export const AppointmentRow = ({
 }: AppointmentRowProps) => {
   const { t, i18n } = useTranslation(['cabinet', 'search']);
   const isPending = appointment.status === 'reschedule_pending';
-  const doctor = findMockDoctor(appointment.doctorId);
-  const doctorName = doctor
-    ? `${doctor.firstName} ${doctor.lastName}`
-    : appointment.doctorId;
-  const specialty = doctor ? t(`search:specialties.${doctor.specialty}`) : '';
-  const clinicLabel = t('cabinet:demoClinic');
+  const doctorName = doctorDisplayName(appointment);
+  const specialty = appointment.specialty
+    ? t(`search:specialties.${appointment.specialty}`, {
+        defaultValue: appointment.specialty,
+      })
+    : '';
+  const clinicLabel = appointment.clinicName;
+  const photoUrl = resolveMediaUrl(appointment.doctorPhotoUrl);
+  const initials = `${appointment.doctorFirstName.charAt(0)}${appointment.doctorLastName.charAt(0)}`;
 
   const dayLabel =
     variant === 'upcoming'
@@ -79,6 +85,12 @@ export const AppointmentRow = ({
         }
       }}
     >
+      {photoUrl ? (
+        <RowAvatar src={photoUrl} alt="" />
+      ) : (
+        <RowAvatarFallback aria-hidden>{initials}</RowAvatarFallback>
+      )}
+
       {variant === 'upcoming' ? <RowDateLabel>{dayLabel}</RowDateLabel> : null}
 
       <RowMain>

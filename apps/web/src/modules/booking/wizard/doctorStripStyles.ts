@@ -1,4 +1,4 @@
-import { styled } from '@mui/material';
+import { styled } from '@/theme/styled';
 
 export const DoctorStrip = styled('div')(({ theme }) => ({
   display: 'flex',

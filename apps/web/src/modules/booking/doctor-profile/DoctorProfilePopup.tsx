@@ -8,12 +8,18 @@ import { toast } from 'sonner';
 import {
   isSlotTakenError,
   usePostBookAppointment,
+  usePostRescheduleAppointment,
 } from '@/api/appointments';
 import {
   useGetDoctorById,
   useGetDoctorCalendar,
   isDoctorNotFoundError,
 } from '@/api/doctors';
+import {
+  useDeleteFavourite,
+  usePostFavourite,
+  usePostRecentlyViewed,
+} from '@/api/patients';
 import { useGetReferenceCities, useGetReferenceClinics } from '@/api/reference';
 import { useAppRole } from '@/hooks/useAppRole';
 import { usePopups } from '@/hooks/usePopups';
@@ -148,14 +154,40 @@ export const DoctorProfilePopup = () => {
   const [step, setStep] = useState<BookingWizardStep>('profile');
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [selectedStartAt, setSelectedStartAt] = useState<string | null>(null);
-  const [visitFormat, setVisitFormat] = useState<BookingVisitFormat>('offline');
+  const [visitFormatOverride, setVisitFormatOverride] = useState<BookingVisitFormat | null>(
+    null,
+  );
   const [selection, setSelection] = useState<BookingSelection | null>(null);
   const [confirmError, setConfirmError] = useState<string | null>(null);
+
+  const popupPayload = payload as DoctorProfilePopupPayload | undefined;
+  const sessionKey = open
+    ? `${doctorId ?? ''}:${popupPayload?.initialStep ?? 'profile'}`
+    : 'closed';
+  const [activeSession, setActiveSession] = useState(sessionKey);
+
+  if (sessionKey !== activeSession) {
+    setActiveSession(sessionKey);
+    const initialStep =
+      open && popupPayload?.initialStep && popupPayload.initialStep !== 'profile'
+        ? popupPayload.initialStep
+        : 'profile';
+    setStep(initialStep);
+    setSelectedDate('');
+    setSelectedStartAt(null);
+    setSelection(null);
+    setConfirmError(null);
+    setVisitFormatOverride(null);
+  }
 
   const profileQuery = useGetDoctorById(doctorId, { isPatient });
   const citiesQuery = useGetReferenceCities();
   const clinicsQuery = useGetReferenceClinics(profileQuery.data?.cityId);
   const bookMutation = usePostBookAppointment();
+  const rescheduleMutation = usePostRescheduleAppointment();
+  const postFavouriteMutation = usePostFavourite();
+  const deleteFavouriteMutation = useDeleteFavourite();
+  const postRecentlyViewedMutation = usePostRecentlyViewed();
 
   const calendarQuery = useGetDoctorCalendar(
     doctorId,
@@ -167,6 +199,15 @@ export const DoctorProfilePopup = () => {
   );
 
   const doctor = profileQuery.data;
+  const visitFormat =
+    visitFormatOverride ??
+    (doctor ? defaultFormat(doctor.supportedFormats) : 'offline');
+  const resolvedSelectedDate =
+    selectedDate ||
+    (calendarQuery.data
+      ? (calendarQuery.data.days.find((day) => day.flag === 'has_free')?.date ??
+        calendarQuery.data.zoneAStart)
+      : '');
   const cityName =
     citiesQuery.data?.items.find((city) => city.id === doctor?.cityId)?.name ?? '';
   const clinicName =
@@ -174,39 +215,13 @@ export const DoctorProfilePopup = () => {
     '';
 
   useEffect(() => {
-    if (!open) {
-      setStep('profile');
-      setSelectedDate('');
-      setSelectedStartAt(null);
-      setSelection(null);
-      setConfirmError(null);
+    if (!open || !isPatient || !doctorId) {
       return;
     }
-
-    const popupPayload = payload as DoctorProfilePopupPayload | undefined;
-    if (popupPayload?.initialStep && popupPayload.initialStep !== 'profile') {
-      setStep(popupPayload.initialStep);
-      setSelectedStartAt(null);
-      setSelection(null);
-      setConfirmError(null);
-    }
-  }, [open, payload]);
-
-  useEffect(() => {
-    if (open && doctor) {
-      setVisitFormat(defaultFormat(doctor.supportedFormats));
-    }
-  }, [open, doctor?.id, doctor?.supportedFormats]);
-
-  useEffect(() => {
-    if (!calendarQuery.data || selectedDate) {
-      return;
-    }
-    const firstFree =
-      calendarQuery.data.days.find((day) => day.flag === 'has_free')?.date ??
-      calendarQuery.data.zoneAStart;
-    setSelectedDate(firstFree);
-  }, [calendarQuery.data, selectedDate]);
+    postRecentlyViewedMutation.mutate({ doctorId });
+    // Intentionally omit mutation identity — status changes would re-fire.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- open + doctorId only
+  }, [open, isPatient, doctorId]);
 
   const stepNumber = step === 'profile' ? 1 : step === 'calendar' ? 2 : 3;
 
@@ -236,7 +251,28 @@ export const DoctorProfilePopup = () => {
       goLogin();
       return;
     }
-    toast.message(t('favoriteSoon'));
+    if (!isPatient || !doctor) {
+      return;
+    }
+    if (doctor.isFavourite) {
+      deleteFavouriteMutation.mutate(
+        { doctorId: doctor.id },
+        {
+          onSuccess: () => {
+            toast.success(t('unfavorite'));
+          },
+        },
+      );
+      return;
+    }
+    postFavouriteMutation.mutate(
+      { doctorId: doctor.id },
+      {
+        onSuccess: () => {
+          toast.success(t('favorite'));
+        },
+      },
+    );
   };
 
   const handleChooseTime = () => {
@@ -254,11 +290,11 @@ export const DoctorProfilePopup = () => {
   };
 
   const handleContinueFromCalendar = () => {
-    if (!calendarQuery.data || !selectedStartAt || !selectedDate) {
+    if (!calendarQuery.data || !selectedStartAt || !resolvedSelectedDate) {
       return;
     }
     setSelection({
-      date: selectedDate,
+      date: resolvedSelectedDate,
       startAt: selectedStartAt,
       format: visitFormat,
       visitDurationMinutes: calendarQuery.data.visitDurationMinutes,
@@ -273,15 +309,16 @@ export const DoctorProfilePopup = () => {
     }
     setConfirmError(null);
     try {
-      await bookMutation.mutateAsync({
-        doctorId,
-        startAt: selection.startAt,
-        format: selection.format,
-        reason,
-      });
-
       const pendingId = readPendingReschedulePick();
       if (pendingId) {
+        await rescheduleMutation.mutateAsync({
+          id: pendingId,
+          body: {
+            newStartAt: selection.startAt,
+            format: selection.format,
+            reason: reason.trim() || undefined,
+          },
+        });
         dispatchPendingRescheduleResolved({
           pendingId,
           doctorId,
@@ -290,6 +327,13 @@ export const DoctorProfilePopup = () => {
           durationMinutes: selection.visitDurationMinutes,
         });
         clearPendingReschedulePick();
+      } else {
+        await bookMutation.mutateAsync({
+          doctorId,
+          startAt: selection.startAt,
+          format: selection.format,
+          reason,
+        });
       }
 
       toast.success(t('confirm.successToast'));
@@ -500,7 +544,7 @@ export const DoctorProfilePopup = () => {
               isSlotsLoading={
                 calendarQuery.isFetching && Boolean(calendarQuery.isPlaceholderData)
               }
-              selectedDate={selectedDate || calendarQuery.data?.zoneAStart || ''}
+              selectedDate={resolvedSelectedDate}
               selectedStartAt={selectedStartAt}
               format={visitFormat}
               onSelectDate={(date) => {
@@ -508,7 +552,7 @@ export const DoctorProfilePopup = () => {
                 setSelectedStartAt(null);
               }}
               onSelectSlot={setSelectedStartAt}
-              onFormatChange={setVisitFormat}
+              onFormatChange={setVisitFormatOverride}
             />
             <DialogFooter>
               <Button

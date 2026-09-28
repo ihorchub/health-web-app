@@ -1,11 +1,6 @@
-import {
-  Button,
-  Checkbox,
-  FormControlLabel,
-  IconButton,
-  TextField,
-  styled,
-} from '@mui/material';
+import { Button, Checkbox, FormControlLabel, IconButton, TextField } from '@mui/material';
+import { styled } from '@/theme/styled';
+
 import { Link as RouterLink } from 'react-router-dom';
 
 export const AuthPage = styled('section')(({ theme }) => ({

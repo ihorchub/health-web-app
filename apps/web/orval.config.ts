@@ -1,8 +1,8 @@
 import { defineConfig } from 'orval';
 
 /**
- * Placeholder Orval config. Point `input.target` at a real OpenAPI file when
- * the backend spec is ready, then run `yarn generate:api`.
+ * Regenerates TanStack Query hooks + models from the exported OpenAPI document.
+ * Run from repo root: `pnpm generate:api` (exports OpenAPI then orval).
  */
 export default defineConfig({
   medicly: {
@@ -14,6 +14,8 @@ export default defineConfig({
       target: './src/api/generated',
       schemas: './src/api/generated/models',
       client: 'react-query',
+      httpClient: 'axios',
+      clean: true,
       override: {
         mutator: {
           path: './src/api/mutator/customInstance.ts',

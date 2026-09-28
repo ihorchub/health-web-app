@@ -5,16 +5,21 @@ import type { FastifyPluginAsync } from "fastify";
 import { SPECIALTIES } from "../constants/specialties.js";
 import { getDb } from "../db/client.js";
 import { cities, clinics } from "../db/schema/reference.js";
+import {
+  ReferenceCitiesResponse,
+  ReferenceClinicsResponse,
+  ReferenceSpecialtiesResponse,
+} from "../openapi/schemas.js";
 
 export const referenceRoutes: FastifyPluginAsync = async (app) => {
   app.get(
     "/api/v1/reference/cities",
     {
       schema: {
+        tags: ["reference"],
+        operationId: "getReferenceCities",
         response: {
-          200: Type.Object({
-            items: Type.Array(Type.Object({ id: Type.String(), name: Type.String() })),
-          }),
+          200: ReferenceCitiesResponse,
         },
       },
     },
@@ -28,17 +33,11 @@ export const referenceRoutes: FastifyPluginAsync = async (app) => {
     "/api/v1/reference/clinics",
     {
       schema: {
+        tags: ["reference"],
+        operationId: "getReferenceClinics",
         querystring: Type.Object({ cityId: Type.String() }),
         response: {
-          200: Type.Object({
-            items: Type.Array(
-              Type.Object({
-                id: Type.String(),
-                cityId: Type.String(),
-                name: Type.String(),
-              }),
-            ),
-          }),
+          200: ReferenceClinicsResponse,
         },
       },
     },
@@ -56,10 +55,10 @@ export const referenceRoutes: FastifyPluginAsync = async (app) => {
     "/api/v1/reference/specialties",
     {
       schema: {
+        tags: ["reference"],
+        operationId: "getReferenceSpecialties",
         response: {
-          200: Type.Object({
-            items: Type.Array(Type.Object({ id: Type.String(), name: Type.String() })),
-          }),
+          200: ReferenceSpecialtiesResponse,
         },
       },
     },

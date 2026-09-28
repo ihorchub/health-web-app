@@ -1,4 +1,5 @@
-import { styled } from '@mui/material';
+import { styled } from '@/theme/styled';
+
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link as RouterLink, Navigate } from 'react-router-dom';

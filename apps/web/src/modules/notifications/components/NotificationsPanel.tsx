@@ -1,4 +1,6 @@
-import { Button, Paper, Popover, styled } from '@mui/material';
+import { Button, Paper, Popover } from '@mui/material';
+import { styled } from '@/theme/styled';
+
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 

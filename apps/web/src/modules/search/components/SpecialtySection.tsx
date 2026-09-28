@@ -24,7 +24,7 @@ import {
   SpecialtyIcon,
   SpecialtyName,
 } from '@/modules/search/styles';
-import { styled } from '@mui/material';
+import { styled } from '@/theme/styled';
 
 const Wrap = styled('div')(({ theme }) => ({
   display: 'flex',

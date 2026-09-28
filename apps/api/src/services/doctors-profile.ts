@@ -1,7 +1,5 @@
 /**
  * GET /api/v1/doctors/:doctorId — backend-spec.md SCR-03.
- *
- * Reviews / favourites tables not yet in schema → empty reviews, rating 0, isFavourite false.
  */
 import { and, count, eq } from "drizzle-orm";
 
@@ -13,6 +11,8 @@ import { cities, clinics } from "../db/schema/reference.js";
 import { formatCalendarDate, getZoneABounds } from "../lib/booking-horizon.js";
 import { ApiError } from "../lib/errors.js";
 import type { SessionUser } from "../plugins/session.js";
+import { isFavourite } from "./patient-lists.js";
+import { getDoctorReviewStats, listDoctorReviews } from "./reviews.js";
 
 export type VisitFormatCard = "offline" | "online" | "both";
 
@@ -128,8 +128,12 @@ export async function getDoctorById(params: {
   const descriptionUk = bio;
   const descriptionEn = bio;
 
-  // sessionUser reserved for isFavourite when favourites table lands
-  void params.sessionUser;
+  const stats = await getDoctorReviewStats(params.doctorId);
+  const reviewList = await listDoctorReviews(params.doctorId);
+  let favourite = false;
+  if (params.sessionUser?.role === "patient") {
+    favourite = await isFavourite(params.sessionUser.id, params.doctorId);
+  }
 
   return {
     id: row.id,
@@ -151,10 +155,10 @@ export async function getDoctorById(params: {
     supportedFormats: toCardFormats(row.supportedFormats),
     basePrice: row.basePriceUah,
     promoPrice: effectivePromo(row.promoPriceUah, row.promoValidUntil, todayIso),
-    ratingAverage: 0,
-    reviewCount: 0,
+    ratingAverage: stats.ratingAverage,
+    reviewCount: stats.reviewCount,
     consultationCount: Number(completed?.value ?? 0),
-    isFavourite: false,
-    reviews: [],
+    isFavourite: favourite,
+    reviews: reviewList,
   };
 }

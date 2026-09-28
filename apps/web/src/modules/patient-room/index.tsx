@@ -3,10 +3,14 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
-import type { DoctorSearchCard } from '@/api/doctors';
-import { useGetReferenceCities } from '@/api/reference';
+import { usePostAcceptProposal, usePostCancelAppointment } from '@/api/appointments';
+import {
+  useClearRecentlyViewed,
+  useDeleteFavourite,
+  usePostFavourite,
+  usePostReview,
+} from '@/api/patients';
 import { useAppRole } from '@/hooks/useAppRole';
-import { cityNameMap, useClinicNamesByCityIds } from '@/hooks/useClinicNamesByCityIds';
 import { usePopups } from '@/hooks/usePopups';
 import { AppointmentRow } from '@/modules/patient-room/components/AppointmentRow';
 import { CalendarDayDialog } from '@/modules/patient-room/components/CalendarDayDialog';
@@ -18,11 +22,7 @@ import { PendingDecisionBanner } from '@/modules/patient-room/components/Pending
 import { ReschedulePendingDialog } from '@/modules/patient-room/components/ReschedulePendingDialog';
 import { NextVisitHero } from '@/modules/patient-room/components/NextVisitHero';
 import { VisitDetailDialog } from '@/modules/patient-room/components/VisitDetailDialog';
-import {
-  getFavouriteDoctors,
-  getPromoDoctor,
-  getRecentDoctors,
-} from '@/modules/patient-room/fixtures';
+import { WriteReviewDialog } from '@/modules/patient-room/components/WriteReviewDialog';
 import { useCabinetAppointmentsState } from '@/modules/patient-room/hooks/useCabinetAppointmentsState';
 import {
   Content,
@@ -44,21 +44,19 @@ import {
   ShowMoreLink,
   SideColumn,
 } from '@/modules/patient-room/styles';
-import { WriteReviewDialog } from '@/modules/patient-room/components/WriteReviewDialog';
-import type { CabinetAppointment } from '@/modules/patient-room/types';
+import type { CabinetAppointment, CabinetDoctorCard } from '@/modules/patient-room/types';
 import {
   PENDING_RESCHEDULE_RESOLVED,
-  type PendingRescheduleResolvedDetail,
   storePendingReschedulePick,
 } from '@/modules/patient-room/utils/pendingRescheduleEvents';
 import {
   formatCabinetHeaderDate,
   isTodayOrTomorrow,
+  todayInKyiv,
 } from '@/modules/patient-room/utils/formatCabinetDate';
 import { Popups } from '@/utils/popupUtils/popupTypes';
 import { AppRoute, doctorProfilePath } from '@/utils/routeUtils/routes';
 
-const DEMO_TODAY = new Date('2026-08-27T12:00:00+03:00');
 const UPCOMING_PREVIEW = 2;
 
 const isUpcomingGroup = (status: CabinetAppointment['status']) =>
@@ -70,9 +68,24 @@ export const PatientCabinetPage = () => {
   const { updatePopup } = usePopups();
   const { me } = useAppRole();
   const pastSectionRef = useRef<HTMLElement | null>(null);
+  const today = todayInKyiv();
 
-  const { appointments, setAppointments, upcomingLoading } = useCabinetAppointmentsState();
-  const [recentDoctors, setRecentDoctors] = useState(getRecentDoctors());
+  const {
+    appointments,
+    favourites,
+    recentlyViewed,
+    myReviews,
+    upcomingLoading,
+    refetch,
+  } = useCabinetAppointmentsState();
+
+  const cancelMutation = usePostCancelAppointment();
+  const acceptProposalMutation = usePostAcceptProposal();
+  const reviewMutation = usePostReview();
+  const clearRecentMutation = useClearRecentlyViewed();
+  const postFavouriteMutation = usePostFavourite();
+  const deleteFavouriteMutation = useDeleteFavourite();
+
   const [detailVisit, setDetailVisit] = useState<CabinetAppointment | null>(null);
   const [reviewVisitId, setReviewVisitId] = useState<string | null>(null);
   const [calendarDayYmd, setCalendarDayYmd] = useState<string | null>(null);
@@ -81,24 +94,13 @@ export const PatientCabinetPage = () => {
   );
   const [showAllUpcoming, setShowAllUpcoming] = useState(false);
 
-  const citiesQuery = useGetReferenceCities();
-  const cityNames = useMemo(
-    () => cityNameMap(citiesQuery.data?.items ?? []),
-    [citiesQuery.data?.items],
+  const favouriteIds = useMemo(
+    () => new Set(favourites.map((doctor) => doctor.id)),
+    [favourites],
   );
 
-  const clinicCityIds = useMemo(() => {
-    const ids = new Set<string>();
-    [...getFavouriteDoctors(), ...recentDoctors].forEach((doctor) => {
-      ids.add(doctor.cityId);
-    });
-    return [...ids];
-  }, [recentDoctors]);
-
-  const clinicNames = useClinicNamesByCityIds(clinicCityIds);
-
-  const patientName = me?.firstName ?? 'Оксана';
-  const headerDate = formatCabinetHeaderDate(DEMO_TODAY, i18n.language);
+  const patientName = me?.firstName ?? '';
+  const headerDate = formatCabinetHeaderDate(today, i18n.language);
 
   const upcoming = useMemo(
     () =>
@@ -120,7 +122,7 @@ export const PatientCabinetPage = () => {
   const listUpcoming = showAllUpcoming
     ? restUpcoming
     : restUpcoming.slice(0, UPCOMING_PREVIEW);
-  const promoDoctor = getPromoDoctor();
+  const promoDoctor = favourites[0] ?? null;
   const isEmptyAll = !upcomingLoading && appointments.length === 0;
   const showPastSection = !isEmptyAll;
   const showDoctorCarousels = !isEmptyAll;
@@ -134,7 +136,7 @@ export const PatientCabinetPage = () => {
   const reminderVisit =
     nextVisit &&
     nextVisit.status === 'upcoming' &&
-    isTodayOrTomorrow(nextVisit.startsAt, DEMO_TODAY)
+    isTodayOrTomorrow(nextVisit.startsAt, today)
       ? nextVisit
       : null;
 
@@ -154,47 +156,33 @@ export const PatientCabinetPage = () => {
     if (!visit.proposedStartsAt) {
       return;
     }
-    setAppointments((current) => {
-      const rescheduled = current.map((item) =>
-        item.id === visit.id
-          ? { ...item, status: 'rescheduled' as const, proposedStartsAt: undefined }
-          : item,
-      );
-      return [
-        ...rescheduled,
-        {
-          ...visit,
-          id: `${visit.id}_accepted`,
-          startsAt: visit.proposedStartsAt!,
-          status: 'upcoming' as const,
-          proposedStartsAt: undefined,
+    acceptProposalMutation.mutate(
+      { id: visit.id },
+      {
+        onSuccess: () => {
+          closePendingDecision();
+          toast.success(t('pendingDecision.acceptedToast'));
         },
-      ];
-    });
-    closePendingDecision();
-    toast.success(t('pendingDecision.acceptedToast'));
+      },
+    );
   };
 
   const handleCancelVisit = (visit: CabinetAppointment) => {
-    setAppointments((current) =>
-      current.map((item) =>
-        item.id === visit.id
-          ? {
-              ...item,
-              status: 'cancelled' as const,
-              cancelledBy: 'patient' as const,
-              proposedStartsAt: undefined,
-            }
-          : item,
-      ),
+    cancelMutation.mutate(
+      { id: visit.id },
+      {
+        onSuccess: () => {
+          setDetailVisit(null);
+          closePendingDecision();
+          toast.success(t('pendingDecision.cancelledToast'));
+        },
+      },
     );
-    setDetailVisit(null);
-    closePendingDecision();
-    toast.success(t('pendingDecision.cancelledToast'));
   };
 
   const handleMoveVisit = (visit: CabinetAppointment) => {
     setDetailVisit(null);
+    storePendingReschedulePick(visit.id);
     void navigate(doctorProfilePath(visit.doctorId));
     updatePopup(Popups.DOCTOR_PROFILE, true, {
       doctorId: visit.doctorId,
@@ -215,26 +203,8 @@ export const PatientCabinetPage = () => {
   };
 
   useEffect(() => {
-    const onResolved = (event: Event) => {
-      const detail = (event as CustomEvent<PendingRescheduleResolvedDetail>).detail;
-      setAppointments((current) => {
-        const withoutPending = current.map((item) =>
-          item.id === detail.pendingId
-            ? { ...item, status: 'rescheduled' as const, proposedStartsAt: undefined }
-            : item,
-        );
-        return [
-          ...withoutPending,
-          {
-            id: `${detail.pendingId}_picked`,
-            doctorId: detail.doctorId,
-            startsAt: detail.newStartsAt,
-            durationMinutes: detail.durationMinutes,
-            status: 'upcoming' as const,
-            format: detail.format,
-          },
-        ];
-      });
+    const onResolved = () => {
+      void refetch();
       toast.success(t('pendingDecision.acceptedToast'));
     };
 
@@ -242,9 +212,9 @@ export const PatientCabinetPage = () => {
     return () => {
       window.removeEventListener(PENDING_RESCHEDULE_RESOLVED, onResolved);
     };
-  }, [setAppointments, t]);
+  }, [refetch, t]);
 
-  const openDoctor = (doctor: DoctorSearchCard) => {
+  const openDoctor = (doctor: CabinetDoctorCard) => {
     void navigate(doctorProfilePath(doctor.id));
     updatePopup(Popups.DOCTOR_PROFILE, true, { doctorId: doctor.id });
   };
@@ -262,19 +232,31 @@ export const PatientCabinetPage = () => {
       return;
     }
 
-    setAppointments((current) =>
-      current.map((item) =>
-        item.id === reviewVisitId
-          ? {
-              ...item,
-              hasPatientReview: true,
-              patientReviewRating: rating,
-              patientReviewText: text.trim() || undefined,
-            }
-          : item,
-      ),
+    reviewMutation.mutate(
+      {
+        appointmentId: reviewVisitId,
+        rating,
+        text: text.trim() || undefined,
+      },
+      {
+        onSuccess: () => {
+          setReviewVisitId(null);
+          toast.success(t('reviewModal.successToast'));
+        },
+      },
     );
-    toast.success(t('reviewModal.successToast'));
+  };
+
+  const handleToggleFavourite = (doctor: CabinetDoctorCard) => {
+    if (favouriteIds.has(doctor.id)) {
+      deleteFavouriteMutation.mutate({ doctorId: doctor.id });
+      return;
+    }
+    postFavouriteMutation.mutate({ doctorId: doctor.id });
+  };
+
+  const handleClearRecent = () => {
+    clearRecentMutation.mutate();
   };
 
   const sidebarOpenVisit = () => {
@@ -328,6 +310,7 @@ export const PatientCabinetPage = () => {
             appointments={appointments}
             reminderVisit={isEmptyAll ? null : reminderVisit}
             promoDoctor={promoDoctor}
+            myReviews={myReviews}
             showCalendar={false}
             showReviews={false}
             onOpenVisit={sidebarOpenVisit}
@@ -363,6 +346,7 @@ export const PatientCabinetPage = () => {
                   appointments={appointments}
                   reminderVisit={null}
                   promoDoctor={null}
+                  myReviews={myReviews}
                   onOpenVisit={sidebarOpenVisit}
                   onBookPromo={sidebarBookPromo}
                   onOpenDay={sidebarOpenDay}
@@ -458,30 +442,24 @@ export const PatientCabinetPage = () => {
                   onLink={() => {
                     void navigate(AppRoute.HOME);
                   }}
-                  doctors={getFavouriteDoctors()}
-                  clinicNames={clinicNames}
-                  cityNames={cityNames}
+                  doctors={favourites}
+                  favouriteIds={favouriteIds}
                   onOpenProfile={openDoctor}
                   onBook={openDoctor}
-                  onFavourite={() => {
-                    toast.message(t('favourites.title'));
-                  }}
+                  onFavourite={handleToggleFavourite}
                   onViewHours={openDoctor}
                 />
 
-                {recentDoctors.length > 0 ? (
+                {recentlyViewed.length > 0 ? (
                   <DoctorCarouselSection
                     title={t('recent.title')}
                     linkLabel={t('recent.clear')}
-                    onLink={() => {
-                      setRecentDoctors([]);
-                    }}
-                    doctors={recentDoctors}
-                    clinicNames={clinicNames}
-                    cityNames={cityNames}
+                    onLink={handleClearRecent}
+                    doctors={recentlyViewed}
+                    favouriteIds={favouriteIds}
                     onOpenProfile={openDoctor}
                     onBook={openDoctor}
-                    onFavourite={() => undefined}
+                    onFavourite={handleToggleFavourite}
                     onViewHours={openDoctor}
                   />
                 ) : null}
@@ -497,6 +475,7 @@ export const PatientCabinetPage = () => {
               appointments={appointments}
               reminderVisit={reminderVisit}
               promoDoctor={promoDoctor}
+              myReviews={myReviews}
               showCalendar={showCalendar}
               showReviews={!isEmptyAll}
               onOpenVisit={sidebarOpenVisit}

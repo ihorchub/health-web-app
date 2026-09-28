@@ -1,20 +1,14 @@
 import { Button } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 
-import {
-  StateBody,
-  StateBox,
-  StateMascot,
-  StateTitle,
-} from '@/modules/patient-room/styles';
+import { StateMascot } from '@/components/StateMascot/StateMascot';
+import { StateBody, StateBox, StateTitle } from '@/modules/patient-room/styles';
 
 const LIKA_LOADING = '/brand/lika-poses/lika3.png';
 const LIKA_EMPTY = '/brand/lika-poses/lika4.png';
 
-type CabinetStateVariant = 'loading' | 'empty-upcoming' | 'empty-all';
-
 interface CabinetStatePanelProps {
-  variant: CabinetStateVariant;
+  variant: 'loading' | 'empty-upcoming' | 'empty-all';
   onFindDoctor?: () => void;
 }
 
@@ -37,7 +31,7 @@ export const CabinetStatePanel = ({ variant, onFindDoctor }: CabinetStatePanelPr
 
   return (
     <StateBox aria-live={variant === 'loading' ? 'polite' : undefined}>
-      <StateMascot src={mascot} alt="" />
+      <StateMascot src={mascot} />
       <StateTitle>{t(titleKey)}</StateTitle>
       <StateBody>{t(bodyKey)}</StateBody>
       {variant !== 'loading' && onFindDoctor ? (

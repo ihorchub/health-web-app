@@ -1,4 +1,4 @@
-import { styled } from '@mui/material';
+import { styled } from '@/theme/styled';
 
 export const CalendarBody = styled('div')(({ theme }) => ({
   display: 'flex',
@@ -274,13 +274,6 @@ export const EmptyState = styled('div')(({ theme }) => ({
   width: '100%',
   minHeight: 96,
 }));
-
-export const EmptyMascot = styled('img')({
-  width: 72,
-  height: 72,
-  flexShrink: 0,
-  objectFit: 'contain',
-});
 
 export const EmptyCopy = styled('div')(({ theme }) => ({
   fontFamily: theme.typography.fontFamily,

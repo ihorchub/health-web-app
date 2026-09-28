@@ -1,4 +1,6 @@
-import { TextField, styled } from '@mui/material';
+import { TextField } from '@mui/material';
+import { styled } from '@/theme/styled';
+
 import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 

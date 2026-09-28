@@ -1,4 +1,6 @@
-import { Button, styled } from '@mui/material';
+import { Button } from '@mui/material';
+import { styled } from '@/theme/styled';
+
 import {
   IconCalendarEvent,
   IconChevronLeft,
@@ -6,7 +8,7 @@ import {
   IconSearch,
   IconX,
 } from '@tabler/icons-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { SheetDialog } from '@/components/Dialog/SheetDialog';
@@ -212,14 +214,16 @@ export const ProposeTimeDialog = ({
   const [selectedYmd, setSelectedYmd] = useState(DEMO_DOCTOR_DAY);
   const [slotIndex, setSlotIndex] = useState(0);
   const [format, setFormat] = useState<VisitFormat>('offline');
+  const [sessionOpen, setSessionOpen] = useState(false);
 
-  useEffect(() => {
+  if (open !== sessionOpen) {
+    setSessionOpen(open);
     if (open && visit) {
       setSelectedYmd(DEMO_DOCTOR_DAY);
       setSlotIndex(0);
       setFormat(visit.format);
     }
-  }, [open, visit]);
+  }
 
   if (!visit) {
     return null;
@@ -229,8 +233,8 @@ export const ProposeTimeDialog = ({
   const slotIso = slotIsos[slotIndex] ?? slotIsos[0];
 
   const doctorLabel = me
-    ? t('modals.doctorShort', { name: `${me.firstName} ${me.lastName}` })
-    : t('modals.doctorShort', { name: 'Оксана Коваленко' });
+    ? t('modals.doctorShort', { name: me.firstName })
+    : t('modals.doctorShort', { name: '—' });
 
   return (
     <ProposeDialog open={open} onClose={onClose} fullWidth>

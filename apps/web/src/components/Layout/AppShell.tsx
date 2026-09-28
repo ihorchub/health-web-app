@@ -1,4 +1,5 @@
-import { styled } from '@mui/material';
+import { styled } from '@/theme/styled';
+
 import type { ReactNode } from 'react';
 
 const Shell = styled('div')({

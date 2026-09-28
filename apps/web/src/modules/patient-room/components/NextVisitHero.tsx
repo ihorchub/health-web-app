@@ -1,6 +1,5 @@
 import { useTranslation } from 'react-i18next';
 
-import { findMockDoctor } from '@/api/mocks/doctorsFixtures';
 import {
   DangerOutlineButton,
   DoctorLine,
@@ -8,10 +7,13 @@ import {
   MetaLine,
   NextVisitBody,
   NextVisitCard,
+  NextVisitContent,
   NextVisitHead,
   OutlineButton,
   OverlineLabel,
   RowActions,
+  RowAvatar,
+  RowAvatarFallback,
   StatusPill,
   TimeBlock,
   TimeMeta,
@@ -19,7 +21,9 @@ import {
   VisitMain,
 } from '@/modules/patient-room/styles';
 import type { CabinetAppointment } from '@/modules/patient-room/types';
-import { formatTime } from '@/modules/patient-room/utils/formatCabinetDate';
+import { formatRelativeDayLabel, formatTime } from '@/modules/patient-room/utils/formatCabinetDate';
+import { doctorDisplayName } from '@/modules/patient-room/utils/mapCabinet';
+import { resolveMediaUrl } from '@/utils/mediaUrl';
 
 interface NextVisitHeroProps {
   appointment: CabinetAppointment;
@@ -38,12 +42,19 @@ export const NextVisitHero = ({
 }: NextVisitHeroProps) => {
   const { t, i18n } = useTranslation(['cabinet', 'search']);
   const isPending = appointment.status === 'reschedule_pending';
-  const doctor = findMockDoctor(appointment.doctorId);
-  const doctorName = doctor
-    ? `${doctor.firstName} ${doctor.lastName}`
-    : appointment.doctorId;
-  const specialty = doctor ? t(`search:specialties.${doctor.specialty}`) : '';
-  const clinicLabel = t('cabinet:demoClinic');
+  const doctorName = doctorDisplayName(appointment);
+  const specialty = appointment.specialty
+    ? t(`search:specialties.${appointment.specialty}`, {
+        defaultValue: appointment.specialty,
+      })
+    : '';
+  const clinicLabel = appointment.clinicName;
+  const photoUrl = resolveMediaUrl(appointment.doctorPhotoUrl);
+  const initials = `${appointment.doctorFirstName.charAt(0)}${appointment.doctorLastName.charAt(0)}`;
+  const dayLabel = formatRelativeDayLabel(appointment.startsAt, i18n.language, {
+    today: t('cabinet:today'),
+    tomorrow: t('cabinet:upcoming.tomorrow'),
+  });
 
   return (
     <NextVisitCard
@@ -67,22 +78,33 @@ export const NextVisitHero = ({
       </NextVisitHead>
 
       <NextVisitBody>
-        <TimeBlock>
-          <TimeValue>{formatTime(appointment.startsAt, i18n.language)}</TimeValue>
-          <TimeMeta>
-            {t('cabinet:nextVisit.todayDuration', { minutes: appointment.durationMinutes })}
-          </TimeMeta>
-        </TimeBlock>
+        <NextVisitContent>
+          {photoUrl ? (
+            <RowAvatar src={photoUrl} alt="" />
+          ) : (
+            <RowAvatarFallback aria-hidden>{initials}</RowAvatarFallback>
+          )}
 
-        <VisitMain>
-          <DoctorLine>{doctorName}</DoctorLine>
-          <MetaLine>
-            <FormatChip>{t(`cabinet:format.${appointment.format}`)}</FormatChip>
-            <span>
-              {specialty} · {clinicLabel}
-            </span>
-          </MetaLine>
-        </VisitMain>
+          <TimeBlock>
+            <TimeValue>{formatTime(appointment.startsAt, i18n.language)}</TimeValue>
+            <TimeMeta>
+              {t('cabinet:nextVisit.dayDuration', {
+                day: dayLabel,
+                minutes: appointment.durationMinutes,
+              })}
+            </TimeMeta>
+          </TimeBlock>
+
+          <VisitMain>
+            <DoctorLine>{doctorName}</DoctorLine>
+            <MetaLine>
+              <FormatChip>{t(`cabinet:format.${appointment.format}`)}</FormatChip>
+              <span>
+                {specialty} · {clinicLabel}
+              </span>
+            </MetaLine>
+          </VisitMain>
+        </NextVisitContent>
 
         <RowActions>
           {isPending ? (

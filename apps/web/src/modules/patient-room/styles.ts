@@ -1,4 +1,5 @@
-import { Button, styled } from '@mui/material';
+import { Button } from '@mui/material';
+import { styled } from '@/theme/styled';
 
 import { SheetDialog } from '@/components/Dialog/SheetDialog';
 
@@ -236,6 +237,14 @@ export const NextVisitBody = styled('div')(({ theme }) => ({
   },
 }));
 
+export const NextVisitContent = styled('div')({
+  display: 'flex',
+  alignItems: 'flex-start',
+  gap: 12,
+  flex: 1,
+  minWidth: 0,
+});
+
 export const TimeBlock = styled('div')({
   display: 'flex',
   flexDirection: 'column',
@@ -338,17 +347,41 @@ export const DangerOutlineButton = styled(OutlineButton)(({ theme }) => ({
 
 export const VisitRow = styled(CardSurface)(({ theme }) => ({
   display: 'flex',
-  flexDirection: 'column',
-  gap: theme.spacing(1.5),
+  flexWrap: 'wrap',
+  alignItems: 'flex-start',
+  gap: 12,
   padding: theme.spacing(2, 2.25),
   borderRadius: 12,
   marginBottom: theme.spacing(1),
 
   [theme.breakpoints.up('md')]: {
-    flexDirection: 'row',
+    flexWrap: 'nowrap',
     alignItems: 'center',
-    gap: theme.spacing(2),
   },
+}));
+
+export const RowAvatar = styled('img')({
+  width: 48,
+  height: 48,
+  borderRadius: 999,
+  objectFit: 'cover',
+  flexShrink: 0,
+});
+
+export const RowAvatarFallback = styled('div')(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  width: 48,
+  height: 48,
+  borderRadius: 999,
+  flexShrink: 0,
+  backgroundColor: theme.palette.brand.main,
+  color: theme.palette.onBrand,
+  fontFamily: theme.typography.fontFamily,
+  fontSize: 13,
+  lineHeight: '16px',
+  fontWeight: 700,
 }));
 
 export const RowDateLabel = styled('span')(({ theme }) => ({
@@ -472,6 +505,29 @@ export const CalendarHeader = styled('div')(({ theme }) => ({
   alignItems: 'center',
   justifyContent: 'space-between',
   gap: theme.spacing(1),
+}));
+
+export const CalendarNavButton = styled('button')(({ theme }) => ({
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  width: 28,
+  height: 28,
+  padding: 0,
+  border: 'none',
+  borderRadius: 0,
+  background: 'transparent',
+  color: theme.palette.text.secondary,
+  cursor: 'pointer',
+  appearance: 'none',
+  WebkitAppearance: 'none',
+  '&:hover': {
+    color: theme.palette.text.primary,
+  },
+  '&:disabled': {
+    opacity: 0.4,
+    cursor: 'default',
+  },
 }));
 
 export const CalendarMonth = styled('span')(({ theme }) => ({
@@ -686,13 +742,6 @@ export const StateBox = styled('div')(({ theme }) => ({
   backgroundColor: theme.palette.background.paper,
   border: `1px solid ${theme.palette.divider}`,
 }));
-
-export const StateMascot = styled('img')({
-  width: 120,
-  height: 120,
-  objectFit: 'contain',
-  flexShrink: 0,
-});
 
 export const StateTitle = styled('div')(({ theme }) => ({
   fontFamily: theme.typography.fontFamily,
@@ -978,12 +1027,12 @@ export const CalendarDayRowMain = styled('div')({
   minWidth: 0,
 });
 
-export const CalendarDayRowNameLine = styled('div')(({ theme }) => ({
+export const CalendarDayRowNameLine = styled('div')({
   display: 'flex',
   flexWrap: 'wrap',
   alignItems: 'center',
   gap: 8,
-}));
+});
 
 export const CalendarDayRowDoctor = styled('span')(({ theme }) => ({
   fontFamily: theme.typography.fontFamily,
@@ -1352,11 +1401,11 @@ export const VisitDetailBody = styled('div')(({ theme }) => ({
   padding: theme.spacing(2.5, 3.5),
 }));
 
-export const VisitDetailMeta = styled('div')(({ theme }) => ({
+export const VisitDetailMeta = styled('div')({
   display: 'flex',
   alignItems: 'flex-start',
   gap: 14,
-}));
+});
 
 export const VisitDetailAvatar = styled('img')(({ theme }) => ({
   width: 64,

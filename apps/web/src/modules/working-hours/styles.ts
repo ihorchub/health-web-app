@@ -1,4 +1,5 @@
-import { Button, MenuItem, TextField, styled } from '@mui/material';
+import { Button, MenuItem, TextField } from '@mui/material';
+import { styled } from '@/theme/styled';
 
 const zoneAFill = (mode: 'light' | 'dark') =>
   mode === 'light' ? 'rgba(232, 197, 192, 0.27)' : 'rgba(74, 56, 54, 0.55)';
@@ -247,12 +248,12 @@ export const ZoneStrip = styled('div')<{ $tone: 'a' | 'b' }>(({ theme, $tone }) 
     $tone === 'a' ? theme.palette.slotReservedBg : mintSoft(theme.palette.mode),
 }));
 
-export const ZoneStripCopy = styled('div')(({ theme }) => ({
+export const ZoneStripCopy = styled('div')({
   display: 'flex',
   flexDirection: 'column',
   gap: 4,
   minWidth: 0,
-}));
+});
 
 export const ZoneStripTitle = styled('strong')<{ $tone: 'a' | 'b' }>(({ theme, $tone }) => ({
   fontSize: 13,
@@ -422,12 +423,12 @@ export const ZonePanel = styled(Card)(({ theme }) => ({
   },
 }));
 
-export const ZoneHead = styled('div')(({ theme }) => ({
+export const ZoneHead = styled('div')({
   display: 'flex',
   alignItems: 'center',
   gap: 10,
   flexWrap: 'wrap',
-}));
+});
 
 export const ZoneTitle = styled('h3')(({ theme }) => ({
   margin: 0,
@@ -477,11 +478,11 @@ export const SectionLabel = styled('strong')(({ theme }) => ({
   color: theme.palette.text.primary,
 }));
 
-export const ParamList = styled('div')(({ theme }) => ({
+export const ParamList = styled('div')({
   display: 'flex',
   flexDirection: 'column',
   gap: 10,
-}));
+});
 
 export const ParamRow = styled('div')(({ theme }) => ({
   display: 'flex',
@@ -500,11 +501,11 @@ export const BulkSection = styled('div')(({ theme }) => ({
   borderTop: `1px solid ${theme.palette.divider}`,
 }));
 
-export const RadioGroup = styled('div')(({ theme }) => ({
+export const RadioGroup = styled('div')({
   display: 'flex',
   flexDirection: 'column',
   gap: 10,
-}));
+});
 
 export const RadioRow = styled('label')<{ $active?: boolean }>(({ theme, $active }) => ({
   display: 'flex',
@@ -541,11 +542,11 @@ export const RadioDot = styled('span')<{ $active?: boolean }>(({ theme, $active 
     : {},
 }));
 
-export const ReasonBlock = styled('div')(({ theme }) => ({
+export const ReasonBlock = styled('div')({
   display: 'flex',
   flexDirection: 'column',
   gap: 6,
-}));
+});
 
 export const ReasonHint = styled('span')(({ theme }) => ({
   fontSize: 13,
@@ -746,13 +747,13 @@ export const Mascot = styled('img')({
   objectFit: 'contain',
 });
 
-export const ModalPaper = styled('div')(({ theme }) => ({
+export const ModalPaper = styled('div')({
   display: 'flex',
   flexDirection: 'column',
   gap: 20,
   width: '100%',
   boxSizing: 'border-box',
-}));
+});
 
 export const ModalHeaderRow = styled('div')(({ theme }) => ({
   display: 'flex',
@@ -880,11 +881,11 @@ export const GhostModalButton = styled(Button)(({ theme }) => ({
   color: theme.palette.text.primary,
 }));
 
-export const DayChips = styled('div')(({ theme }) => ({
+export const DayChips = styled('div')({
   display: 'flex',
   flexWrap: 'wrap',
   gap: 10,
-}));
+});
 
 export const DaysBlock = styled('div')({
   display: 'flex',

@@ -8,23 +8,27 @@ import type { MultipartFile } from "@fastify/multipart";
 import { newId } from "./ids.js";
 
 const MAX_BYTES = 10 * 1024 * 1024;
-const ALLOWED_TYPES = new Set([
+const LICENSE_TYPES = new Set([
   "image/jpeg",
   "image/png",
   "image/webp",
   "application/pdf",
 ]);
+const PHOTO_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
-export async function saveLicenseFile(file: MultipartFile): Promise<string> {
-  if (!ALLOWED_TYPES.has(file.mimetype)) {
+async function saveUpload(
+  file: MultipartFile,
+  opts: { subdir: string; prefix: string; allowedTypes: Set<string> },
+): Promise<string> {
+  if (!opts.allowedTypes.has(file.mimetype)) {
     throw new Error("INVALID_FILE_TYPE");
   }
 
-  const dir = path.resolve(process.cwd(), "uploads", "licenses");
+  const dir = path.resolve(process.cwd(), "uploads", opts.subdir);
   await mkdir(dir, { recursive: true });
 
   const ext = path.extname(file.filename) || ".bin";
-  const key = `${newId("lic")}${ext}`;
+  const key = `${newId(opts.prefix)}${ext}`;
   const absolute = path.join(dir, key);
 
   await pipeline(file.file, createWriteStream(absolute, { flags: "w" }));
@@ -35,5 +39,14 @@ export async function saveLicenseFile(file: MultipartFile): Promise<string> {
     throw new Error("FILE_TOO_LARGE");
   }
 
-  return `uploads/licenses/${key}`;
+  return `uploads/${opts.subdir}/${key}`;
+}
+
+export async function saveLicenseFile(file: MultipartFile): Promise<string> {
+  return saveUpload(file, { subdir: "licenses", prefix: "lic", allowedTypes: LICENSE_TYPES });
+}
+
+/** SCR-07 profile photo — images only, max 10 MB; path stored in DB, file on disk. */
+export async function saveProfilePhoto(file: MultipartFile): Promise<string> {
+  return saveUpload(file, { subdir: "photos", prefix: "photo", allowedTypes: PHOTO_TYPES });
 }

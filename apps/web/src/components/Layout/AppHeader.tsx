@@ -1,6 +1,7 @@
 import { IconMenu2, IconX } from '@tabler/icons-react';
-import { styled } from '@mui/material';
-import { useEffect, useState } from 'react';
+import { styled } from '@/theme/styled';
+
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link as RouterLink } from 'react-router-dom';
 
@@ -118,10 +119,12 @@ export const AppHeader = () => {
   const { t } = useTranslation('common');
   const { role } = useAppRole();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [menuRole, setMenuRole] = useState(role);
 
-  useEffect(() => {
+  if (role !== menuRole) {
+    setMenuRole(role);
     setMenuOpen(false);
-  }, [role]);
+  }
 
   const closeMenu = () => {
     setMenuOpen(false);

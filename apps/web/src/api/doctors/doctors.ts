@@ -1,10 +1,24 @@
-import { customInstance } from '@/api/mutator/customInstance';
+import { getDoctorMeDashboard as generatedGetDoctorMeDashboard } from '@/api/generated/doctor-schedule/doctor-schedule';
+import {
+  getDoctorById as generatedGetDoctorById,
+  getDoctorCalendar as generatedGetDoctorCalendar,
+  getDoctorsSearch as generatedGetDoctorsSearch,
+} from '@/api/generated/doctors/doctors';
+import type {
+  DoctorCalendarParams,
+  DoctorCalendarResponse,
+} from '@/api/doctors/calendar.types';
+import type {
+  DoctorDashboardParams,
+  DoctorDashboardResponse,
+} from '@/api/doctors/dashboard.types';
 import type {
   AvailabilityFilter,
   DoctorProfile,
   DoctorsSearchParams,
   DoctorsSearchResponse,
 } from '@/api/doctors/types';
+import { getZoneARange, toIsoDate } from '@/utils/dateUtils/rollingMonth';
 
 const pad2 = (value: number) => String(value).padStart(2, '0');
 
@@ -44,17 +58,48 @@ export const getDoctorsSearch = (params: DoctorsSearchParams = {}) => {
     apiParams.format = format;
   }
 
-  return customInstance<DoctorsSearchResponse>({
-    url: '/v1/doctors/search',
-    method: 'GET',
-    params: apiParams,
-  });
+  return generatedGetDoctorsSearch(apiParams) as Promise<DoctorsSearchResponse>;
 };
 
 /** GET /api/v1/doctors/:doctorId */
 export const getDoctorById = (doctorId: string) => {
-  return customInstance<DoctorProfile>({
-    url: `/v1/doctors/${encodeURIComponent(doctorId)}`,
-    method: 'GET',
-  });
+  return generatedGetDoctorById(doctorId) as Promise<DoctorProfile>;
+};
+
+/**
+ * Month grid needs day flags — BE only fills `days` when `from`+`to` are set.
+ * Default window: first day of Zone A month → last day of the next month (SCR-04 UI).
+ */
+const defaultCalendarRange = () => {
+  const { zoneAStart, zoneAEnd } = getZoneARange();
+  const from = new Date(zoneAStart.getFullYear(), zoneAStart.getMonth(), 1);
+  const to = new Date(zoneAEnd.getFullYear(), zoneAEnd.getMonth() + 1, 0);
+  return { from: toIsoDate(from), to: toIsoDate(to) };
+};
+
+/** GET /api/v1/doctors/:doctorId/calendar — patient auth. */
+export const getDoctorCalendar = async (
+  doctorId: string,
+  params: DoctorCalendarParams = {},
+): Promise<DoctorCalendarResponse> => {
+  const range = defaultCalendarRange();
+  const data = (await generatedGetDoctorCalendar(doctorId, {
+    date: params.date,
+    from: params.from ?? range.from,
+    to: params.to ?? range.to,
+    contextAppointmentId: params.contextAppointmentId,
+  })) as DoctorCalendarResponse;
+
+  // UI chips are bookable free starts only (mock previously filtered the same way).
+  return {
+    ...data,
+    slots: data.slots.filter((slot) => slot.status === 'free'),
+  };
+};
+
+/** GET /api/v1/doctors/me/dashboard */
+export const getDoctorMeDashboard = (params: DoctorDashboardParams) => {
+  return generatedGetDoctorMeDashboard({ date: params.date }) as Promise<
+    DoctorDashboardResponse
+  >;
 };

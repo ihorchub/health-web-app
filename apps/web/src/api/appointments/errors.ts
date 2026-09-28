@@ -34,12 +34,19 @@ export class SlotNotFreeError extends Error {
   }
 }
 
+import { getApiErrorCode } from '@/api/errors';
+
 export const isSlotTakenError = (error: unknown): error is SlotTakenError => {
-  return (
-    error instanceof SlotTakenError ||
-    (typeof error === 'object' &&
-      error !== null &&
-      'code' in error &&
-      (error as { code: string }).code === 'SLOT_TAKEN')
-  );
+  if (error instanceof SlotTakenError) {
+    return true;
+  }
+  if (
+    typeof error === 'object' &&
+    error !== null &&
+    'code' in error &&
+    (error as { code: string }).code === 'SLOT_TAKEN'
+  ) {
+    return true;
+  }
+  return getApiErrorCode(error) === 'SLOT_TAKEN';
 };

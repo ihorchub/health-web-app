@@ -3,10 +3,19 @@ import type { FastifyPluginAsync } from "fastify";
 
 import { ApiError } from "../lib/errors.js";
 import {
+  AppointmentMutationResponse,
+  BookAppointmentResponse,
+  PendingDecisionResponse,
+  ReschedulePairResponse,
+} from "../openapi/schemas.js";
+import {
   autoCompleteDueAppointments,
   bookAppointment,
   cancelAppointment,
+  doctorPropose,
+  getPendingDecision,
   markCompleted,
+  patientAcceptProposal,
   patientReschedule,
   type AppointmentRecord,
 } from "../services/appointments.js";
@@ -18,12 +27,15 @@ function toDto(appointment: AppointmentRecord) {
   return {
     id: appointment.id,
     doctorId: appointment.doctorId,
+    patientId: appointment.patientId,
     startAt: appointment.startAt.toISOString(),
     endAt: endAt.toISOString(),
     format: appointment.format,
     status: appointment.status,
     reason: appointment.reason,
     visitDurationMinutes: appointment.durationMinutes,
+    proposedStartAt: appointment.proposedStartAt?.toISOString() ?? null,
+    cancelledBy: appointment.cancelledBy,
   };
 }
 
@@ -33,17 +45,19 @@ function requireRole(sessionUser: { role: string } | null, role: "patient" | "do
 }
 
 export const appointmentsRoutes: FastifyPluginAsync = async (app) => {
-  // FLO-01 / SCR-05 — new book.
   app.post(
     "/api/v1/appointments",
     {
       schema: {
+        tags: ["appointments"],
+        operationId: "postBookAppointment",
         body: Type.Object({
           doctorId: Type.String(),
           startAt: Type.String(),
           format: Format,
           reason: Type.Optional(Type.String()),
         }),
+        response: { 201: BookAppointmentResponse },
       },
     },
     async (request, reply) => {
@@ -68,17 +82,19 @@ export const appointmentsRoutes: FastifyPluginAsync = async (app) => {
     },
   );
 
-  // FLO-02 / SCR-05 — patient reschedules their own Upcoming appointment.
   app.post(
     "/api/v1/appointments/:id/reschedule",
     {
       schema: {
+        tags: ["appointments"],
+        operationId: "postRescheduleAppointment",
         params: Type.Object({ id: Type.String() }),
         body: Type.Object({
           newStartAt: Type.String(),
           format: Format,
           reason: Type.Optional(Type.String()),
         }),
+        response: { 200: ReschedulePairResponse },
       },
     },
     async (request) => {
@@ -102,10 +118,16 @@ export const appointmentsRoutes: FastifyPluginAsync = async (app) => {
     },
   );
 
-  // FLO-04 — patient or doctor cancels (SCR-06 / SCR-08 / SCR-12).
   app.post(
     "/api/v1/appointments/:id/cancel",
-    { schema: { params: Type.Object({ id: Type.String() }) } },
+    {
+      schema: {
+        tags: ["appointments"],
+        operationId: "postCancelAppointment",
+        params: Type.Object({ id: Type.String() }),
+        response: { 200: AppointmentMutationResponse },
+      },
+    },
     async (request) => {
       if (!request.sessionUser) throw new ApiError("AUTH_UNAUTHORIZED", 401);
       const { id } = request.params as { id: string };
@@ -120,10 +142,16 @@ export const appointmentsRoutes: FastifyPluginAsync = async (app) => {
     },
   );
 
-  // SCR-08 — doctor marks a visit Completed.
   app.post(
     "/api/v1/appointments/:id/complete",
-    { schema: { params: Type.Object({ id: Type.String() }) } },
+    {
+      schema: {
+        tags: ["appointments"],
+        operationId: "postCompleteAppointment",
+        params: Type.Object({ id: Type.String() }),
+        response: { 200: AppointmentMutationResponse },
+      },
+    },
     async (request) => {
       requireRole(request.sessionUser, "doctor");
       const { id } = request.params as { id: string };
@@ -133,10 +161,84 @@ export const appointmentsRoutes: FastifyPluginAsync = async (app) => {
       return { appointment: toDto(appointment) };
     },
   );
+
+  app.post(
+    "/api/v1/appointments/:id/propose",
+    {
+      schema: {
+        tags: ["appointments"],
+        operationId: "postProposeAppointment",
+        params: Type.Object({ id: Type.String() }),
+        body: Type.Object({
+          proposedStartAt: Type.String(),
+          format: Type.Optional(Format),
+        }),
+        response: { 200: AppointmentMutationResponse },
+      },
+    },
+    async (request) => {
+      requireRole(request.sessionUser, "doctor");
+      const { id } = request.params as { id: string };
+      const { proposedStartAt, format } = request.body as {
+        proposedStartAt: string;
+        format?: "offline" | "online";
+      };
+
+      const appointment = await doctorPropose({
+        appointmentId: id,
+        doctorId: request.sessionUser!.id,
+        proposedStartAt: new Date(proposedStartAt),
+        format,
+      });
+
+      return { appointment: toDto(appointment) };
+    },
+  );
+
+  app.get(
+    "/api/v1/appointments/:id/pending-decision",
+    {
+      schema: {
+        tags: ["appointments"],
+        operationId: "getPendingDecision",
+        params: Type.Object({ id: Type.String() }),
+        response: { 200: PendingDecisionResponse },
+      },
+    },
+    async (request) => {
+      requireRole(request.sessionUser, "patient");
+      const { id } = request.params as { id: string };
+      return getPendingDecision({ appointmentId: id, patientId: request.sessionUser!.id });
+    },
+  );
+
+  app.post(
+    "/api/v1/appointments/:id/accept-proposal",
+    {
+      schema: {
+        tags: ["appointments"],
+        operationId: "postAcceptProposal",
+        params: Type.Object({ id: Type.String() }),
+        response: { 200: ReschedulePairResponse },
+      },
+    },
+    async (request) => {
+      requireRole(request.sessionUser, "patient");
+      const { id } = request.params as { id: string };
+      const { oldAppointment, newAppointment } = await patientAcceptProposal({
+        appointmentId: id,
+        patientId: request.sessionUser!.id,
+      });
+      return { oldAppointment: toDto(oldAppointment), newAppointment: toDto(newAppointment) };
+    },
+  );
 };
 
-/** Auto-complete job (backend-spec.md): runs periodically, `Upcoming` -> `Completed` past end time. */
 export function startAutoCompleteJob(intervalMs = 60_000): NodeJS.Timeout {
+  void autoCompleteDueAppointments().catch((err) => {
+    // eslint-disable-next-line no-console
+    console.error("autoCompleteDueAppointments failed", err);
+  });
   return setInterval(() => {
     autoCompleteDueAppointments().catch((err) => {
       // eslint-disable-next-line no-console

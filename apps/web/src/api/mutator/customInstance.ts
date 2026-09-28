@@ -16,6 +16,7 @@ type CancellablePromise<T> = Promise<T> & {
   cancel: () => void;
 };
 
+/** Orval Axios mutator (`httpClient: 'axios'`). */
 export const customInstance = <T>(
   config: AxiosRequestConfig,
   options?: AxiosRequestConfig,
@@ -36,3 +37,4 @@ export const customInstance = <T>(
 };
 
 export type ErrorType<Error> = AxiosError<Error>;
+export type BodyType<BodyData> = BodyData;

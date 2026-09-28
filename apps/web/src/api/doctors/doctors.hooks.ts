@@ -1,10 +1,15 @@
 import { useQuery } from '@tanstack/react-query';
 
+import {
+  getDoctorById,
+  getDoctorCalendar,
+  getDoctorMeDashboard,
+  getDoctorsSearch,
+} from '@/api/doctors/doctors';
 import type {
   DoctorDashboardParams,
   DoctorDashboardResponse,
 } from '@/api/doctors/dashboard.types';
-import { getDoctorById, getDoctorsSearch } from '@/api/doctors/doctors';
 import type {
   DoctorCalendarParams,
   DoctorCalendarResponse,
@@ -12,8 +17,6 @@ import type {
   DoctorsSearchParams,
   DoctorsSearchResponse,
 } from '@/api/doctors/types';
-import { mockGetDoctorCalendar } from '@/api/mocks/doctorCalendar';
-import { mockGetDoctorMeDashboard } from '@/api/mocks/doctorDashboard';
 
 export const doctorsQueryKeys = {
   search: (params: DoctorsSearchParams, roleKey: string) =>
@@ -71,7 +74,7 @@ interface UseGetDoctorCalendarOptions {
   refetchIntervalMs?: number | false;
 }
 
-/** Orval-shaped — GET /api/v1/doctors/:doctorId/calendar */
+/** GET /api/v1/doctors/:doctorId/calendar */
 export const useGetDoctorCalendar = (
   doctorId: string | undefined,
   params: DoctorCalendarParams,
@@ -79,7 +82,7 @@ export const useGetDoctorCalendar = (
 ) => {
   return useQuery<DoctorCalendarResponse>({
     queryKey: doctorsQueryKeys.calendar(doctorId ?? '', params),
-    queryFn: () => mockGetDoctorCalendar(doctorId!, params),
+    queryFn: () => getDoctorCalendar(doctorId!, params),
     enabled: Boolean(doctorId) && (options.enabled ?? true),
     refetchInterval: options.refetchIntervalMs ?? false,
     refetchOnWindowFocus: true,
@@ -91,14 +94,14 @@ interface UseGetDoctorMeDashboardOptions {
   enabled?: boolean;
 }
 
-/** Orval-shaped — GET /api/v1/doctors/me/dashboard */
+/** GET /api/v1/doctors/me/dashboard */
 export const useGetDoctorMeDashboard = (
   params: DoctorDashboardParams,
   options: UseGetDoctorMeDashboardOptions = {},
 ) => {
   return useQuery<DoctorDashboardResponse>({
     queryKey: doctorsQueryKeys.meDashboard(params),
-    queryFn: () => mockGetDoctorMeDashboard(params.date),
+    queryFn: () => getDoctorMeDashboard(params),
     enabled: Boolean(params.date) && (options.enabled ?? true),
   });
 };
@@ -121,7 +124,6 @@ export type {
   DoctorDashboardResponse,
   DoctorDashboardVisit,
   DoctorDashboardMetrics,
-  DoctorDashboardPendingPatient,
-  DoctorDashboardFreeWindow,
   ProposeAppointmentBody,
+  ProposeAppointmentResponse,
 } from '@/api/doctors/dashboard.types';

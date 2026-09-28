@@ -65,6 +65,10 @@ export async function getDoctorCalendar(input: GetDoctorCalendarInput): Promise<
   const occupancy = await loadOccupancyInRange(input.doctorId, rangeStartUtc, rangeEndExclusiveUtc);
 
   const slotsForDate = (dateLocal: CalendarDate) => {
+    const dateIso = formatCalendarDate(dateLocal);
+    if (doctor.vacationDates.includes(dateIso)) {
+      return [] as CalendarSlot[];
+    }
     const bounds = dayBoundsUtc(dateLocal);
     const dayOccupancy: OccupancyEntry[] = occupancy.filter(
       (entry) => entry.startAt.getTime() >= bounds.startUtc.getTime() && entry.startAt.getTime() < bounds.endExclusiveUtc.getTime(),

@@ -7,6 +7,18 @@
   "activeBadge": "Profile active",
   "viewPublicProfile": "View my profile",
   "changePhoto": "Change photo",
+  "photoInvalidType": "Use a JPEG, PNG or WebP image",
+  "photoTooLarge": "Photo must be under 10 MB",
+  "photoSaved": "Photo updated",
+  "photoRemoved": "Photo removed",
+  "photoFailed": "Could not upload photo",
+  "removePhoto": "Remove photo",
+  "photoCrop": {
+    "title": "Adjust photo",
+    "hint": "Drag to reposition. Use zoom so your face sits in the circle.",
+    "zoom": "Zoom",
+    "apply": "Use photo"
+  },
   "edit": "Edit",
   "save": "Save",
   "cancel": "Cancel",
