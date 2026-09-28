@@ -53,7 +53,8 @@ export const usePatchPatientProfile = () => {
 
   return useMutation<PatientProfileDto, Error, PatientProfilePatch>({
     mutationFn: (body) => patchPatientProfile(body),
-    onSuccess: () => {
+    onSuccess: (data) => {
+      queryClient.setQueryData(patientsQueryKeys.profile(), data);
       void queryClient.invalidateQueries({ queryKey: patientsQueryKeys.profile() });
       void queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
     },

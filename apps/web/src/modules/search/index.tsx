@@ -10,7 +10,6 @@ import {
   useGetReferenceSpecialties,
 } from '@/api/reference';
 import { useAppRole } from '@/hooks/useAppRole';
-import { cityNameMap, useClinicNamesByCityIds } from '@/hooks/useClinicNamesByCityIds';
 import { DoctorsSection } from '@/modules/search/components/DoctorsSection';
 import {
   FilterPanel,
@@ -113,16 +112,6 @@ export const SearchPage = () => {
     }
   }, [isPatient]);
 
-  const doctorCityIds = useMemo(
-    () => (doctorsQuery.data?.items ?? []).map((doctor) => doctor.cityId),
-    [doctorsQuery.data?.items],
-  );
-  const cityNameById = useMemo(
-    () => cityNameMap(citiesQuery.data?.items ?? []),
-    [citiesQuery.data?.items],
-  );
-  const clinicNameById = useClinicNamesByCityIds(doctorCityIds);
-
   const updateFilters = (next: Partial<SearchFiltersState>) => {
     setFilters((current) => ({ ...current, ...next }));
     setLimit(PAGE_SIZE);
@@ -199,8 +188,8 @@ export const SearchPage = () => {
               items={doctorsQuery.data?.items ?? []}
               total={doctorsQuery.data?.total ?? 0}
               sort={sort}
-              cityNameById={cityNameById}
-              clinicNameById={clinicNameById}
+              cityNameById={{}}
+              clinicNameById={{}}
               isLoading={doctorsQuery.isLoading && !doctorsQuery.data}
               isError={doctorsQuery.isError}
               hasMore={Boolean(doctorsQuery.data?.nextCursor)}

@@ -1,3 +1,4 @@
+import { getDoctorMeProfile as generatedGetDoctorMeProfile } from '@/api/generated/doctor-schedule/doctor-schedule';
 import { customInstance } from '@/api/mutator/customInstance';
 
 export type DoctorEducationDto = {
@@ -53,14 +54,12 @@ export type DoctorMeProfilePatch = Partial<{
     yearTo?: number;
   }>;
   photo: File;
+  photoUrl: string | null;
 }>;
 
 /** GET /api/v1/doctors/me/profile */
 export const getDoctorMeProfile = () => {
-  return customInstance<DoctorMeProfileDto>({
-    url: '/v1/doctors/me/profile',
-    method: 'GET',
-  });
+  return generatedGetDoctorMeProfile() as Promise<DoctorMeProfileDto>;
 };
 
 /** PATCH /api/v1/doctors/me/profile */

@@ -8,7 +8,7 @@ import {
   IconUser,
   IconWorld,
 } from '@tabler/icons-react';
-import { useEffect, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
@@ -22,6 +22,7 @@ import { ProfileAvatar } from '@/modules/profile/components/ProfileAvatar';
 import { ProfileFieldRow } from '@/modules/profile/components/ProfileFieldRow';
 import { ProfileSavingOverlay } from '@/modules/profile/components/ProfileSavingOverlay';
 import { ProfileSectionHeader } from '@/modules/profile/components/ProfileSectionHeader';
+import { useProfilePhotoInput } from '@/modules/profile/hooks/useProfilePhotoInput';
 import {
   ActionRow,
   Content,
@@ -68,23 +69,41 @@ export const PatientProfileView = () => {
   const citiesQuery = useGetReferenceCities();
   const clinicsQuery = useGetReferenceClinics(profileQuery.data?.homeCityId ?? undefined);
 
-  const [profile, setProfile] = useState<PatientProfileData | null>(null);
+  const [draft, setDraft] = useState<PatientProfileData | null>(null);
   const [editing, setEditing] = useState<ProfileSection | null>(null);
   const [saving, setSaving] = useState(false);
 
   const cityName =
-    citiesQuery.data?.items.find((city) => city.id === profileQuery.data?.homeCityId)?.name ??
-    '';
-  const clinicName =
-    clinicsQuery.data?.items.find((clinic) => clinic.id === profileQuery.data?.homeClinicId)
+    citiesQuery.data?.items.find((city) => city.id === profileQuery.data?.homeCityId)
       ?.name ?? '';
+  const clinicName =
+    clinicsQuery.data?.items.find(
+      (clinic) => clinic.id === profileQuery.data?.homeClinicId,
+    )?.name ?? '';
 
-  useEffect(() => {
+  const serverProfile = useMemo(() => {
     if (!profileQuery.data) {
-      return;
+      return null;
     }
-    setProfile(mapPatientDto(profileQuery.data, cityName, clinicName));
+    return mapPatientDto(profileQuery.data, cityName, clinicName);
   }, [profileQuery.data, cityName, clinicName]);
+
+  const profile = draft ?? serverProfile;
+
+  const applyPhotoUrl = (photoUrl: string | undefined) => {
+    setDraft((current) => (current ? { ...current, photoUrl } : current));
+  };
+
+  const { openPicker, fileInput, cropDialog } = useProfilePhotoInput(async (file) => {
+    setSaving(true);
+    try {
+      const updated = await patchMutation.mutateAsync({ photo: file });
+      applyPhotoUrl(updated.photoUrl ?? undefined);
+      toast.success(t('photoSaved'));
+    } finally {
+      setSaving(false);
+    }
+  });
 
   if (!profile) {
     return null;
@@ -93,11 +112,32 @@ export const PatientProfileView = () => {
   const initials = `${profile.firstName.charAt(0)}${profile.lastName.charAt(0)}`;
   const dobLabel = formatProfileDate(profile.dateOfBirth, i18n.language);
 
+  const beginEdit = (section: ProfileSection) => {
+    setDraft((current) => current ?? serverProfile);
+    setEditing(section);
+  };
+
   const cancelEdit = () => {
-    if (profileQuery.data) {
-      setProfile(mapPatientDto(profileQuery.data, cityName, clinicName));
-    }
+    setDraft(null);
     setEditing(null);
+  };
+
+  const updateDraft = (patch: Partial<PatientProfileData>) => {
+    setDraft((current) => {
+      const base = current ?? serverProfile;
+      return base ? { ...base, ...patch } : current;
+    });
+  };
+
+  const removePhoto = async () => {
+    setSaving(true);
+    try {
+      await patchMutation.mutateAsync({ photoUrl: null });
+      applyPhotoUrl(undefined);
+      toast.success(t('photoRemoved'));
+    } finally {
+      setSaving(false);
+    }
   };
 
   const saveEdit = async () => {
@@ -112,6 +152,7 @@ export const PatientProfileView = () => {
         ...(profile.cityId ? { homeCityId: profile.cityId } : {}),
         ...(profile.clinicId ? { homeClinicId: profile.clinicId } : {}),
       });
+      setDraft(null);
       setEditing(null);
       toast.success(t('saved'));
     } finally {
@@ -129,11 +170,15 @@ export const PatientProfileView = () => {
 
         <HeroCard>
           <HeroLeft>
+            {fileInput}
+            {cropDialog}
             <ProfileAvatar
               photoUrl={profile.photoUrl}
               initials={initials}
               cameraLabel={t('changePhoto')}
-              onCameraClick={() => undefined}
+              onCameraClick={openPicker}
+              removeLabel={t('removePhoto')}
+              onRemoveClick={profile.photoUrl ? () => void removePhoto() : undefined}
             />
             <HeroText>
               <HeroNameRow>
@@ -152,7 +197,7 @@ export const PatientProfileView = () => {
             editLabel={t('edit')}
             showEdit={editing !== 'basic'}
             onEdit={() => {
-              setEditing('basic');
+              beginEdit('basic');
             }}
           />
           {editing === 'basic' ? (
@@ -162,70 +207,35 @@ export const PatientProfileView = () => {
                   label={t('fields.firstName')}
                   value={profile.firstName}
                   onChange={(event) => {
-                    setProfile((current) =>
-                      current
-                        ? {
-                            ...current,
-                            firstName: event.target.value,
-                          }
-                        : current,
-                    );
+                    updateDraft({ firstName: event.target.value });
                   }}
                 />
                 <ProfileTextField
                   label={t('fields.lastName')}
                   value={profile.lastName}
                   onChange={(event) => {
-                    setProfile((current) =>
-                      current
-                        ? {
-                            ...current,
-                            lastName: event.target.value,
-                          }
-                        : current,
-                    );
+                    updateDraft({ lastName: event.target.value });
                   }}
                 />
                 <ProfileTextField
                   label={t('fields.dob')}
                   value={profile.dateOfBirth}
                   onChange={(event) => {
-                    setProfile((current) =>
-                      current
-                        ? {
-                            ...current,
-                            dateOfBirth: event.target.value,
-                          }
-                        : current,
-                    );
+                    updateDraft({ dateOfBirth: event.target.value });
                   }}
                 />
                 <ProfileTextField
                   label={t('fields.city')}
                   value={profile.cityName}
                   onChange={(event) => {
-                    setProfile((current) =>
-                      current
-                        ? {
-                            ...current,
-                            cityName: event.target.value,
-                          }
-                        : current,
-                    );
+                    updateDraft({ cityName: event.target.value });
                   }}
                 />
                 <ProfileTextField
                   label={t('fields.homeClinic')}
                   value={profile.clinicName}
                   onChange={(event) => {
-                    setProfile((current) =>
-                      current
-                        ? {
-                            ...current,
-                            clinicName: event.target.value,
-                          }
-                        : current,
-                    );
+                    updateDraft({ clinicName: event.target.value });
                   }}
                 />
               </FieldGrid>
@@ -286,7 +296,7 @@ export const PatientProfileView = () => {
             editLabel={t('edit')}
             showEdit={editing !== 'contact'}
             onEdit={() => {
-              setEditing('contact');
+              beginEdit('contact');
             }}
           />
           {editing === 'contact' ? (
@@ -296,18 +306,14 @@ export const PatientProfileView = () => {
                   label={t('fields.phone')}
                   value={profile.phone}
                   onChange={(event) => {
-                    setProfile((current) =>
-                      current ? { ...current, phone: event.target.value } : current,
-                    );
+                    updateDraft({ phone: event.target.value });
                   }}
                 />
                 <ProfileTextField
                   label={t('fields.email')}
                   value={profile.email}
                   onChange={(event) => {
-                    setProfile((current) =>
-                      current ? { ...current, email: event.target.value } : current,
-                    );
+                    updateDraft({ email: event.target.value });
                   }}
                 />
               </FieldGrid>

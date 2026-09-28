@@ -1,4 +1,4 @@
-import { Button, Dialog, TextField } from '@mui/material';
+import { Button, Dialog, Slider, TextField } from '@mui/material';
 import { styled } from '@/theme/styled';
 
 const cardShadow = '0 1px 2px rgba(22, 62, 82, 0.04)';
@@ -113,6 +113,7 @@ export const Avatar = styled('img')({
   height: 88,
   borderRadius: 999,
   objectFit: 'cover',
+  objectPosition: 'center',
   display: 'block',
 });
 
@@ -146,6 +147,24 @@ export const CameraButton = styled('button')(({ theme }) => ({
   boxShadow: '0 1px 3px rgba(22, 62, 82, 0.12)',
   cursor: 'pointer',
   color: theme.palette.text.primary,
+}));
+
+export const RemovePhotoButton = styled('button')(({ theme }) => ({
+  position: 'absolute',
+  right: 0,
+  top: 0,
+  width: 28,
+  height: 28,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: 0,
+  borderRadius: 999,
+  border: `1px solid ${theme.palette.divider}`,
+  backgroundColor: theme.palette.background.paper,
+  boxShadow: '0 1px 3px rgba(22, 62, 82, 0.12)',
+  cursor: 'pointer',
+  color: theme.palette.error.main,
 }));
 
 export const HeroText = styled('div')({
@@ -919,4 +938,105 @@ export const SavingHint = styled('p')(({ theme }) => ({
   fontSize: 14,
   lineHeight: '20px',
   color: theme.palette.text.secondary,
+}));
+
+/* Photo crop dialog */
+
+export const CropDialog = styled(Dialog)(({ theme }) => ({
+  '& .MuiDialog-paper': {
+    width: '100%',
+    maxWidth: 420,
+    margin: theme.spacing(2),
+    borderRadius: 20,
+    overflow: 'hidden',
+    backgroundColor: theme.palette.background.paper,
+  },
+}));
+
+export const CropShell = styled('div')(({ theme }) => ({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: theme.spacing(2.5),
+  padding: theme.spacing(3),
+}));
+
+export const CropTitle = styled('h2')(({ theme }) => ({
+  margin: 0,
+  fontFamily: theme.typography.fontFamily,
+  fontSize: 20,
+  lineHeight: '28px',
+  fontWeight: 700,
+  color: theme.palette.text.primary,
+}));
+
+export const CropHint = styled('p')(({ theme }) => ({
+  margin: 0,
+  fontFamily: theme.typography.fontFamily,
+  fontSize: 14,
+  lineHeight: '20px',
+  color: theme.palette.text.secondary,
+}));
+
+export const CropStage = styled('div')(({ theme }) => ({
+  position: 'relative',
+  width: 280,
+  height: 280,
+  margin: '0 auto',
+  borderRadius: '50%',
+  overflow: 'hidden',
+  cursor: 'grab',
+  touchAction: 'none',
+  backgroundColor: theme.palette.action.hover,
+  boxShadow: `inset 0 0 0 2px ${theme.palette.divider}`,
+  '&[data-dragging="true"]': {
+    cursor: 'grabbing',
+  },
+}));
+
+export const CropImage = styled('img')<{
+  $width: number;
+  $height: number;
+  $offsetX: number;
+  $offsetY: number;
+}>(({ $width, $height, $offsetX, $offsetY }) => ({
+  position: 'absolute',
+  left: '50%',
+  top: '50%',
+  width: $width || 'auto',
+  height: $height || 'auto',
+  maxWidth: 'none',
+  userSelect: 'none',
+  pointerEvents: 'none',
+  transformOrigin: 'center center',
+  transform: `translate(calc(-50% + ${$offsetX}px), calc(-50% + ${$offsetY}px))`,
+}));
+
+export const CropZoomRow = styled('div')(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  gap: theme.spacing(1.5),
+  width: '100%',
+}));
+
+export const CropZoomLabel = styled('span')(({ theme }) => ({
+  flexShrink: 0,
+  fontFamily: theme.typography.fontFamily,
+  fontSize: 13,
+  lineHeight: '18px',
+  fontWeight: 600,
+  color: theme.palette.text.secondary,
+  minWidth: 72,
+}));
+
+export const CropZoomSlider = styled(Slider)(({ theme }) => ({
+  flex: 1,
+  color: theme.palette.primary.main,
+  padding: '10px 0',
+}));
+
+export const CropActions = styled('div')(({ theme }) => ({
+  display: 'flex',
+  justifyContent: 'flex-end',
+  gap: theme.spacing(1.25),
+  marginTop: theme.spacing(0.5),
 }));

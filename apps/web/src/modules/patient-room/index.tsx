@@ -182,6 +182,7 @@ export const PatientCabinetPage = () => {
 
   const handleMoveVisit = (visit: CabinetAppointment) => {
     setDetailVisit(null);
+    storePendingReschedulePick(visit.id);
     void navigate(doctorProfilePath(visit.doctorId));
     updatePopup(Popups.DOCTOR_PROFILE, true, {
       doctorId: visit.doctorId,

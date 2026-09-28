@@ -1,3 +1,14 @@
+import {
+  deleteFavourite as generatedDeleteFavourite,
+  deleteRecentlyViewed as generatedDeleteRecentlyViewed,
+  getFavourites as generatedGetFavourites,
+  getPatientCabinet as generatedGetPatientCabinet,
+  getPatientProfile as generatedGetPatientProfile,
+  getRecentlyViewed as generatedGetRecentlyViewed,
+  postFavourite as generatedPostFavourite,
+  postRecentlyViewed as generatedPostRecentlyViewed,
+  postReview as generatedPostReview,
+} from '@/api/generated/patients/patients';
 import { customInstance } from '@/api/mutator/customInstance';
 import type {
   CreateReviewBody,
@@ -10,75 +21,47 @@ import type {
 
 /** GET /api/v1/patients/me/cabinet */
 export const getPatientCabinet = () => {
-  return customInstance<PatientCabinetResponse>({
-    url: '/v1/patients/me/cabinet',
-    method: 'GET',
-  });
+  return generatedGetPatientCabinet() as Promise<PatientCabinetResponse>;
 };
 
 /** GET /api/v1/patients/me/favourites */
 export const getFavourites = () => {
-  return customInstance<DoctorListResponse>({
-    url: '/v1/patients/me/favourites',
-    method: 'GET',
-  });
+  return generatedGetFavourites() as Promise<DoctorListResponse>;
 };
 
 /** POST /api/v1/patients/me/favourites/:doctorId */
 export const postFavourite = (doctorId: string) => {
-  return customInstance<{ ok: true }>({
-    url: `/v1/patients/me/favourites/${encodeURIComponent(doctorId)}`,
-    method: 'POST',
-  });
+  return generatedPostFavourite(doctorId) as Promise<{ ok: true }>;
 };
 
 /** DELETE /api/v1/patients/me/favourites/:doctorId */
 export const deleteFavourite = (doctorId: string) => {
-  return customInstance<{ ok: true }>({
-    url: `/v1/patients/me/favourites/${encodeURIComponent(doctorId)}`,
-    method: 'DELETE',
-  });
+  return generatedDeleteFavourite(doctorId) as Promise<{ ok: true }>;
 };
 
 /** GET /api/v1/patients/me/recently-viewed */
 export const getRecentlyViewed = () => {
-  return customInstance<DoctorListResponse>({
-    url: '/v1/patients/me/recently-viewed',
-    method: 'GET',
-  });
+  return generatedGetRecentlyViewed() as Promise<DoctorListResponse>;
 };
 
 /** POST /api/v1/patients/me/recently-viewed/:doctorId */
 export const postRecentlyViewed = (doctorId: string) => {
-  return customInstance<{ ok: true }>({
-    url: `/v1/patients/me/recently-viewed/${encodeURIComponent(doctorId)}`,
-    method: 'POST',
-  });
+  return generatedPostRecentlyViewed(doctorId) as Promise<{ ok: true }>;
 };
 
 /** DELETE /api/v1/patients/me/recently-viewed */
 export const deleteRecentlyViewed = () => {
-  return customInstance<{ ok: true }>({
-    url: '/v1/patients/me/recently-viewed',
-    method: 'DELETE',
-  });
+  return generatedDeleteRecentlyViewed() as Promise<{ ok: true }>;
 };
 
 /** POST /api/v1/reviews */
 export const postReview = (body: CreateReviewBody) => {
-  return customInstance<CreateReviewResponse>({
-    url: '/v1/reviews',
-    method: 'POST',
-    data: body,
-  });
+  return generatedPostReview(body) as Promise<CreateReviewResponse>;
 };
 
 /** GET /api/v1/patients/me/profile */
 export const getPatientProfile = () => {
-  return customInstance<PatientProfileDto>({
-    url: '/v1/patients/me/profile',
-    method: 'GET',
-  });
+  return generatedGetPatientProfile() as Promise<PatientProfileDto>;
 };
 
 /** PATCH /api/v1/patients/me/profile (JSON or multipart when photo present). */

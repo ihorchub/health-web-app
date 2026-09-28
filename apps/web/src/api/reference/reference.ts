@@ -1,4 +1,8 @@
-import { customInstance } from '@/api/mutator/customInstance';
+import {
+  getReferenceCities as generatedGetReferenceCities,
+  getReferenceClinics as generatedGetReferenceClinics,
+  getReferenceSpecialties as generatedGetReferenceSpecialties,
+} from '@/api/generated/reference/reference';
 import type {
   ReferenceCity,
   ReferenceClinic,
@@ -7,23 +11,19 @@ import type {
 } from '@/api/reference/types';
 
 export const getReferenceCities = () => {
-  return customInstance<ReferenceListResponse<ReferenceCity>>({
-    url: '/v1/reference/cities',
-    method: 'GET',
-  });
+  return generatedGetReferenceCities() as Promise<
+    ReferenceListResponse<ReferenceCity>
+  >;
 };
 
 export const getReferenceClinics = (cityId: string) => {
-  return customInstance<ReferenceListResponse<ReferenceClinic>>({
-    url: '/v1/reference/clinics',
-    method: 'GET',
-    params: { cityId },
-  });
+  return generatedGetReferenceClinics({ cityId }) as Promise<
+    ReferenceListResponse<ReferenceClinic>
+  >;
 };
 
 export const getReferenceSpecialties = () => {
-  return customInstance<ReferenceListResponse<ReferenceSpecialty>>({
-    url: '/v1/reference/specialties',
-    method: 'GET',
-  });
+  return generatedGetReferenceSpecialties() as Promise<
+    ReferenceListResponse<ReferenceSpecialty>
+  >;
 };

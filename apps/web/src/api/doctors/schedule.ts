@@ -1,4 +1,8 @@
-import { customInstance } from '@/api/mutator/customInstance';
+import {
+  getDoctorSchedule as generatedGetDoctorSchedule,
+  patchDoctorSchedule as generatedPatchDoctorSchedule,
+  postBulkCancel as generatedPostBulkCancel,
+} from '@/api/generated/doctor-schedule/doctor-schedule';
 
 export type WeeklyDayTemplate = {
   works: boolean;
@@ -61,31 +65,20 @@ export type BulkCancelBody = {
 };
 
 export type BulkCancelResponse = {
-  cancelledCount: number;
+  cancelledIds: string[];
 };
 
 /** GET /api/v1/doctors/me/schedule */
 export const getDoctorSchedule = () => {
-  return customInstance<DoctorScheduleResponse>({
-    url: '/v1/doctors/me/schedule',
-    method: 'GET',
-  });
+  return generatedGetDoctorSchedule() as Promise<DoctorScheduleResponse>;
 };
 
 /** PATCH /api/v1/doctors/me/schedule */
 export const patchDoctorSchedule = (body: PatchDoctorScheduleBody) => {
-  return customInstance<DoctorScheduleResponse>({
-    url: '/v1/doctors/me/schedule',
-    method: 'PATCH',
-    data: body,
-  });
+  return generatedPatchDoctorSchedule(body) as Promise<DoctorScheduleResponse>;
 };
 
 /** POST /api/v1/doctors/me/schedule/bulk-cancel */
 export const postBulkCancel = (body: BulkCancelBody) => {
-  return customInstance<BulkCancelResponse>({
-    url: '/v1/doctors/me/schedule/bulk-cancel',
-    method: 'POST',
-    data: body,
-  });
+  return generatedPostBulkCancel(body) as Promise<BulkCancelResponse>;
 };

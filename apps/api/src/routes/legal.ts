@@ -1,22 +1,20 @@
 import { Type } from "@sinclair/typebox";
 import type { FastifyPluginAsync } from "fastify";
 
+import { LegalDocumentResponse } from "../openapi/schemas.js";
+
 const STUB_BODY =
   "Legal copy is Open (client content). This placeholder confirms the API route works.";
 
 export const legalRoutes: FastifyPluginAsync = async (app) => {
-  const responseSchema = Type.Object({
-    lang: Type.String(),
-    title: Type.String(),
-    body: Type.String(),
-  });
-
   app.get(
     "/api/v1/legal/privacy",
     {
       schema: {
+        tags: ["legal"],
+        operationId: "getLegalPrivacy",
         querystring: Type.Object({ lang: Type.Optional(Type.String()) }),
-        response: { 200: responseSchema },
+        response: { 200: LegalDocumentResponse },
       },
     },
     async (request) => {
@@ -33,8 +31,10 @@ export const legalRoutes: FastifyPluginAsync = async (app) => {
     "/api/v1/legal/terms",
     {
       schema: {
+        tags: ["legal"],
+        operationId: "getLegalTerms",
         querystring: Type.Object({ lang: Type.Optional(Type.String()) }),
-        response: { 200: responseSchema },
+        response: { 200: LegalDocumentResponse },
       },
     },
     async (request) => {

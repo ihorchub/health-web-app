@@ -28,6 +28,5 @@ dist-ssr
 .env.*
 !.env.example
 
-# Generated API (recreate via yarn generate:api)
-src/api/generated/**
-!src/api/generated/.gitkeep
+# Orval output is committed (tech-stack: simpler 2-person workflow).
+# Regenerate via: pnpm generate:api

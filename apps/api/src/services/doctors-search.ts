@@ -311,18 +311,12 @@ async function searchDoctorsInner(params: DoctorsSearchParams): Promise<DoctorsS
     );
   }
 
-  const withSlots: DoctorSearchCard[] = [];
-  for (const row of filtered) {
-    const nearestFreeAt = await findNearestFreeAt({
-      doctorId: row.id,
-      now,
-      dateFilter,
-    });
-    // Date filter: must have a free slot that day.
-    if (dateFilter && !nearestFreeAt) continue;
-
+  const toCard = (
+    row: DoctorSearchRow,
+    nearestFreeAt: string | null,
+  ): DoctorSearchCard => {
     const stats = ratingMap.get(row.id) ?? { ratingAverage: 0, reviewCount: 0 };
-    withSlots.push({
+    return {
       id: row.id,
       firstName: row.firstName,
       lastName: row.lastName,
@@ -339,10 +333,10 @@ async function searchDoctorsInner(params: DoctorsSearchParams): Promise<DoctorsS
       ratingAverage: stats.ratingAverage,
       reviewCount: stats.reviewCount,
       isFavourite: favSet.has(row.id),
-    });
-  }
+    };
+  };
 
-  withSlots.sort((a, b) => {
+  const compareCards = (a: DoctorSearchCard, b: DoctorSearchCard) => {
     if (homeClinicId) {
       const aHome = a.clinicId === homeClinicId ? 0 : 1;
       const bHome = b.clinicId === homeClinicId ? 0 : 1;
@@ -357,15 +351,55 @@ async function searchDoctorsInner(params: DoctorsSearchParams): Promise<DoctorsS
       return a.nearestFreeAt.localeCompare(b.nearestFreeAt);
     }
 
-    // nearest_slot (default)
     if (!a.nearestFreeAt && !b.nearestFreeAt) return 0;
     if (!a.nearestFreeAt) return 1;
     if (!b.nearestFreeAt) return -1;
     return a.nearestFreeAt.localeCompare(b.nearestFreeAt);
-  });
+  };
 
-  const total = withSlots.length;
-  const page = withSlots.slice(offset, offset + limit);
+  /**
+   * Rating sort (no day filter): nearestFreeAt is only a tie-breaker — compute it
+   * for the page slice only. nearest_slot / date filter still need all doctors.
+   */
+  const needsNearestForAll = sort === "nearest_slot" || Boolean(dateFilter);
+
+  let page: DoctorSearchCard[];
+  let total: number;
+
+  if (!needsNearestForAll) {
+    const ranked = filtered.map((row) => toCard(row, null)).sort(compareCards);
+    total = ranked.length;
+    const slice = ranked.slice(offset, offset + limit);
+    page = await Promise.all(
+      slice.map(async (card) => {
+        const nearestFreeAt = await findNearestFreeAt({
+          doctorId: card.id,
+          now,
+          dateFilter,
+        });
+        return { ...card, nearestFreeAt };
+      }),
+    );
+  } else {
+    const withSlots = (
+      await Promise.all(
+        filtered.map(async (row) => {
+          const nearestFreeAt = await findNearestFreeAt({
+            doctorId: row.id,
+            now,
+            dateFilter,
+          });
+          if (dateFilter && !nearestFreeAt) return null;
+          return toCard(row, nearestFreeAt);
+        }),
+      )
+    ).filter((card): card is DoctorSearchCard => card != null);
+
+    withSlots.sort(compareCards);
+    total = withSlots.length;
+    page = withSlots.slice(offset, offset + limit);
+  }
+
   const nextOffset = offset + limit;
   const nextCursor = nextOffset < total ? String(nextOffset) : null;
 

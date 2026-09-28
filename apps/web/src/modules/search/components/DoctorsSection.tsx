@@ -58,6 +58,7 @@ import {
 } from '@/modules/search/styles';
 import { AppRole } from '@/types/role';
 import { AppRoute, doctorProfilePath } from '@/utils/routeUtils/routes';
+import { resolveMediaUrl } from '@/utils/mediaUrl';
 
 const LIKA_EMPTY = '/brand/lika-poses/lika4.png';
 const LIKA_ERROR = '/brand/lika-poses/lika5.png';
@@ -144,7 +145,7 @@ export const DoctorCard = ({
       }}
     >
       <CardTop>
-        <Avatar src={doctor.photoUrl ?? undefined} alt="" />
+        <Avatar src={resolveMediaUrl(doctor.photoUrl) ?? undefined} alt="" />
         <CardIdentity>
           <NameRow>
             <DoctorName>

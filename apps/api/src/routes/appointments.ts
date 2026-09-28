@@ -3,6 +3,12 @@ import type { FastifyPluginAsync } from "fastify";
 
 import { ApiError } from "../lib/errors.js";
 import {
+  AppointmentMutationResponse,
+  BookAppointmentResponse,
+  PendingDecisionResponse,
+  ReschedulePairResponse,
+} from "../openapi/schemas.js";
+import {
   autoCompleteDueAppointments,
   bookAppointment,
   cancelAppointment,
@@ -43,12 +49,15 @@ export const appointmentsRoutes: FastifyPluginAsync = async (app) => {
     "/api/v1/appointments",
     {
       schema: {
+        tags: ["appointments"],
+        operationId: "postBookAppointment",
         body: Type.Object({
           doctorId: Type.String(),
           startAt: Type.String(),
           format: Format,
           reason: Type.Optional(Type.String()),
         }),
+        response: { 201: BookAppointmentResponse },
       },
     },
     async (request, reply) => {
@@ -77,12 +86,15 @@ export const appointmentsRoutes: FastifyPluginAsync = async (app) => {
     "/api/v1/appointments/:id/reschedule",
     {
       schema: {
+        tags: ["appointments"],
+        operationId: "postRescheduleAppointment",
         params: Type.Object({ id: Type.String() }),
         body: Type.Object({
           newStartAt: Type.String(),
           format: Format,
           reason: Type.Optional(Type.String()),
         }),
+        response: { 200: ReschedulePairResponse },
       },
     },
     async (request) => {
@@ -108,7 +120,14 @@ export const appointmentsRoutes: FastifyPluginAsync = async (app) => {
 
   app.post(
     "/api/v1/appointments/:id/cancel",
-    { schema: { params: Type.Object({ id: Type.String() }) } },
+    {
+      schema: {
+        tags: ["appointments"],
+        operationId: "postCancelAppointment",
+        params: Type.Object({ id: Type.String() }),
+        response: { 200: AppointmentMutationResponse },
+      },
+    },
     async (request) => {
       if (!request.sessionUser) throw new ApiError("AUTH_UNAUTHORIZED", 401);
       const { id } = request.params as { id: string };
@@ -125,7 +144,14 @@ export const appointmentsRoutes: FastifyPluginAsync = async (app) => {
 
   app.post(
     "/api/v1/appointments/:id/complete",
-    { schema: { params: Type.Object({ id: Type.String() }) } },
+    {
+      schema: {
+        tags: ["appointments"],
+        operationId: "postCompleteAppointment",
+        params: Type.Object({ id: Type.String() }),
+        response: { 200: AppointmentMutationResponse },
+      },
+    },
     async (request) => {
       requireRole(request.sessionUser, "doctor");
       const { id } = request.params as { id: string };
@@ -140,11 +166,14 @@ export const appointmentsRoutes: FastifyPluginAsync = async (app) => {
     "/api/v1/appointments/:id/propose",
     {
       schema: {
+        tags: ["appointments"],
+        operationId: "postProposeAppointment",
         params: Type.Object({ id: Type.String() }),
         body: Type.Object({
           proposedStartAt: Type.String(),
           format: Type.Optional(Format),
         }),
+        response: { 200: AppointmentMutationResponse },
       },
     },
     async (request) => {
@@ -168,7 +197,14 @@ export const appointmentsRoutes: FastifyPluginAsync = async (app) => {
 
   app.get(
     "/api/v1/appointments/:id/pending-decision",
-    { schema: { params: Type.Object({ id: Type.String() }) } },
+    {
+      schema: {
+        tags: ["appointments"],
+        operationId: "getPendingDecision",
+        params: Type.Object({ id: Type.String() }),
+        response: { 200: PendingDecisionResponse },
+      },
+    },
     async (request) => {
       requireRole(request.sessionUser, "patient");
       const { id } = request.params as { id: string };
@@ -178,7 +214,14 @@ export const appointmentsRoutes: FastifyPluginAsync = async (app) => {
 
   app.post(
     "/api/v1/appointments/:id/accept-proposal",
-    { schema: { params: Type.Object({ id: Type.String() }) } },
+    {
+      schema: {
+        tags: ["appointments"],
+        operationId: "postAcceptProposal",
+        params: Type.Object({ id: Type.String() }),
+        response: { 200: ReschedulePairResponse },
+      },
+    },
     async (request) => {
       requireRole(request.sessionUser, "patient");
       const { id } = request.params as { id: string };

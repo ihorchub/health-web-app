@@ -12,6 +12,8 @@
     "db:seed": "pnpm --filter @medicly/api db:seed",
     "db:studio": "pnpm --filter @medicly/api db:studio",
     "test": "pnpm --filter @medicly/api test",
+    "openapi:export": "pnpm --filter @medicly/api openapi:export",
+    "generate:api": "pnpm openapi:export && pnpm --filter @medicly/web generate:api",
     "lint": "pnpm --filter @medicly/web lint",
     "lint:fix": "pnpm --filter @medicly/web lint:fix",
     "prettier:check": "pnpm --filter @medicly/web prettier:check",

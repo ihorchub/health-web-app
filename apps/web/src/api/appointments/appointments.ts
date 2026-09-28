@@ -1,4 +1,12 @@
-import { customInstance } from '@/api/mutator/customInstance';
+import {
+  getPendingDecision as generatedGetPendingDecision,
+  postAcceptProposal as generatedPostAcceptProposal,
+  postBookAppointment as generatedPostBookAppointment,
+  postCancelAppointment as generatedPostCancelAppointment,
+  postCompleteAppointment as generatedPostCompleteAppointment,
+  postProposeAppointment as generatedPostProposeAppointment,
+  postRescheduleAppointment as generatedPostRescheduleAppointment,
+} from '@/api/generated/appointments/appointments';
 import type {
   AppointmentDto,
   BookAppointmentBody,
@@ -14,61 +22,43 @@ import type {
 
 /** POST /api/v1/appointments */
 export const postBookAppointment = (body: BookAppointmentBody) => {
-  return customInstance<BookAppointmentResponse>({
-    url: '/v1/appointments',
-    method: 'POST',
-    data: body,
-  });
+  return generatedPostBookAppointment(body) as Promise<BookAppointmentResponse>;
 };
 
 /** POST /api/v1/appointments/:id/reschedule */
 export const postRescheduleAppointment = (id: string, body: RescheduleAppointmentBody) => {
-  return customInstance<RescheduleAppointmentResponse>({
-    url: `/v1/appointments/${encodeURIComponent(id)}/reschedule`,
-    method: 'POST',
-    data: body,
-  });
+  return generatedPostRescheduleAppointment(
+    id,
+    body,
+  ) as Promise<RescheduleAppointmentResponse>;
 };
 
 /** POST /api/v1/appointments/:id/cancel */
 export const postCancelAppointment = async (id: string): Promise<AppointmentDto> => {
-  const data = await customInstance<{ appointment: AppointmentDto }>({
-    url: `/v1/appointments/${encodeURIComponent(id)}/cancel`,
-    method: 'POST',
-  });
-  return data.appointment;
+  const data = await generatedPostCancelAppointment(id);
+  return data.appointment as AppointmentDto;
 };
 
 /** POST /api/v1/appointments/:id/complete */
 export const postCompleteAppointment = async (id: string): Promise<AppointmentDto> => {
-  const data = await customInstance<{ appointment: AppointmentDto }>({
-    url: `/v1/appointments/${encodeURIComponent(id)}/complete`,
-    method: 'POST',
-  });
-  return data.appointment;
+  const data = await generatedPostCompleteAppointment(id);
+  return data.appointment as AppointmentDto;
 };
 
 /** POST /api/v1/appointments/:id/propose */
 export const postProposeAppointment = (id: string, body: ProposeAppointmentBody) => {
-  return customInstance<ProposeAppointmentResponse>({
-    url: `/v1/appointments/${encodeURIComponent(id)}/propose`,
-    method: 'POST',
-    data: body,
-  });
+  return generatedPostProposeAppointment(
+    id,
+    body,
+  ) as Promise<ProposeAppointmentResponse>;
 };
 
 /** GET /api/v1/appointments/:id/pending-decision */
 export const getPendingDecision = (id: string) => {
-  return customInstance<PendingDecisionResponse>({
-    url: `/v1/appointments/${encodeURIComponent(id)}/pending-decision`,
-    method: 'GET',
-  });
+  return generatedGetPendingDecision(id) as Promise<PendingDecisionResponse>;
 };
 
 /** POST /api/v1/appointments/:id/accept-proposal */
 export const postAcceptProposal = (id: string) => {
-  return customInstance<RescheduleAppointmentResponse>({
-    url: `/v1/appointments/${encodeURIComponent(id)}/accept-proposal`,
-    method: 'POST',
-  });
+  return generatedPostAcceptProposal(id) as Promise<RescheduleAppointmentResponse>;
 };

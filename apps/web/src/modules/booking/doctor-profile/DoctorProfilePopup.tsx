@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import {
   isSlotTakenError,
   usePostBookAppointment,
+  usePostRescheduleAppointment,
 } from '@/api/appointments';
 import {
   useGetDoctorById,
@@ -161,6 +162,7 @@ export const DoctorProfilePopup = () => {
   const citiesQuery = useGetReferenceCities();
   const clinicsQuery = useGetReferenceClinics(profileQuery.data?.cityId);
   const bookMutation = usePostBookAppointment();
+  const rescheduleMutation = usePostRescheduleAppointment();
   const postFavouriteMutation = usePostFavourite();
   const deleteFavouriteMutation = useDeleteFavourite();
   const postRecentlyViewedMutation = usePostRecentlyViewed();
@@ -311,15 +313,16 @@ export const DoctorProfilePopup = () => {
     }
     setConfirmError(null);
     try {
-      await bookMutation.mutateAsync({
-        doctorId,
-        startAt: selection.startAt,
-        format: selection.format,
-        reason,
-      });
-
       const pendingId = readPendingReschedulePick();
       if (pendingId) {
+        await rescheduleMutation.mutateAsync({
+          id: pendingId,
+          body: {
+            newStartAt: selection.startAt,
+            format: selection.format,
+            reason: reason.trim() || undefined,
+          },
+        });
         dispatchPendingRescheduleResolved({
           pendingId,
           doctorId,
@@ -328,6 +331,13 @@ export const DoctorProfilePopup = () => {
           durationMinutes: selection.visitDurationMinutes,
         });
         clearPendingReschedulePick();
+      } else {
+        await bookMutation.mutateAsync({
+          doctorId,
+          startAt: selection.startAt,
+          format: selection.format,
+          reason,
+        });
       }
 
       toast.success(t('confirm.successToast'));

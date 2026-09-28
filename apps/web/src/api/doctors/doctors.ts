@@ -1,4 +1,9 @@
-import { customInstance } from '@/api/mutator/customInstance';
+import { getDoctorMeDashboard as generatedGetDoctorMeDashboard } from '@/api/generated/doctor-schedule/doctor-schedule';
+import {
+  getDoctorById as generatedGetDoctorById,
+  getDoctorCalendar as generatedGetDoctorCalendar,
+  getDoctorsSearch as generatedGetDoctorsSearch,
+} from '@/api/generated/doctors/doctors';
 import type {
   DoctorCalendarParams,
   DoctorCalendarResponse,
@@ -53,19 +58,12 @@ export const getDoctorsSearch = (params: DoctorsSearchParams = {}) => {
     apiParams.format = format;
   }
 
-  return customInstance<DoctorsSearchResponse>({
-    url: '/v1/doctors/search',
-    method: 'GET',
-    params: apiParams,
-  });
+  return generatedGetDoctorsSearch(apiParams) as Promise<DoctorsSearchResponse>;
 };
 
 /** GET /api/v1/doctors/:doctorId */
 export const getDoctorById = (doctorId: string) => {
-  return customInstance<DoctorProfile>({
-    url: `/v1/doctors/${encodeURIComponent(doctorId)}`,
-    method: 'GET',
-  });
+  return generatedGetDoctorById(doctorId) as Promise<DoctorProfile>;
 };
 
 /**
@@ -85,16 +83,12 @@ export const getDoctorCalendar = async (
   params: DoctorCalendarParams = {},
 ): Promise<DoctorCalendarResponse> => {
   const range = defaultCalendarRange();
-  const data = await customInstance<DoctorCalendarResponse>({
-    url: `/v1/doctors/${encodeURIComponent(doctorId)}/calendar`,
-    method: 'GET',
-    params: {
-      date: params.date,
-      from: params.from ?? range.from,
-      to: params.to ?? range.to,
-      contextAppointmentId: params.contextAppointmentId,
-    },
-  });
+  const data = (await generatedGetDoctorCalendar(doctorId, {
+    date: params.date,
+    from: params.from ?? range.from,
+    to: params.to ?? range.to,
+    contextAppointmentId: params.contextAppointmentId,
+  })) as DoctorCalendarResponse;
 
   // UI chips are bookable free starts only (mock previously filtered the same way).
   return {
@@ -105,9 +99,7 @@ export const getDoctorCalendar = async (
 
 /** GET /api/v1/doctors/me/dashboard */
 export const getDoctorMeDashboard = (params: DoctorDashboardParams) => {
-  return customInstance<DoctorDashboardResponse>({
-    url: '/v1/doctors/me/dashboard',
-    method: 'GET',
-    params: { date: params.date },
-  });
+  return generatedGetDoctorMeDashboard({ date: params.date }) as Promise<
+    DoctorDashboardResponse
+  >;
 };

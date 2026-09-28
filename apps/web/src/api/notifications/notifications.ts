@@ -1,4 +1,8 @@
-import { customInstance } from '@/api/mutator/customInstance';
+import {
+  getNotifications as generatedGetNotifications,
+  postNotificationRead as generatedPostNotificationRead,
+  postNotificationsReadAll as generatedPostNotificationsReadAll,
+} from '@/api/generated/notifications/notifications';
 
 /** Live API notification types (SCR-10). */
 export type ApiNotificationType =
@@ -23,24 +27,15 @@ export interface NotificationsListResponse {
 
 /** GET /api/v1/notifications */
 export const getNotifications = () => {
-  return customInstance<NotificationsListResponse>({
-    url: '/v1/notifications',
-    method: 'GET',
-  });
+  return generatedGetNotifications() as Promise<NotificationsListResponse>;
 };
 
 /** POST /api/v1/notifications/:id/read */
 export const postNotificationRead = (id: string) => {
-  return customInstance<{ ok: true }>({
-    url: `/v1/notifications/${encodeURIComponent(id)}/read`,
-    method: 'POST',
-  });
+  return generatedPostNotificationRead(id) as Promise<{ ok: true }>;
 };
 
 /** POST /api/v1/notifications/read-all */
 export const postNotificationsReadAll = () => {
-  return customInstance<{ ok: true }>({
-    url: '/v1/notifications/read-all',
-    method: 'POST',
-  });
+  return generatedPostNotificationsReadAll() as Promise<{ ok: true }>;
 };

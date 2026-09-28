@@ -33,6 +33,7 @@ import { ProfileAvatar } from '@/modules/profile/components/ProfileAvatar';
 import { ProfileFieldRow } from '@/modules/profile/components/ProfileFieldRow';
 import { ProfileSavingOverlay } from '@/modules/profile/components/ProfileSavingOverlay';
 import { ProfileSectionHeader } from '@/modules/profile/components/ProfileSectionHeader';
+import { useProfilePhotoInput } from '@/modules/profile/hooks/useProfilePhotoInput';
 import {
   ActionRow,
   AddLink,
@@ -169,6 +170,35 @@ export const DoctorProfileView = () => {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  const { openPicker, fileInput, cropDialog } = useProfilePhotoInput(async (file) => {
+    setSaving(true);
+    try {
+      const updated = await patchMutation.mutateAsync({ photo: file });
+      setProfile((current) =>
+        current
+          ? {
+              ...current,
+              photoUrl: updated.photoUrl ?? '',
+            }
+          : current,
+      );
+      toast.success(t('photoSaved'));
+    } finally {
+      setSaving(false);
+    }
+  });
+
+  const removePhoto = async () => {
+    setSaving(true);
+    try {
+      await patchMutation.mutateAsync({ photoUrl: null });
+      setProfile((current) => (current ? { ...current, photoUrl: '' } : current));
+      toast.success(t('photoRemoved'));
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const cityName =
     citiesQuery.data?.items.find((city) => city.id === profileQuery.data?.cityId)?.name ?? '';
   const clinicName =
@@ -263,11 +293,15 @@ export const DoctorProfileView = () => {
 
         <HeroCard>
           <HeroLeft>
+            {fileInput}
+            {cropDialog}
             <ProfileAvatar
               photoUrl={profile.photoUrl}
               initials={initials}
               cameraLabel={t('changePhoto')}
-              onCameraClick={() => undefined}
+              onCameraClick={openPicker}
+              removeLabel={t('removePhoto')}
+              onRemoveClick={profile.photoUrl ? () => void removePhoto() : undefined}
             />
             <HeroText>
               <HeroNameRow>

@@ -51,6 +51,7 @@ import {
   StarAccent,
 } from '@/modules/profile/styles';
 import type { DoctorProfileData } from '@/modules/profile/types';
+import { resolveMediaUrl } from '@/utils/mediaUrl';
 import { pickLocalizedDescription } from '@/utils/pickLocalizedDescription';
 
 interface DoctorPreviewDialogProps {
@@ -95,7 +96,7 @@ export const DoctorPreviewDialog = ({
 
       <PreviewBody>
         <PreviewIdentity>
-          <PreviewPhoto src={profile.photoUrl} alt="" />
+          <PreviewPhoto src={resolveMediaUrl(profile.photoUrl) ?? undefined} alt="" />
           <PreviewIdentityMain>
             <PreviewNameRow>
               <PreviewNameBlock>

@@ -1,54 +1,9 @@
-import "./config.js";
-
-import cookie from "@fastify/cookie";
-import cors from "@fastify/cors";
-import multipart from "@fastify/multipart";
-import { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
-import Fastify from "fastify";
-import fp from "fastify-plugin";
-
 import { closeDatabase } from "./db/client.js";
 import { config } from "./config.js";
-import { errorsPlugin } from "./plugins/errors.js";
-import { sessionPlugin } from "./plugins/session.js";
-import { appointmentsRoutes, startAutoCompleteJob } from "./routes/appointments.js";
-import { authRoutes } from "./routes/auth.js";
-import { doctorScheduleRoutes } from "./routes/doctor-schedule.js";
-import { doctorsRoutes } from "./routes/doctors.js";
-import { healthRoutes } from "./routes/health.js";
-import { legalRoutes } from "./routes/legal.js";
-import { notificationsRoutes } from "./routes/notifications.js";
-import { patientsRoutes } from "./routes/patients.js";
-import { referenceRoutes } from "./routes/reference.js";
+import { buildApp } from "./app.js";
+import { startAutoCompleteJob } from "./routes/appointments.js";
 
-const app = Fastify({ logger: true }).withTypeProvider<TypeBoxTypeProvider>();
-
-await app.register(cors, {
-  origin: config.nodeEnv === "development" ? true : false,
-  credentials: true,
-});
-
-await app.register(errorsPlugin);
-await app.register(cookie, {
-  secret: config.sessionSecret ?? "dev-insecure-secret-change-me",
-  hook: "onRequest",
-});
-if (!config.sessionSecret) {
-  app.log.warn("SESSION_SECRET not set — using insecure dev default for cookies");
-}
-await app.register(multipart, {
-  limits: { fileSize: 10 * 1024 * 1024, files: 1 },
-});
-await app.register(fp(sessionPlugin, { name: "medicly-session" }));
-await app.register(healthRoutes);
-await app.register(referenceRoutes);
-await app.register(authRoutes);
-await app.register(legalRoutes);
-await app.register(notificationsRoutes);
-await app.register(patientsRoutes);
-await app.register(doctorScheduleRoutes);
-await app.register(doctorsRoutes);
-await app.register(appointmentsRoutes);
+const app = await buildApp();
 
 let autoCompleteTimer: NodeJS.Timeout | undefined;
 
