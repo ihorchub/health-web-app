@@ -27,3 +27,4 @@ export const appointmentStatusEnum = pgEnum("appointment_status", [
   "Rescheduled",
 ]);
 export const cancelledByEnum = pgEnum("cancelled_by", ["patient", "doctor"]);
+export const educationKindEnum = pgEnum("education_kind", ["university", "certificate", "training"]);

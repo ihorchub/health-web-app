@@ -17,6 +17,8 @@ import { doctorScheduleRoutes } from "./routes/doctor-schedule.js";
 import { doctorsRoutes } from "./routes/doctors.js";
 import { healthRoutes } from "./routes/health.js";
 import { legalRoutes } from "./routes/legal.js";
+import { notificationsRoutes } from "./routes/notifications.js";
+import { patientsRoutes } from "./routes/patients.js";
 import { referenceRoutes } from "./routes/reference.js";
 
 const app = Fastify({ logger: true }).withTypeProvider<TypeBoxTypeProvider>();
@@ -42,6 +44,8 @@ await app.register(healthRoutes);
 await app.register(referenceRoutes);
 await app.register(authRoutes);
 await app.register(legalRoutes);
+await app.register(notificationsRoutes);
+await app.register(patientsRoutes);
 await app.register(doctorScheduleRoutes);
 await app.register(doctorsRoutes);
 await app.register(appointmentsRoutes);

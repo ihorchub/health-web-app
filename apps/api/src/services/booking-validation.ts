@@ -4,7 +4,13 @@
  */
 import { and, eq, inArray } from "drizzle-orm";
 
-import { addCalendarDays, getZoneABounds, weekdayKeyForDate, type CalendarDate } from "../lib/booking-horizon.js";
+import {
+  addCalendarDays,
+  formatCalendarDate,
+  getZoneABounds,
+  weekdayKeyForDate,
+  type CalendarDate,
+} from "../lib/booking-horizon.js";
 import { getZonedDateParts, zonedTimeToUtc } from "../lib/timezone.js";
 import { getDb } from "../db/client.js";
 import { appointments } from "../db/schema/appointments.js";
@@ -18,6 +24,7 @@ export type DoctorForBooking = {
   visitDurationMinutes: number;
   supportedFormats: Array<"offline" | "online">;
   weeklyTemplate: WeeklyTemplate;
+  vacationDates: string[];
 };
 
 const ACTIVE_STATUSES: Array<"Upcoming" | "Reschedule Pending"> = ["Upcoming", "Reschedule Pending"];
@@ -43,6 +50,7 @@ export async function loadDoctorForBooking(doctorId: string): Promise<DoctorForB
     visitDurationMinutes: profile.visitDurationMinutes,
     supportedFormats: schedule.supportedFormats as Array<"offline" | "online">,
     weeklyTemplate: schedule.weeklyTemplate as WeeklyTemplate,
+    vacationDates: schedule.vacationDates ?? [],
   };
 }
 
@@ -51,9 +59,11 @@ export async function loadOccupancyInRange(
   doctorId: string,
   rangeStartUtc: Date,
   rangeEndExclusiveUtc: Date,
+  options?: { ignoreAppointmentId?: string },
 ): Promise<OccupancyEntry[]> {
   const rows = await getDb()
     .select({
+      id: appointments.id,
       status: appointments.status,
       startAt: appointments.startAt,
       proposedStartAt: appointments.proposedStartAt,
@@ -66,6 +76,14 @@ export async function loadOccupancyInRange(
 
   const entries: OccupancyEntry[] = [];
   for (const row of rows) {
+    if (options?.ignoreAppointmentId && row.id === options.ignoreAppointmentId) {
+      // Still occupy original start_at for a pending row (patient holds original),
+      // but ignore proposed_start_at so accept/revalidate of the proposal can succeed.
+      if (inRange(row.startAt)) {
+        entries.push({ startAt: row.startAt, status: "taken" });
+      }
+      continue;
+    }
     if (inRange(row.startAt)) {
       entries.push({ startAt: row.startAt, status: "taken" });
     }
@@ -89,15 +107,23 @@ export async function validateSlotOrThrow(params: {
   doctor: DoctorForBooking;
   startAt: Date;
   now: Date;
+  /** When accepting a proposal, ignore that appointment's reserved proposed slot. */
+  ignoreAppointmentId?: string;
 }): Promise<void> {
   const { doctor, startAt, now } = params;
   const zoneBounds = getZoneABounds(now);
   const local = getZonedDateParts(startAt);
   const dateLocal: CalendarDate = { year: local.year, month: local.month, day: local.day };
+  const dateIso = formatCalendarDate(dateLocal);
+  if (doctor.vacationDates.includes(dateIso)) {
+    throw new ApiError("SLOT_NOT_FREE", 409);
+  }
   const template = doctor.weeklyTemplate[weekdayKeyForDate(dateLocal)];
 
   const { startUtc, endExclusiveUtc } = dayBoundsUtc(dateLocal);
-  const occupied = await loadOccupancyInRange(doctor.doctorId, startUtc, endExclusiveUtc);
+  const occupied = await loadOccupancyInRange(doctor.doctorId, startUtc, endExclusiveUtc, {
+    ignoreAppointmentId: params.ignoreAppointmentId,
+  });
   const slots = generateDaySlots({
     dateLocal,
     template,

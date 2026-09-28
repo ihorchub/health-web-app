@@ -37,5 +37,8 @@ export const appointments = pgTable(
     uniqueIndex("appointments_doctor_start_occupied_uidx")
       .on(table.doctorId, table.startAt)
       .where(sql`${table.status} IN ('Upcoming', 'Reschedule Pending')`),
+    uniqueIndex("appointments_doctor_proposed_occupied_uidx")
+      .on(table.doctorId, table.proposedStartAt)
+      .where(sql`${table.status} = 'Reschedule Pending' AND ${table.proposedStartAt} IS NOT NULL`),
   ],
 );

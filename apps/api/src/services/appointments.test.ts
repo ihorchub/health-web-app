@@ -12,8 +12,11 @@ import {
   autoCompleteDueAppointments,
   bookAppointment,
   cancelAppointment,
+  doctorPropose,
   getAppointmentById,
+  getPendingDecision,
   markCompleted,
+  patientAcceptProposal,
   patientReschedule,
 } from "./appointments.js";
 
@@ -274,5 +277,72 @@ describe("autoCompleteDueAppointments", () => {
 
     expect((await getAppointmentById(past.id)).status).toBe("Completed");
     expect((await getAppointmentById(future.id)).status).toBe("Upcoming");
+  });
+});
+
+describe("doctorPropose and patientAcceptProposal", () => {
+  const createdUserIds: string[] = [];
+  afterEach(async () => {
+    await cleanupTestData(createdUserIds.splice(0));
+  });
+
+  it("proposes a new slot and accepts into a new Upcoming row", async () => {
+    const { doctorId, patientId } = await setupDoctorAndPatient();
+    createdUserIds.push(doctorId, patientId);
+    const booked = await bookAppointment({ doctorId, patientId, startAt: FREE_SLOT, format: "offline", now: NOW });
+
+    const pending = await doctorPropose({
+      appointmentId: booked.id,
+      doctorId,
+      proposedStartAt: OTHER_FREE_SLOT,
+      now: NOW,
+    });
+    expect(pending.status).toBe("Reschedule Pending");
+    expect(pending.proposedStartAt?.toISOString()).toBe(OTHER_FREE_SLOT.toISOString());
+
+    const decision = await getPendingDecision({ appointmentId: booked.id, patientId });
+    expect(decision.proposedStartAt).toBe(OTHER_FREE_SLOT.toISOString());
+
+    const { oldAppointment, newAppointment } = await patientAcceptProposal({
+      appointmentId: booked.id,
+      patientId,
+      now: NOW,
+    });
+    expect(oldAppointment.status).toBe("Rescheduled");
+    expect(newAppointment.status).toBe("Upcoming");
+    expect(newAppointment.startAt.toISOString()).toBe(OTHER_FREE_SLOT.toISOString());
+  });
+
+  it("rejects a second propose while pending", async () => {
+    const { doctorId, patientId } = await setupDoctorAndPatient();
+    createdUserIds.push(doctorId, patientId);
+    const booked = await bookAppointment({ doctorId, patientId, startAt: FREE_SLOT, format: "offline", now: NOW });
+    await doctorPropose({
+      appointmentId: booked.id,
+      doctorId,
+      proposedStartAt: OTHER_FREE_SLOT,
+      now: NOW,
+    });
+
+    const third = zonedTimeToUtc(2026, 8, 11, 11, 0, 0);
+    await expect(
+      doctorPropose({ appointmentId: booked.id, doctorId, proposedStartAt: third, now: NOW }),
+    ).rejects.toMatchObject({ code: "APPOINTMENT_PENDING_EXISTS" });
+  });
+
+  it("rejects propose from wrong doctor", async () => {
+    const { doctorId, patientId } = await setupDoctorAndPatient();
+    const otherDoctor = await createTestDoctor({ weeklyTemplate: workingWeeklyTemplate() });
+    createdUserIds.push(doctorId, patientId, otherDoctor);
+    const booked = await bookAppointment({ doctorId, patientId, startAt: FREE_SLOT, format: "offline", now: NOW });
+
+    await expect(
+      doctorPropose({
+        appointmentId: booked.id,
+        doctorId: otherDoctor,
+        proposedStartAt: OTHER_FREE_SLOT,
+        now: NOW,
+      }),
+    ).rejects.toMatchObject({ code: "APPOINTMENT_FORBIDDEN" });
   });
 });

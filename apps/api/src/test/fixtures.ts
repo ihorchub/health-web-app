@@ -1,17 +1,21 @@
 /**
  * Lightweight DB fixtures for integration tests. Every created row uses a `test_` id prefix
  * so it never collides with seed/demo data, and `cleanupTestData` removes everything created
- * for a given test (appointments first, to satisfy FK constraints, then profiles/users).
+ * for a given test (child rows first, to satisfy FK constraints, then profiles/users).
  */
 import { eq, inArray } from "drizzle-orm";
 
 import type { SpecialtyId } from "../constants/specialties.js";
 import { getDb } from "../db/client.js";
 import { appointments } from "../db/schema/appointments.js";
+import { doctorEducation } from "../db/schema/doctor-education.js";
 import { doctorSchedules } from "../db/schema/doctor-schedule.js";
 import type { WeeklyTemplate } from "../db/schema/doctor-schedule.js";
+import { notifications } from "../db/schema/notifications.js";
+import { patientFavourites, patientRecentlyViewed } from "../db/schema/patient-lists.js";
 import { doctorProfiles, patientProfiles } from "../db/schema/profiles.js";
 import { cities, clinics } from "../db/schema/reference.js";
+import { reviews } from "../db/schema/reviews.js";
 import { users } from "../db/schema/users.js";
 import { newId } from "../lib/ids.js";
 
@@ -73,6 +77,7 @@ export type TestDoctorOptions = {
   basePriceUah?: number;
   promoPriceUah?: number | null;
   visibleInSearch?: boolean;
+  vacationDates?: string[];
 };
 
 export async function createTestDoctor(options: TestDoctorOptions = {}): Promise<string> {
@@ -114,6 +119,7 @@ export async function createTestDoctor(options: TestDoctorOptions = {}): Promise
     promoPriceUah: options.promoPriceUah ?? null,
     supportedFormats: options.supportedFormats ?? ["offline"],
     weeklyTemplate: options.weeklyTemplate ?? ALL_DAYS_OFF,
+    vacationDates: options.vacationDates ?? [],
     visibleInSearch: options.visibleInSearch ?? true,
   });
   return userId;
@@ -122,6 +128,14 @@ export async function createTestDoctor(options: TestDoctorOptions = {}): Promise
 export async function cleanupTestData(userIds: string[]): Promise<void> {
   if (userIds.length === 0) return;
   const db = getDb();
+  await db.delete(reviews).where(inArray(reviews.patientId, userIds));
+  await db.delete(reviews).where(inArray(reviews.doctorId, userIds));
+  await db.delete(patientFavourites).where(inArray(patientFavourites.patientId, userIds));
+  await db.delete(patientFavourites).where(inArray(patientFavourites.doctorId, userIds));
+  await db.delete(patientRecentlyViewed).where(inArray(patientRecentlyViewed.patientId, userIds));
+  await db.delete(patientRecentlyViewed).where(inArray(patientRecentlyViewed.doctorId, userIds));
+  await db.delete(notifications).where(inArray(notifications.userId, userIds));
+  await db.delete(doctorEducation).where(inArray(doctorEducation.doctorUserId, userIds));
   await db.delete(appointments).where(inArray(appointments.doctorId, userIds));
   await db.delete(appointments).where(inArray(appointments.patientId, userIds));
   await db.delete(doctorSchedules).where(inArray(doctorSchedules.doctorUserId, userIds));

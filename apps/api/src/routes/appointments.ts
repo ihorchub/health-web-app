@@ -6,7 +6,10 @@ import {
   autoCompleteDueAppointments,
   bookAppointment,
   cancelAppointment,
+  doctorPropose,
+  getPendingDecision,
   markCompleted,
+  patientAcceptProposal,
   patientReschedule,
   type AppointmentRecord,
 } from "../services/appointments.js";
@@ -18,12 +21,15 @@ function toDto(appointment: AppointmentRecord) {
   return {
     id: appointment.id,
     doctorId: appointment.doctorId,
+    patientId: appointment.patientId,
     startAt: appointment.startAt.toISOString(),
     endAt: endAt.toISOString(),
     format: appointment.format,
     status: appointment.status,
     reason: appointment.reason,
     visitDurationMinutes: appointment.durationMinutes,
+    proposedStartAt: appointment.proposedStartAt?.toISOString() ?? null,
+    cancelledBy: appointment.cancelledBy,
   };
 }
 
@@ -33,7 +39,6 @@ function requireRole(sessionUser: { role: string } | null, role: "patient" | "do
 }
 
 export const appointmentsRoutes: FastifyPluginAsync = async (app) => {
-  // FLO-01 / SCR-05 — new book.
   app.post(
     "/api/v1/appointments",
     {
@@ -68,7 +73,6 @@ export const appointmentsRoutes: FastifyPluginAsync = async (app) => {
     },
   );
 
-  // FLO-02 / SCR-05 — patient reschedules their own Upcoming appointment.
   app.post(
     "/api/v1/appointments/:id/reschedule",
     {
@@ -102,7 +106,6 @@ export const appointmentsRoutes: FastifyPluginAsync = async (app) => {
     },
   );
 
-  // FLO-04 — patient or doctor cancels (SCR-06 / SCR-08 / SCR-12).
   app.post(
     "/api/v1/appointments/:id/cancel",
     { schema: { params: Type.Object({ id: Type.String() }) } },
@@ -120,7 +123,6 @@ export const appointmentsRoutes: FastifyPluginAsync = async (app) => {
     },
   );
 
-  // SCR-08 — doctor marks a visit Completed.
   app.post(
     "/api/v1/appointments/:id/complete",
     { schema: { params: Type.Object({ id: Type.String() }) } },
@@ -133,9 +135,62 @@ export const appointmentsRoutes: FastifyPluginAsync = async (app) => {
       return { appointment: toDto(appointment) };
     },
   );
+
+  app.post(
+    "/api/v1/appointments/:id/propose",
+    {
+      schema: {
+        params: Type.Object({ id: Type.String() }),
+        body: Type.Object({
+          proposedStartAt: Type.String(),
+          format: Type.Optional(Format),
+        }),
+      },
+    },
+    async (request) => {
+      requireRole(request.sessionUser, "doctor");
+      const { id } = request.params as { id: string };
+      const { proposedStartAt, format } = request.body as {
+        proposedStartAt: string;
+        format?: "offline" | "online";
+      };
+
+      const appointment = await doctorPropose({
+        appointmentId: id,
+        doctorId: request.sessionUser!.id,
+        proposedStartAt: new Date(proposedStartAt),
+        format,
+      });
+
+      return { appointment: toDto(appointment) };
+    },
+  );
+
+  app.get(
+    "/api/v1/appointments/:id/pending-decision",
+    { schema: { params: Type.Object({ id: Type.String() }) } },
+    async (request) => {
+      requireRole(request.sessionUser, "patient");
+      const { id } = request.params as { id: string };
+      return getPendingDecision({ appointmentId: id, patientId: request.sessionUser!.id });
+    },
+  );
+
+  app.post(
+    "/api/v1/appointments/:id/accept-proposal",
+    { schema: { params: Type.Object({ id: Type.String() }) } },
+    async (request) => {
+      requireRole(request.sessionUser, "patient");
+      const { id } = request.params as { id: string };
+      const { oldAppointment, newAppointment } = await patientAcceptProposal({
+        appointmentId: id,
+        patientId: request.sessionUser!.id,
+      });
+      return { oldAppointment: toDto(oldAppointment), newAppointment: toDto(newAppointment) };
+    },
+  );
 };
 
-/** Auto-complete job (backend-spec.md): runs periodically, `Upcoming` -> `Completed` past end time. */
 export function startAutoCompleteJob(intervalMs = 60_000): NodeJS.Timeout {
   return setInterval(() => {
     autoCompleteDueAppointments().catch((err) => {

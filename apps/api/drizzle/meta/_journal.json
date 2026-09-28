@@ -29,6 +29,13 @@
       "when": 1789990000000,
       "tag": "0003_specialty_expand",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1790000000000,
+      "tag": "0004_patient_social",
+      "breakpoints": true
     }
   ]
 }

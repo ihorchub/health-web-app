@@ -6,3 +6,7 @@ export * from "./profiles.js";
 export * from "./reference.js";
 export * from "./doctor-schedule.js";
 export * from "./appointments.js";
+export * from "./reviews.js";
+export * from "./patient-lists.js";
+export * from "./notifications.js";
+export * from "./doctor-education.js";

@@ -39,5 +39,7 @@ export const doctorSchedules = pgTable("doctor_schedules", {
   promoValidUntil: date("promo_valid_until"),
   supportedFormats: text("supported_formats").array().notNull(),
   weeklyTemplate: jsonb("weekly_template").$type<WeeklyTemplate>().notNull(),
+  /** ISO calendar dates (YYYY-MM-DD) marked as vacation / day off. */
+  vacationDates: text("vacation_dates").array().notNull().default([]),
   visibleInSearch: boolean("visible_in_search").notNull().default(true),
 });

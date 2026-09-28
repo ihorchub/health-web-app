@@ -2,7 +2,6 @@
  * GET /api/v1/doctors/search — backend-spec.md SCR-02.
  *
  * Filters in SQL, then computes nearestFreeAt via the same slot engine as calendar.
- * Reviews / favourites tables are not in MVP schema yet → rating 0, isFavourite false.
  */
 import { and, eq, ilike, inArray, or, sql, type SQL } from "drizzle-orm";
 
@@ -23,6 +22,8 @@ import {
 import { ApiError } from "../lib/errors.js";
 import type { SessionUser } from "../plugins/session.js";
 import { dayBoundsUtc, loadDoctorForBooking, loadOccupancyInRange } from "./booking-validation.js";
+import { favouriteDoctorIds } from "./patient-lists.js";
+import { getDoctorReviewStatsMap } from "./reviews.js";
 import { generateDaySlots } from "./slots.js";
 
 export type VisitFormatCard = "offline" | "online" | "both";
@@ -130,7 +131,14 @@ async function findNearestFreeAt(params: {
   now: Date;
   dateFilter?: CalendarDate;
 }): Promise<string | null> {
-  const doctor = await loadDoctorForBooking(params.doctorId);
+  let doctor;
+  try {
+    doctor = await loadDoctorForBooking(params.doctorId);
+  } catch (err) {
+    // Parallel test cleanup (or deleted doctor mid-scan) — skip quietly.
+    if (err instanceof ApiError && err.code === "DOCTOR_NOT_FOUND") return null;
+    throw err;
+  }
   const zoneBounds = getZoneABounds(params.now);
 
   let start = zoneBounds.zoneAStartDate;
@@ -152,6 +160,10 @@ async function findNearestFreeAt(params: {
 
   let cursor = start;
   for (let i = 0; i < MAX_ZONE_A_DAYS && compareCalendarDates(cursor, end) <= 0; i += 1) {
+    if (doctor.vacationDates.includes(formatCalendarDate(cursor))) {
+      cursor = addCalendarDays(cursor, 1);
+      continue;
+    }
     const bounds = dayBoundsUtc(cursor);
     const dayOccupancy = occupancy.filter(
       (entry) =>
@@ -265,20 +277,22 @@ async function searchDoctorsInner(params: DoctorsSearchParams): Promise<DoctorsS
     .innerJoin(clinics, eq(clinics.id, doctorProfiles.clinicId))
     .where(and(...conditions));
 
+  const ratingMap = await getDoctorReviewStatsMap(rows.map((r) => r.id));
+
   // Price / rating filters after join (promo-aware price is computed).
   const filtered = rows.filter((row) => {
     if (!supportsFormat(row.supportedFormats, params.format)) return false;
     const price = effectivePrice(row, todayIso);
     if (params.priceMin != null && price < params.priceMin) return false;
     if (params.priceMax != null && price > params.priceMax) return false;
-    // No reviews table yet — everyone is 0; minRating > 0 → empty.
-    const ratingAverage = 0;
+    const ratingAverage = ratingMap.get(row.id)?.ratingAverage ?? 0;
     if (params.minRating != null && ratingAverage < params.minRating) return false;
     return true;
   });
 
   let homeClinicId: string | null = null;
   let prefill: DoctorsSearchResult["prefill"];
+  let favSet = new Set<string>();
   if (params.sessionUser?.role === "patient") {
     const [patient] = await db
       .select({
@@ -293,6 +307,10 @@ async function searchDoctorsInner(params: DoctorsSearchParams): Promise<DoctorsS
       cityId: patient?.homeCityId ?? null,
       clinicId: patient?.homeClinicId ?? null,
     };
+    favSet = await favouriteDoctorIds(
+      params.sessionUser.id,
+      filtered.map((r) => r.id),
+    );
   }
 
   const withSlots: DoctorSearchCard[] = [];
@@ -305,6 +323,7 @@ async function searchDoctorsInner(params: DoctorsSearchParams): Promise<DoctorsS
     // Date filter: must have a free slot that day.
     if (dateFilter && !nearestFreeAt) continue;
 
+    const stats = ratingMap.get(row.id) ?? { ratingAverage: 0, reviewCount: 0 };
     withSlots.push({
       id: row.id,
       firstName: row.firstName,
@@ -319,9 +338,9 @@ async function searchDoctorsInner(params: DoctorsSearchParams): Promise<DoctorsS
       nearestFreeAt,
       basePrice: row.basePriceUah,
       promoPrice: effectivePromo(row, todayIso),
-      ratingAverage: 0,
-      reviewCount: 0,
-      isFavourite: false,
+      ratingAverage: stats.ratingAverage,
+      reviewCount: stats.reviewCount,
+      isFavourite: favSet.has(row.id),
     });
   }
 
