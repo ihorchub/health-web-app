@@ -5,7 +5,8 @@ export type NotificationEventType =
   | 'patient_accepted_proposal'
   | 'patient_picked_other_slot'
   | 'doctor_cancelled'
-  | 'doctor_proposed_time';
+  | 'doctor_proposed_time'
+  | 'proposal_expired';
 
 export interface AppNotification {
   id: string;
@@ -16,4 +17,5 @@ export interface AppNotification {
   doctorName?: string;
   /** Display time for the visit referenced */
   visitAt?: string;
+  appointmentId?: string;
 }

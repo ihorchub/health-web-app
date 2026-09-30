@@ -1,37 +1,16 @@
 import { Button } from '@mui/material';
 import { styled } from '@/theme/styled';
 
-import {
-  IconCalendarEvent,
-  IconChevronLeft,
-  IconChevronRight,
-  IconSearch,
-  IconX,
-} from '@tabler/icons-react';
-import { useMemo, useState } from 'react';
+import { IconX } from '@tabler/icons-react';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { SheetDialog } from '@/components/Dialog/SheetDialog';
-import { useAppRole } from '@/hooks/useAppRole';
-import type { DoctorDayVisit, FreeWindowSlot, VisitFormat } from '@/modules/doctor-day/types';
+import type { DoctorDayVisit } from '@/modules/doctor-day/types';
+import { DEMO_DOCTOR_DAY } from '@/modules/doctor-day/utils/mapDashboard';
 import {
-  DEMO_DOCTOR_DAY,
-  PROPOSE_DATE_CHIPS,
-} from '@/modules/doctor-day/utils/mapDashboard';
-import {
-  DayChip,
-  DayChips,
-  DateTimePanel,
   DangerOutlineButton,
-  FieldBlock,
-  FieldLabel,
-  FormatRow,
-  FormatSideLabel,
-  FormatSwitchGroup,
-  FormatTrack,
-  LockedField,
   MetaChip,
-  ModalActions,
   ModalCloseButton,
   ModalHeaderRow,
   ModalOverline,
@@ -39,24 +18,12 @@ import {
   ModalSubtitle,
   ModalTitle,
   ModalTitleBlock,
-  MonthLabel,
-  MonthNav,
-  MonthNavButton,
-  MonthNavButtons,
-  OutlineButton,
-  ProposeSummary,
-  ProposeSummaryCopy,
-  ProposeSummaryIcon,
-  ProposeSummaryMeta,
-  ProposeSummaryTitle,
   ScheduleChevron,
   ScheduleSlotMain,
   ScheduleSlotMeta,
   ScheduleSlotName,
   ScheduleSlotRow,
   ScheduleSlotTime,
-  SlotChip,
-  SlotPicker,
   SoftStatusPill,
   VisitCardActions,
   VisitCardBody,
@@ -73,26 +40,6 @@ import {
   VisitCardTimeCol,
 } from '@/modules/doctor-day/styles';
 import { formatTime } from '@/modules/patient-room/utils/formatCabinetDate';
-
-const ProposeDialog = styled(SheetDialog)(({ theme }) => ({
-  '& .MuiDialog-paper': {
-    maxWidth: 560,
-    width: '100%',
-    borderRadius: 20,
-    padding: theme.spacing(2.5, 2),
-    boxShadow: '0 16px 48px rgba(22, 62, 82, 0.14)',
-    boxSizing: 'border-box',
-
-    [theme.breakpoints.up('sm')]: {
-      padding: theme.spacing(3.5),
-    },
-
-    [theme.breakpoints.down('sm')]: {
-      borderRadius: 0,
-      padding: theme.spacing(2.5, 2),
-    },
-  },
-}));
 
 const ScheduleDialog = styled(SheetDialog)(({ theme }) => ({
   '& .MuiDialog-paper': {
@@ -133,14 +80,11 @@ const VisitDialog = styled(SheetDialog)(({ theme }) => ({
 
 const softTone = (
   status: DoctorDayVisit['status'],
-): 'accent' | 'warning' | 'error' | 'muted' => {
+): 'accent' | 'error' | 'muted' => {
   if (status === 'cancelled') {
     return 'error';
   }
-  if (status === 'reschedule_pending') {
-    return 'warning';
-  }
-  if (status === 'completed' || status === 'rescheduled' || status === 'reserved') {
+  if (status === 'completed' || status === 'rescheduled') {
     return 'muted';
   }
   return 'accent';
@@ -148,12 +92,9 @@ const softTone = (
 
 const scheduleVariant = (
   status: DoctorDayVisit['status'],
-): 'booked' | 'pending' | 'cancelled' => {
+): 'booked' | 'cancelled' => {
   if (status === 'cancelled') {
     return 'cancelled';
-  }
-  if (status === 'reschedule_pending') {
-    return 'pending';
   }
   return 'booked';
 };
@@ -174,204 +115,11 @@ const formatDayHeading = (ymd: string, locale: string) =>
     timeZone: 'Europe/Kyiv',
   }).format(new Date(`${ymd}T12:00:00+03:00`));
 
-const formatMonthYear = (ymd: string, locale: string) =>
-  new Intl.DateTimeFormat(locale === 'uk' ? 'uk-UA' : 'en-GB', {
-    month: 'long',
-    year: 'numeric',
-    timeZone: 'Europe/Kyiv',
-  }).format(new Date(`${ymd}T12:00:00+03:00`));
-
-const formatProposeMeta = (ymd: string, locale: string) =>
-  new Intl.DateTimeFormat(locale === 'uk' ? 'uk-UA' : 'en-GB', {
-    weekday: 'short',
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-    timeZone: 'Europe/Kyiv',
-  }).format(new Date(`${ymd}T12:00:00+03:00`));
-
-interface ProposeTimeDialogProps {
-  visit: DoctorDayVisit | null;
-  open: boolean;
-  onClose: () => void;
-  /** Clock labels for chips, e.g. "15:00" */
-  slotLabels: string[];
-  /** Matching ISO start times for submit */
-  slotIsos: string[];
-  onSubmit: (proposedStartAt: string) => void;
-}
-
-export const ProposeTimeDialog = ({
-  visit,
-  open,
-  onClose,
-  slotLabels,
-  slotIsos,
-  onSubmit,
-}: ProposeTimeDialogProps) => {
-  const { t, i18n } = useTranslation('doctorDay');
-  const { me } = useAppRole();
-  const [selectedYmd, setSelectedYmd] = useState(DEMO_DOCTOR_DAY);
-  const [slotIndex, setSlotIndex] = useState(0);
-  const [format, setFormat] = useState<VisitFormat>('offline');
-  const [sessionOpen, setSessionOpen] = useState(false);
-
-  if (open !== sessionOpen) {
-    setSessionOpen(open);
-    if (open && visit) {
-      setSelectedYmd(DEMO_DOCTOR_DAY);
-      setSlotIndex(0);
-      setFormat(visit.format);
-    }
-  }
-
-  if (!visit) {
-    return null;
-  }
-
-  const slotLabel = slotLabels[slotIndex] ?? slotLabels[0] ?? '—';
-  const slotIso = slotIsos[slotIndex] ?? slotIsos[0];
-
-  const doctorLabel = me
-    ? t('modals.doctorShort', { name: me.firstName })
-    : t('modals.doctorShort', { name: '—' });
-
-  return (
-    <ProposeDialog open={open} onClose={onClose} fullWidth>
-      <ModalPaper>
-        <ModalHeaderRow>
-          <ModalTitleBlock>
-            <ModalTitle>{t('modals.proposeTitle')}</ModalTitle>
-            <ModalSubtitle>{t('modals.proposeStep')}</ModalSubtitle>
-          </ModalTitleBlock>
-          <ModalCloseButton type="button" aria-label={t('modals.close')} onClick={onClose}>
-            <IconX size={14} stroke={1.75} />
-          </ModalCloseButton>
-        </ModalHeaderRow>
-
-        <ProposeSummary>
-          <ProposeSummaryIcon>
-            <IconCalendarEvent size={18} stroke={1.75} />
-          </ProposeSummaryIcon>
-          <ProposeSummaryCopy>
-            <ProposeSummaryTitle>
-              {t('modals.proposeSummaryTitle', {
-                time: slotLabel,
-                minutes: visit.durationMinutes,
-              })}
-            </ProposeSummaryTitle>
-            <ProposeSummaryMeta>
-              {t('modals.proposeSummaryMeta', {
-                date: formatProposeMeta(selectedYmd, i18n.language),
-                doctor: doctorLabel,
-              })}
-            </ProposeSummaryMeta>
-          </ProposeSummaryCopy>
-        </ProposeSummary>
-
-        <FieldBlock>
-          <FieldLabel>{t('modals.dateTime')}</FieldLabel>
-          <DateTimePanel>
-            <MonthNav>
-              <MonthLabel>{formatMonthYear(selectedYmd, i18n.language)}</MonthLabel>
-              <MonthNavButtons>
-                <MonthNavButton type="button" aria-label={t('modals.prevMonth')} disabled>
-                  <IconChevronLeft size={12} stroke={2} />
-                </MonthNavButton>
-                <MonthNavButton type="button" aria-label={t('modals.nextMonth')} disabled>
-                  <IconChevronRight size={12} stroke={2} />
-                </MonthNavButton>
-              </MonthNavButtons>
-            </MonthNav>
-
-            <DayChips>
-              {PROPOSE_DATE_CHIPS.map((day) => (
-                <DayChip
-                  key={day.ymd}
-                  type="button"
-                  $active={selectedYmd === day.ymd}
-                  $disabled={day.disabled}
-                  disabled={day.disabled}
-                  onClick={() => {
-                    setSelectedYmd(day.ymd);
-                  }}
-                >
-                  {day.day}
-                </DayChip>
-              ))}
-            </DayChips>
-
-            <SlotPicker>
-              {slotLabels.map((value, index) => (
-                <SlotChip
-                  key={value}
-                  type="button"
-                  $active={slotIndex === index}
-                  onClick={() => {
-                    setSlotIndex(index);
-                  }}
-                >
-                  {value}
-                </SlotChip>
-              ))}
-            </SlotPicker>
-          </DateTimePanel>
-        </FieldBlock>
-
-        <FieldBlock>
-          <FieldLabel>{t('modals.currentVisit')}</FieldLabel>
-          <LockedField>
-            <IconSearch size={16} stroke={1.75} />
-            <span>{t('modals.patientAlreadyBooked')}</span>
-          </LockedField>
-        </FieldBlock>
-
-        <FormatRow>
-          <FieldLabel>{t('modals.visitFormat')}</FieldLabel>
-          <FormatSwitchGroup>
-            <FormatSideLabel $active={format === 'offline'}>{t('format.offline')}</FormatSideLabel>
-            <FormatTrack
-              type="button"
-              $online={format === 'online'}
-              aria-label={t('modals.visitFormat')}
-              onClick={() => {
-                setFormat((current) => (current === 'online' ? 'offline' : 'online'));
-              }}
-            />
-            <FormatSideLabel $active={format === 'online'}>{t('format.online')}</FormatSideLabel>
-          </FormatSwitchGroup>
-        </FormatRow>
-
-        <ModalActions>
-          <OutlineButton variant="outlined" color="inherit" onClick={onClose}>
-            {t('modals.cancel')}
-          </OutlineButton>
-          <Button
-            variant="contained"
-            color="primary"
-            disabled={!slotIso}
-            onClick={() => {
-              if (!slotIso) {
-                return;
-              }
-              onSubmit(slotIso);
-              onClose();
-            }}
-          >
-            {t('modals.next')}
-          </Button>
-        </ModalActions>
-      </ModalPaper>
-    </ProposeDialog>
-  );
-};
-
 interface VisitCardDialogProps {
   visit: DoctorDayVisit | null;
   open: boolean;
   onClose: () => void;
   onComplete?: () => void;
-  onPropose?: () => void;
   onCancel?: () => void;
 }
 
@@ -380,7 +128,6 @@ export const VisitCardDialog = ({
   open,
   onClose,
   onComplete,
-  onPropose,
   onCancel,
 }: VisitCardDialogProps) => {
   const { t, i18n } = useTranslation('doctorDay');
@@ -448,15 +195,6 @@ export const VisitCardDialog = ({
             >
               {t('nextVisit.complete')}
             </Button>
-            <OutlineButton
-              variant="outlined"
-              color="inherit"
-              onClick={() => {
-                onPropose?.();
-              }}
-            >
-              {t('nextVisit.propose')}
-            </OutlineButton>
             <DangerOutlineButton
               variant="outlined"
               onClick={() => {
@@ -477,7 +215,8 @@ interface DayScheduleDialogProps {
   open: boolean;
   onClose: () => void;
   visits: DoctorDayVisit[];
-  freeWindows: FreeWindowSlot[];
+  /** Individual free slot start times (ISO) for today. */
+  freeSlotIsos: string[];
   onOpenVisit: (visit: DoctorDayVisit) => void;
 }
 
@@ -485,7 +224,7 @@ export const DayScheduleDialog = ({
   open,
   onClose,
   visits,
-  freeWindows,
+  freeSlotIsos,
   onOpenVisit,
 }: DayScheduleDialogProps) => {
   const { t, i18n } = useTranslation('doctorDay');
@@ -494,8 +233,6 @@ export const DayScheduleDialog = ({
     () => [...visits].sort((a, b) => a.startsAt.localeCompare(b.startsAt)),
     [visits],
   );
-
-  const freeCount = freeWindows.reduce((sum, window) => sum + window.slotsCount, 0);
 
   return (
     <ScheduleDialog open={open} onClose={onClose} fullWidth>
@@ -506,7 +243,7 @@ export const DayScheduleDialog = ({
             <ModalSubtitle>
               {t('modals.dayScheduleMeta', {
                 visits: orderedVisits.length,
-                free: freeCount,
+                free: freeSlotIsos.length,
               })}
             </ModalSubtitle>
           </ModalTitleBlock>
@@ -522,14 +259,7 @@ export const DayScheduleDialog = ({
               ? visit.cancelledBy === 'patient'
                 ? t('list.cancelledByPatient')
                 : t('list.cancelledByDoctor')
-              : visit.status === 'reschedule_pending' && visit.proposedTime
-                ? t('list.pendingNote', {
-                    original: formatTime(visit.startsAt, i18n.language),
-                    proposed: formatTime(visit.proposedTime, i18n.language),
-                  })
-                : visit.status === 'reserved'
-                  ? t('list.reservedNote')
-                  : [t(`format.${visit.format}`), visit.reason].filter(Boolean).join(' · ');
+              : [t(`format.${visit.format}`), visit.reason].filter(Boolean).join(' · ');
 
           return (
             <ScheduleSlotRow
@@ -551,35 +281,26 @@ export const DayScheduleDialog = ({
                   {visit.patientName}
                 </ScheduleSlotName>
                 <ScheduleSlotMeta
-                  $tone={
-                    variant === 'pending'
-                      ? 'warning'
-                      : variant === 'cancelled'
-                        ? 'error'
-                        : 'default'
-                  }
+                  $tone={variant === 'cancelled' ? 'error' : 'default'}
                 >
                   {meta}
                 </ScheduleSlotMeta>
               </ScheduleSlotMain>
               <SoftStatusPill $tone={softTone(visit.status)}>
-                {visit.status === 'reschedule_pending'
-                  ? t('modals.statusWaitingShort')
-                  : t(`status.${visit.status}`)}
+                {t(`status.${visit.status}`)}
               </SoftStatusPill>
               <ScheduleChevron>›</ScheduleChevron>
             </ScheduleSlotRow>
           );
         })}
 
-        {freeWindows.map((window) => (
-          <ScheduleSlotRow key={window.id} type="button" $variant="free" disabled>
-            <ScheduleSlotTime $tone="accent">{window.start}</ScheduleSlotTime>
+        {freeSlotIsos.map((iso) => (
+          <ScheduleSlotRow key={iso} type="button" $variant="free" disabled>
+            <ScheduleSlotTime $tone="accent">{formatTime(iso, i18n.language)}</ScheduleSlotTime>
             <ScheduleSlotMain>
               <ScheduleSlotName $muted>
                 {t('modals.freeSlotTitle', { minutes: 30 })}
               </ScheduleSlotName>
-              <ScheduleSlotMeta $tone="accent">{t('modals.freeSlotHint')}</ScheduleSlotMeta>
             </ScheduleSlotMain>
             <ScheduleChevron>+</ScheduleChevron>
           </ScheduleSlotRow>

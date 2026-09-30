@@ -388,9 +388,9 @@ export const PatientCabinetPage = () => {
                 ))
               ) : isEmptyAll ? (
                 <CabinetStatePanel variant="empty-all" onFindDoctor={goFindDoctor} />
-              ) : (
+              ) : upcoming.length === 0 ? (
                 <CabinetStatePanel variant="empty-upcoming" onFindDoctor={goFindDoctor} />
-              )}
+              ) : null}
 
               {!upcomingLoading && restUpcoming.length > UPCOMING_PREVIEW ? (
                 <ShowMoreLink

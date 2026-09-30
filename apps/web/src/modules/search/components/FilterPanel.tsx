@@ -11,9 +11,13 @@ import {
   FilterGroupTitle,
   FilterMenuItem,
   FiltersHeader,
+  PlaceholderOption,
   PriceLabels,
-  RatingPill,
-  RatingPills,
+  RatingOption,
+  RatingOptionLabel,
+  RatingOptions,
+  RatingStar,
+  RatingStars,
   ResetButton,
   SectionTitle,
   Sidebar,
@@ -71,11 +75,27 @@ export const FilterPanel = ({
         <FilterField
           select
           value={filters.cityId}
+          slotProps={{
+            select: {
+              displayEmpty: true,
+              renderValue: (selected) => {
+                const value = String(selected ?? '');
+                if (!value) {
+                  return (
+                    <span className="filter-placeholder">{t('filters.cityPlaceholder')}</span>
+                  );
+                }
+                return cities.find((city) => city.id === value)?.name ?? value;
+              },
+            },
+          }}
           onChange={(event) => {
             onChange({ cityId: event.target.value, clinicId: '' });
           }}
         >
-          <FilterMenuItem value="">{t('filters.cityPlaceholder')}</FilterMenuItem>
+          <FilterMenuItem value="">
+            <PlaceholderOption>{t('filters.cityPlaceholder')}</PlaceholderOption>
+          </FilterMenuItem>
           {cities.map((city) => (
             <FilterMenuItem key={city.id} value={city.id}>
               {city.name}
@@ -88,11 +108,27 @@ export const FilterPanel = ({
           select
           disabled={!filters.cityId}
           value={filters.clinicId}
+          slotProps={{
+            select: {
+              displayEmpty: true,
+              renderValue: (selected) => {
+                const value = String(selected ?? '');
+                if (!value) {
+                  return (
+                    <span className="filter-placeholder">{t('filters.clinicPlaceholder')}</span>
+                  );
+                }
+                return clinics.find((clinic) => clinic.id === value)?.name ?? value;
+              },
+            },
+          }}
           onChange={(event) => {
             onChange({ clinicId: event.target.value });
           }}
         >
-          <FilterMenuItem value="">{t('filters.clinicPlaceholder')}</FilterMenuItem>
+          <FilterMenuItem value="">
+            <PlaceholderOption>{t('filters.clinicPlaceholder')}</PlaceholderOption>
+          </FilterMenuItem>
           {clinics.map((clinic) => (
             <FilterMenuItem key={clinic.id} value={clinic.id}>
               {clinic.name}
@@ -104,11 +140,29 @@ export const FilterPanel = ({
         <FilterField
           select
           value={filters.specialty}
+          slotProps={{
+            select: {
+              displayEmpty: true,
+              renderValue: (selected) => {
+                const value = String(selected ?? '');
+                if (!value) {
+                  return (
+                    <span className="filter-placeholder">
+                      {t('filters.specialtyPlaceholder')}
+                    </span>
+                  );
+                }
+                return t(`specialties.${value}`, { defaultValue: value });
+              },
+            },
+          }}
           onChange={(event) => {
             onChange({ specialty: event.target.value });
           }}
         >
-          <FilterMenuItem value="">{t('filters.specialtyPlaceholder')}</FilterMenuItem>
+          <FilterMenuItem value="">
+            <PlaceholderOption>{t('filters.specialtyPlaceholder')}</PlaceholderOption>
+          </FilterMenuItem>
           {specialties.map((specialty) => (
             <FilterMenuItem key={specialty.id} value={specialty.id}>
               {t(`specialties.${specialty.id}`)}
@@ -163,21 +217,39 @@ export const FilterPanel = ({
 
       <FilterGroup>
         <FilterGroupTitle>{t('filters.rating')}</FilterGroupTitle>
-        <RatingPills>
-          {[4, 4.5, 3].map((value) => (
-            <RatingPill
-              key={value}
-              type="button"
-              $active={filters.minRating === value}
-              onClick={() => {
-                onChange({ minRating: filters.minRating === value ? undefined : value });
-              }}
-            >
-              <IconStarFilled size={14} />
-              {value}+
-            </RatingPill>
-          ))}
-        </RatingPills>
+        <RatingOptions>
+          {(
+            [
+              { value: 4.5, filled: 5 },
+              { value: 4, filled: 4 },
+              { value: 3, filled: 3 },
+            ] as const
+          ).map(({ value, filled }) => {
+            const active = filters.minRating === value;
+            return (
+              <RatingOption
+                key={value}
+                type="button"
+                $active={active}
+                aria-pressed={active}
+                onClick={() => {
+                  onChange({ minRating: active ? undefined : value });
+                }}
+              >
+                <RatingStars aria-hidden>
+                  {Array.from({ length: 5 }, (_, index) => (
+                    <RatingStar key={index} $filled={index < filled}>
+                      <IconStarFilled size={14} />
+                    </RatingStar>
+                  ))}
+                </RatingStars>
+                <RatingOptionLabel>
+                  {t('filters.ratingAndUp', { value })}
+                </RatingOptionLabel>
+              </RatingOption>
+            );
+          })}
+        </RatingOptions>
       </FilterGroup>
 
       <FilterGroup>

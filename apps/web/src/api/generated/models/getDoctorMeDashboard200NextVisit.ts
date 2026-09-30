@@ -14,6 +14,8 @@ import type { GetDoctorMeDashboard200NextVisitStatus } from './getDoctorMeDashbo
 export type GetDoctorMeDashboard200NextVisit = {
   id: string;
   patientDisplayName: string;
+  /** @nullable */
+  patientPhotoUrl: string | null;
   startAt: string;
   format: typeof GetDoctorMeDashboard200NextVisitFormat[keyof typeof GetDoctorMeDashboard200NextVisitFormat];
   /** @nullable */

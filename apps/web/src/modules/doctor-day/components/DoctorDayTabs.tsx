@@ -1,7 +1,7 @@
 import {
   IconAlertTriangle,
   IconCalendarEvent,
-  IconClockHour4,
+  IconHistory,
   IconLayoutGrid,
 } from '@tabler/icons-react';
 import { useMediaQuery, useTheme } from '@mui/material';
@@ -29,9 +29,9 @@ const TAB_META: Record<DoctorDayTab, { tone: 'green' | 'orange' | 'red'; icon: R
     tone: 'green',
     icon: <IconCalendarEvent size={16} stroke={2} />,
   },
-  pending: {
+  past: {
     tone: 'orange',
-    icon: <IconClockHour4 size={16} stroke={2} />,
+    icon: <IconHistory size={16} stroke={2} />,
   },
   free: {
     tone: 'green',
@@ -47,7 +47,7 @@ export const DoctorDayTabs = ({ active, counts, onChange }: DoctorDayTabsProps) 
   const { t } = useTranslation('doctorDay');
   const theme = useTheme();
   const isCompact = useMediaQuery(theme.breakpoints.down('md'));
-  const tabs: DoctorDayTab[] = ['visits', 'pending', 'free', 'cancellations'];
+  const tabs: DoctorDayTab[] = ['visits', 'past', 'free', 'cancellations'];
 
   return (
     <TabRow>

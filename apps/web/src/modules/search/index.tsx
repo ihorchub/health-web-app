@@ -124,15 +124,15 @@ export const SearchPage = () => {
           activeSpecialty={filters.specialty || undefined}
           activeQuery={appliedQuery || undefined}
           onSelect={({ specialty, q }) => {
-            if (specialty) {
-              updateFilters({ specialty });
-              setAppliedQuery('');
-              setQueryInput('');
-            } else if (q) {
+            if (q) {
               updateFilters({ specialty: '' });
               applyQuery(q);
               setQueryInput(q);
+              return;
             }
+            updateFilters({ specialty: specialty ?? '' });
+            setAppliedQuery('');
+            setQueryInput('');
           }}
         />
 

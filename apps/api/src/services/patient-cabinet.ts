@@ -6,7 +6,7 @@ import { doctorProfiles } from "../db/schema/profiles.js";
 import { cities, clinics } from "../db/schema/reference.js";
 import { formatCalendarDate, getZoneABounds } from "../lib/booking-horizon.js";
 import { getZonedDateParts } from "../lib/timezone.js";
-import { autoCompleteDueAppointments } from "./appointments.js";
+import { runAppointmentMaintenance } from "./appointments.js";
 import { listFavourites, listRecentlyViewed } from "./patient-lists.js";
 import { getPatientReviews, getReviewForAppointment } from "./reviews.js";
 
@@ -103,7 +103,7 @@ export async function listPatientAppointments(patientId: string): Promise<{
   past: CabinetAppointmentRow[];
 }> {
   // R-02: visit end = start + duration → Completed before we group Upcoming/Past.
-  await autoCompleteDueAppointments();
+  await runAppointmentMaintenance();
 
   const [upcoming, past] = await Promise.all([
     mapAppointmentRows(patientId, [...UPCOMING_STATUSES]),

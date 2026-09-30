@@ -18,6 +18,8 @@ export type GetPatientCabinet200NextAppointment = {
   doctorId: string;
   doctorFirstName: string;
   doctorLastName: string;
+  /** @nullable */
+  doctorPhotoUrl: string | null;
   specialty: string;
   clinicName: string;
   cityName: string;

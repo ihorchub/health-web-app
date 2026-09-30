@@ -10,7 +10,6 @@ import {
   NextVisitBody,
   NextVisitCard,
   NextVisitHead,
-  OutlineButton,
   OverlineLabel,
   PatientName,
   RowActions,
@@ -25,14 +24,12 @@ import {
   TimeValue,
   VisitMain,
   VisitRow,
-  WaitingLabel,
 } from '@/modules/doctor-day/styles';
 import { formatTime } from '@/modules/patient-room/utils/formatCabinetDate';
 
 interface DoctorVisitRowProps {
   visit: DoctorDayVisit;
   onComplete?: () => void;
-  onPropose?: () => void;
   onCancel?: () => void;
   onOpen?: () => void;
 }
@@ -41,26 +38,12 @@ const rowVariant = (visit: DoctorDayVisit) => {
   if (visit.status === 'cancelled') {
     return 'cancelled';
   }
-  if (visit.status === 'reserved') {
-    return 'reserved';
-  }
-  if (visit.status === 'reschedule_pending') {
-    return 'pending';
-  }
   return 'default';
 };
 
-const statusTone = (
-  visit: DoctorDayVisit,
-): 'accent' | 'warning' | 'muted' | 'error' | 'reserved' => {
+const statusTone = (visit: DoctorDayVisit): 'accent' | 'muted' | 'error' => {
   if (visit.status === 'cancelled') {
     return 'error';
-  }
-  if (visit.status === 'reschedule_pending') {
-    return 'warning';
-  }
-  if (visit.status === 'reserved') {
-    return 'reserved';
   }
   if (visit.status === 'completed' || visit.status === 'rescheduled') {
     return 'muted';
@@ -71,12 +54,14 @@ const statusTone = (
 export const DoctorVisitRow = ({
   visit,
   onComplete,
-  onPropose,
   onCancel,
   onOpen,
 }: DoctorVisitRowProps) => {
   const { t, i18n } = useTranslation('doctorDay');
-  const mutedTime = visit.status === 'completed' || visit.status === 'cancelled';
+  const mutedTime =
+    visit.status === 'completed' ||
+    visit.status === 'cancelled' ||
+    visit.status === 'rescheduled';
 
   return (
     <VisitRow
@@ -99,23 +84,8 @@ export const DoctorVisitRow = ({
           <StatusPill $tone={statusTone(visit)}>{t(`status.${visit.status}`)}</StatusPill>
           <FormatChip>{t(`format.${visit.format}`)}</FormatChip>
         </RowTitleLine>
-        {visit.pendingNote ? <RowMeta>{visit.pendingNote}</RowMeta> : null}
-        {visit.status === 'reschedule_pending' && visit.proposedTime ? (
-          <RowMeta>
-            {t('list.pendingNote', {
-              original: formatTime(visit.startsAt, i18n.language),
-              proposed: formatTime(visit.proposedTime, i18n.language),
-            })}
-          </RowMeta>
-        ) : null}
-        {visit.status === 'reserved' ? <RowMeta>{t('list.reservedNote')}</RowMeta> : null}
-        {!visit.pendingNote &&
-        visit.status !== 'reschedule_pending' &&
-        visit.status !== 'reserved' &&
-        visit.reason ? (
-          <RowMeta>{t('list.reason', { reason: visit.reason })}</RowMeta>
-        ) : null}
-        {!visit.pendingNote && visit.status === 'cancelled' && visit.cancelledBy ? (
+        {visit.reason ? <RowMeta>{t('list.reason', { reason: visit.reason })}</RowMeta> : null}
+        {visit.status === 'cancelled' && visit.cancelledBy ? (
           <RowMeta>
             {visit.cancelledBy === 'patient'
               ? t('list.cancelledByPatientShort')
@@ -139,17 +109,6 @@ export const DoctorVisitRow = ({
           </SmallButton>
           <SmallButton
             variant="outlined"
-            color="inherit"
-            size="small"
-            onClick={(event) => {
-              event.stopPropagation();
-              onPropose?.();
-            }}
-          >
-            {t('rowActions.propose')}
-          </SmallButton>
-          <SmallButton
-            variant="outlined"
             color="error"
             size="small"
             onClick={(event) => {
@@ -161,14 +120,6 @@ export const DoctorVisitRow = ({
           </SmallButton>
         </RowActions>
       ) : null}
-
-      {visit.status === 'reschedule_pending' ? (
-        <WaitingLabel>{t('list.waitingPatient')}</WaitingLabel>
-      ) : null}
-
-      {visit.status === 'reserved' ? (
-        <WaitingLabel>{t('list.proposalLabel')}</WaitingLabel>
-      ) : null}
     </VisitRow>
   );
 };
@@ -176,7 +127,6 @@ export const DoctorVisitRow = ({
 interface DoctorNextVisitHeroProps {
   visit: DoctorDayVisit;
   onComplete: () => void;
-  onPropose: () => void;
   onCancel: () => void;
   onOpen: () => void;
 }
@@ -184,7 +134,6 @@ interface DoctorNextVisitHeroProps {
 export const DoctorNextVisitHero = ({
   visit,
   onComplete,
-  onPropose,
   onCancel,
   onOpen,
 }: DoctorNextVisitHeroProps) => {
@@ -232,16 +181,6 @@ export const DoctorNextVisitHero = ({
           >
             {t('nextVisit.complete')}
           </Button>
-          <OutlineButton
-            variant="outlined"
-            color="inherit"
-            onClick={(event) => {
-              event.stopPropagation();
-              onPropose();
-            }}
-          >
-            {t('nextVisit.propose')}
-          </OutlineButton>
           <DangerOutlineButton
             variant="outlined"
             onClick={(event) => {

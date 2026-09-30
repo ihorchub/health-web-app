@@ -21,6 +21,7 @@ import {
   usePostRecentlyViewed,
 } from '@/api/patients';
 import { useGetReferenceCities, useGetReferenceClinics } from '@/api/reference';
+import { DoctorPhoto } from '@/components/DoctorPhoto/DoctorPhoto';
 import { useAppRole } from '@/hooks/useAppRole';
 import { usePopups } from '@/hooks/usePopups';
 import { CalendarStep } from '@/modules/booking/calendar/CalendarStep';
@@ -47,7 +48,6 @@ import {
   IdentityRow,
   NameBlock,
   NameRow,
-  Photo,
   Price,
   PriceBlock,
   PriceRatingRow,
@@ -411,7 +411,13 @@ export const DoctorProfilePopup = () => {
           <>
             <DialogBody>
               <IdentityRow>
-                <Photo src={doctor.photoUrl ?? undefined} alt="" />
+                <DoctorPhoto
+                  photoUrl={doctor.photoUrl}
+                  firstName={doctor.firstName}
+                  lastName={doctor.lastName}
+                  size="xl"
+                  shape="rounded"
+                />
                 <IdentityMain>
                   <NameRow>
                     <NameBlock>
@@ -424,6 +430,7 @@ export const DoctorProfilePopup = () => {
                     </NameBlock>
                     <IconRoundButton
                       type="button"
+                      $active={Boolean(doctor.isFavourite && isPatient)}
                       aria-label={doctor.isFavourite ? t('unfavorite') : t('favorite')}
                       onClick={handleFavourite}
                     >
@@ -482,7 +489,9 @@ export const DoctorProfilePopup = () => {
                 <PriceBlock>
                   <FieldLabel>{t('consultation')}</FieldLabel>
                   <PriceRow>
-                    <Price>{doctor.promoPrice ?? doctor.basePrice} ₴</Price>
+                    <Price $promo={doctor.promoPrice !== null}>
+                      {doctor.promoPrice ?? doctor.basePrice} ₴
+                    </Price>
                     {doctor.promoPrice !== null ? (
                       <StruckPrice>{doctor.basePrice} ₴</StruckPrice>
                     ) : null}

@@ -57,7 +57,9 @@
   "cancelledByPatient": "Cancelled by you",
   "favourites": {
     "title": "Favourite doctors",
-    "all": "All ›"
+    "all": "All ›",
+    "carouselPrev": "Previous cards",
+    "carouselNext": "Next cards"
   },
   "recent": {
     "title": "Recently viewed",

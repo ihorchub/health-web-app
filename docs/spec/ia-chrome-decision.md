@@ -228,7 +228,7 @@ Concurrent refusal: error on step 3; stay in modal; return to step 2 for another
 - Day legend: bookable with free slots · full/no free · day off · selected.  
 - Only **free** slots as chips; duration = slot length.
 
-Doctor **propose new time** may reuse the same picker pattern + same horizon; SCR-08/09 remain different screens.
+Doctor **propose new time** is **Out of MVP** (doctor cannot propose or book patients). Patient reschedule uses the same calendar picker + Zone A horizon via FLO-02.
 
 ---
 
@@ -241,20 +241,21 @@ After login home. No search bar on the dashboard.
 **Left (main):**
 
 1. Greeting + primary CTA → SCR-02  
-2. Pending banner if any `Reschedule Pending` → SCR-12  
-3. Next appointment (actions by status)  
-4. Mini-calendar for the **rolling bookable window** (dots = this patient’s visits)  
-5. Upcoming list (overflow: show all on page)  
-6. **Favourites** — horizontal carousel (heart-saved doctors)  
-7. **Recently viewed** — last **10** unique doctor profile opens (carousel; hide if empty)  
-8. Specialty cards → SCR-02  
-9. Past appointments (compact) — each row without a review yet: CTA **Залишити відгук** → review modal (see Price, rating, reviews). After submit: show **Ваш відгук** (read) on that row; edit/delete still Open.
+2. Next appointment (actions by status)  
+3. Mini-calendar for the **rolling bookable window** (dots = this patient’s visits)  
+4. Upcoming list (overflow: show all on page)  
+5. **Favourites** — horizontal carousel (heart-saved doctors)  
+6. **Recently viewed** — last **10** unique doctor profile opens (carousel; hide if empty)  
+7. Specialty cards → SCR-02  
+8. Past appointments (compact) — each row without a review yet: CTA **Залишити відгук** → review modal (see Price, rating, reviews). After submit: show **Ваш відгук** (read) on that row; edit/delete still Open.
+
+No pending-proposal banner. SCR-12 / doctor propose are **Out of MVP**. Move on Upcoming only when ≥ 1 hour before start.
 
 **Do not** add a third “doctors from past visits” carousel (too similar).
 
 **Right column:**
 
-1. **Reminder** widget — only if Upcoming **today or tomorrow**; CTA view that visit; hide otherwise. (Dashboard soft-reminder; not R-10 bell history.) Pending stays the separate banner.  
+1. **Reminder** widget — only if Upcoming **today or tomorrow**; CTA view that visit; hide otherwise. (Dashboard soft-reminder; not R-10 bell history.)  
 2. **New doctor** promo — **one** newest/random new doctor + Book → wizard step 1; hide if none.  
 3. **Instruction** → SCR-02  
 
@@ -268,20 +269,19 @@ Out: medical card, chat, prescriptions, invite-friends. (Read ratings/reviews on
 
 ## Doctor cabinet — SCR-08 (dashboard)
 
-After login home. Propose-new-time **inline** (not a new SCR).
+After login home. Doctor may **complete** or **cancel** a visit only — no propose, no book patient.
 
-**Top:** greeting + date · **four metrics** (full width): visits today · pending · free slots today · cancellations last **7 days**.
+**Top:** greeting + date · **three metrics** (full width): visits today · free slots today · cancellations last **7 days**. (No pending-proposal metric.)
 
-**Left (main):** day navigation (week strip **or** mini-calendar — **Open**) · **next visit** hero · time-ordered visit list · actions (complete / cancel one / propose) · overflow “show all”.
+**Left (main):** day navigation (week strip **or** mini-calendar — **Open**) · **next visit** hero · time-ordered visit list · actions (complete / cancel one) · overflow “show all”.
 
 **Right column:**
 
 1. Reminder — next / soon visit (same pattern as patient)  
 2. Free windows today (short honest list) + link SCR-09  
-3. Pending patients awaiting reply (1–3 rows)  
-4. Quick links: My schedule · My profile  
+3. Quick links: My schedule · My profile  
 
-No finance/checkout, chat, video start. (Own rating summary on SCR-08 optional later — not required this pass.)  
+No pending-patients widget. No finance/checkout, chat, video start. (Own rating summary on SCR-08 optional later — not required this pass.)  
 Paper experiment (reference): https://app.paper.design/file/01M0WSHTTHBHN1910GVTJ72BB5
 
 ---
@@ -312,10 +312,10 @@ Logout available (also in avatar menu).
 
 ## Unchanged product rules
 
-R-01 roles and isolation · R-02 statuses · R-03 honest slots / double-booking · R-04 format · R-05 duration (freeze window = rolling month) · R-06/R-07 cancel & reschedule · R-08 hours (zones = rolling month + 3 months) · R-10 bell · R-11 i18n/theme (placement updated above) · FLO-03/04/05/06 meaning.
+R-01 roles and isolation · R-02 statuses (MVP: Upcoming, Completed, Cancelled, Rescheduled — no `Reschedule Pending`) · R-03 honest slots / double-booking (no reserved) · R-04 format · R-05 duration (freeze window = rolling month) · R-06/R-07 cancel & reschedule (patient-only reschedule; ≥ 1 hour before start; doctor complete/cancel only) · R-08 hours (zones = rolling month + 3 months) · R-10 bell · R-11 i18n/theme (placement updated above) · FLO-02/04/05/06 meaning. **FLO-03 Out of MVP.**
 
 SCR-10 = bell on existing pages.  
-SCR-12 = pending decision — still required (UI pass later).  
+**SCR-12 / FLO-03 = Out of MVP** (doctor proposal removed).  
 **SCR-01** deep redesign — deferred this pass.
 
 ---

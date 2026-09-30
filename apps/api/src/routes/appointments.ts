@@ -9,10 +9,9 @@ import {
   ReschedulePairResponse,
 } from "../openapi/schemas.js";
 import {
-  autoCompleteDueAppointments,
+  runAppointmentMaintenance,
   bookAppointment,
   cancelAppointment,
-  doctorPropose,
   getPendingDecision,
   markCompleted,
   patientAcceptProposal,
@@ -162,39 +161,6 @@ export const appointmentsRoutes: FastifyPluginAsync = async (app) => {
     },
   );
 
-  app.post(
-    "/api/v1/appointments/:id/propose",
-    {
-      schema: {
-        tags: ["appointments"],
-        operationId: "postProposeAppointment",
-        params: Type.Object({ id: Type.String() }),
-        body: Type.Object({
-          proposedStartAt: Type.String(),
-          format: Type.Optional(Format),
-        }),
-        response: { 200: AppointmentMutationResponse },
-      },
-    },
-    async (request) => {
-      requireRole(request.sessionUser, "doctor");
-      const { id } = request.params as { id: string };
-      const { proposedStartAt, format } = request.body as {
-        proposedStartAt: string;
-        format?: "offline" | "online";
-      };
-
-      const appointment = await doctorPropose({
-        appointmentId: id,
-        doctorId: request.sessionUser!.id,
-        proposedStartAt: new Date(proposedStartAt),
-        format,
-      });
-
-      return { appointment: toDto(appointment) };
-    },
-  );
-
   app.get(
     "/api/v1/appointments/:id/pending-decision",
     {
@@ -235,14 +201,14 @@ export const appointmentsRoutes: FastifyPluginAsync = async (app) => {
 };
 
 export function startAutoCompleteJob(intervalMs = 60_000): NodeJS.Timeout {
-  void autoCompleteDueAppointments().catch((err) => {
+  void runAppointmentMaintenance().catch((err) => {
     // eslint-disable-next-line no-console
-    console.error("autoCompleteDueAppointments failed", err);
+    console.error("runAppointmentMaintenance failed", err);
   });
   return setInterval(() => {
-    autoCompleteDueAppointments().catch((err) => {
+    runAppointmentMaintenance().catch((err) => {
       // eslint-disable-next-line no-console
-      console.error("autoCompleteDueAppointments failed", err);
+      console.error("runAppointmentMaintenance failed", err);
     });
   }, intervalMs);
 }

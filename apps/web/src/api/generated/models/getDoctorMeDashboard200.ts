@@ -9,6 +9,7 @@ import type { GetDoctorMeDashboard200Metrics } from './getDoctorMeDashboard200Me
 import type { GetDoctorMeDashboard200NextVisit } from './getDoctorMeDashboard200NextVisit';
 import type { GetDoctorMeDashboard200PendingPatientsItem } from './getDoctorMeDashboard200PendingPatientsItem';
 import type { GetDoctorMeDashboard200VisitsItem } from './getDoctorMeDashboard200VisitsItem';
+import type { GetDoctorMeDashboard200WeekStripItem } from './getDoctorMeDashboard200WeekStripItem';
 
 export type GetDoctorMeDashboard200 = {
   date: string;
@@ -18,4 +19,5 @@ export type GetDoctorMeDashboard200 = {
   nextVisit: GetDoctorMeDashboard200NextVisit;
   pendingPatients: GetDoctorMeDashboard200PendingPatientsItem[];
   freeWindowsToday: string[];
+  weekStrip: GetDoctorMeDashboard200WeekStripItem[];
 };

@@ -35,7 +35,10 @@ export const PopularChips = ({
             type="button"
             $active={active}
             onClick={() => {
-              onSelect({ specialty: chip.specialty, q: undefined });
+              onSelect({
+                specialty: active ? undefined : chip.specialty,
+                q: undefined,
+              });
             }}
           >
             {t(`popular.${chip.key}`)}

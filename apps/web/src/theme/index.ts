@@ -11,6 +11,7 @@ declare module '@mui/material/styles' {
     onBrand: string;
     border: string;
     slotReservedBg: string;
+    promo: string;
   }
 
   interface PaletteOptions {
@@ -20,6 +21,7 @@ declare module '@mui/material/styles' {
     onBrand?: string;
     border?: string;
     slotReservedBg?: string;
+    promo?: string;
   }
 }
 
@@ -71,6 +73,7 @@ export const createMediclyTheme = (mode: ThemeMode) => {
       onBrand: colors.onBrand,
       border: colors.border,
       slotReservedBg: colors.slotReservedBg,
+      promo: colors.promo,
     },
     typography: {
       fontFamily: mediclyTypography.fontFamily,
@@ -109,6 +112,21 @@ export const createMediclyTheme = (mode: ThemeMode) => {
           body: {
             backgroundColor: colors.page,
             color: colors.text,
+          },
+        },
+      },
+      MuiPaper: {
+        styleOverrides: {
+          root: {
+            // Keep solid surface color — no elevation lighten overlay in dark mode.
+            backgroundImage: 'none',
+          },
+        },
+      },
+      MuiDialog: {
+        styleOverrides: {
+          paper: {
+            backgroundImage: 'none',
           },
         },
       },

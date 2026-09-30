@@ -47,6 +47,7 @@ export const mapCabinetDoctorCard = (row: CabinetDoctorSummary): CabinetDoctorCa
   photoUrl: row.photoUrl,
   basePrice: row.basePrice,
   promoPrice: row.promoPrice,
+  ratingAverage: row.ratingAverage ?? 0,
 });
 
 export const doctorDisplayName = (appointment: CabinetAppointment): string =>

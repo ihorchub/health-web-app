@@ -1,7 +1,6 @@
 import {
   usePostCancelAppointment,
   usePostCompleteAppointment,
-  usePostProposeAppointment,
 } from '@/api/appointments';
 import { useGetDoctorMeDashboard } from '@/api/doctors';
 import {
@@ -9,8 +8,6 @@ import {
   mapDashboardVisit,
   mapFreeWindowsFromSlots,
   mapMetrics,
-  mapPendingPatient,
-  mapProposeSlotLabels,
   todayDoctorDayYmd,
 } from '@/modules/doctor-day/utils/mapDashboard';
 
@@ -18,26 +15,24 @@ export const useDoctorDayDashboard = (date = todayDoctorDayYmd()) => {
   const dashboardQuery = useGetDoctorMeDashboard({ date });
   const completeMutation = usePostCompleteAppointment();
   const cancelMutation = usePostCancelAppointment();
-  const proposeMutation = usePostProposeAppointment();
 
   const data = dashboardQuery.data;
 
   const visits = (data?.visits ?? []).map(mapDashboardVisit);
   const nextVisit = data?.nextVisit ? mapDashboardVisit(data.nextVisit) : null;
   const freeWindows = mapFreeWindowsFromSlots(data?.freeWindowsToday ?? []);
-  const pendingPatients = (data?.pendingPatients ?? []).map(mapPendingPatient);
+  const freeSlotIsos = [...(data?.freeWindowsToday ?? [])].sort();
+  const pastVisitsMonth = (data?.pastVisitsMonth ?? []).map(mapDashboardVisit);
   const metrics = data?.metrics
     ? mapMetrics(data.metrics)
     : {
         visitsToday: 0,
-        pendingDecisions: 0,
         freeHoursToday: 0,
         cancellations7d: 0,
+        pastVisitsMonth: 0,
       };
 
-  const proposeSlotIsos = data?.freeWindowsToday ?? [];
-  const proposeSlots = mapProposeSlotLabels(proposeSlotIsos);
-  const weekDays = buildWeekStrip(date);
+  const weekDays = buildWeekStrip(date, data?.weekStrip ?? []);
 
   return {
     date,
@@ -46,19 +41,12 @@ export const useDoctorDayDashboard = (date = todayDoctorDayYmd()) => {
     visits,
     nextVisit,
     freeWindows,
-    pendingPatients,
+    freeSlotIsos,
+    pastVisitsMonth,
     metrics,
-    proposeSlots,
-    proposeSlotIsos,
     weekDays,
     completeVisit: (id: string) => completeMutation.mutateAsync({ id }),
     cancelVisit: (id: string) => cancelMutation.mutateAsync({ id }),
-    proposeVisit: (id: string, proposedStartAt: string, format?: 'offline' | 'online') =>
-      proposeMutation.mutateAsync({
-        id,
-        body: { proposedStartAt, format },
-      }),
-    isMutating:
-      completeMutation.isPending || cancelMutation.isPending || proposeMutation.isPending,
+    isMutating: completeMutation.isPending || cancelMutation.isPending,
   };
 };

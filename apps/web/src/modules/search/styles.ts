@@ -323,7 +323,7 @@ export const MobileFilterButton = styled(Button)(({ theme }) => ({
   borderColor: theme.palette.divider,
   color: theme.palette.text.primary,
 
-  [theme.breakpoints.up('md')]: {
+  [theme.breakpoints.up('lg')]: {
     display: 'none',
   },
 }));
@@ -383,7 +383,7 @@ export const SpecialtyGrid = styled('div')(({ theme }) => ({
   gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
   gap: theme.spacing(2),
 
-  [theme.breakpoints.up('md')]: {
+  [theme.breakpoints.up('lg')]: {
     gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
     gap: theme.spacing(3),
   },
@@ -393,7 +393,8 @@ export const SpecialtyCard = styled('button')<{ $active?: boolean }>(
   ({ theme, $active }) => ({
     display: 'flex',
     flexDirection: 'column',
-    alignItems: 'flex-start',
+    alignItems: 'center',
+    justifyContent: 'center',
     gap: theme.spacing(1.5),
     minHeight: 118,
     padding: theme.spacing(2),
@@ -405,7 +406,7 @@ export const SpecialtyCard = styled('button')<{ $active?: boolean }>(
         ? '0px 1px 2px rgba(22, 62, 82, 0.06), 0px 8px 24px rgba(22, 62, 82, 0.06)'
         : 'none',
     cursor: 'pointer',
-    textAlign: 'left',
+    textAlign: 'center',
     color: theme.palette.text.primary,
     fontFamily: theme.typography.fontFamily,
   }),
@@ -438,7 +439,7 @@ export const ContentRow = styled('div')(({ theme }) => ({
   gap: theme.spacing(2),
   width: '100%',
 
-  [theme.breakpoints.up('md')]: {
+  [theme.breakpoints.up('lg')]: {
     display: 'grid',
     gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
     gap: theme.spacing(3),
@@ -453,7 +454,7 @@ export const LeftColumn = styled('div')(({ theme }) => ({
   gap: theme.spacing(2),
   width: '100%',
 
-  [theme.breakpoints.up('md')]: {
+  [theme.breakpoints.up('lg')]: {
     gridColumn: '1 / span 3',
   },
 }));
@@ -480,7 +481,7 @@ export const ShowMoreRow = styled('div')(({ theme }) => ({
   gridTemplateColumns: '1fr',
   width: '100%',
 
-  [theme.breakpoints.up('md')]: {
+  [theme.breakpoints.up('lg')]: {
     gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
     gap: theme.spacing(3),
   },
@@ -502,7 +503,7 @@ export const Sidebar = styled('aside')<{ $heightPx?: number }>(({ theme, $height
       : 'none',
   boxSizing: 'border-box',
 
-  [theme.breakpoints.up('md')]: {
+  [theme.breakpoints.up('lg')]: {
     display: 'flex',
     gridColumn: '4 / span 1',
     alignSelf: 'start',
@@ -547,9 +548,21 @@ export const FilterField = styled(TextField)(({ theme }) => ({
   '& .MuiOutlinedInput-input': {
     paddingBlock: 8,
   },
+
+  '& .MuiSelect-select': {
+    color: theme.palette.text.primary,
+  },
+
+  '& .MuiSelect-select .filter-placeholder': {
+    color: theme.palette.text.secondary,
+  },
 }));
 
 export const FilterMenuItem = styled(MenuItem)({});
+
+export const PlaceholderOption = styled('span')(({ theme }) => ({
+  color: theme.palette.text.secondary,
+}));
 
 export const FilterGroup = styled('div')({
   display: 'flex',
@@ -581,34 +594,61 @@ export const CheckRow = styled('label')(({ theme }) => ({
   },
 }));
 
-export const RatingPills = styled('div')(({ theme }) => ({
+export const RatingOptions = styled('div')(({ theme }) => ({
   display: 'flex',
-  flexWrap: 'wrap',
-  gap: theme.spacing(1),
+  flexDirection: 'column',
+  gap: theme.spacing(0.5),
+  width: '100%',
 }));
 
-export const RatingPill = styled('button')<{ $active?: boolean }>(
+export const RatingOption = styled('button')<{ $active?: boolean }>(
   ({ theme, $active }) => ({
-    display: 'inline-flex',
+    display: 'flex',
     alignItems: 'center',
-    gap: 6,
-    height: 32,
-    paddingInline: 10,
-    borderRadius: 8,
-    border: `1px solid ${$active ? theme.palette.primary.main : theme.palette.divider}`,
-    backgroundColor: $active ? 'rgba(46, 177, 145, 0.12)' : 'transparent',
+    gap: theme.spacing(1),
+    width: '100%',
+    minHeight: 36,
+    padding: theme.spacing(0.75, 1),
+    borderRadius: 10,
+    border: `1px solid ${$active ? theme.palette.primary.main : 'transparent'}`,
+    backgroundColor: $active
+      ? theme.palette.mode === 'dark'
+        ? 'rgba(62, 196, 163, 0.14)'
+        : 'rgba(46, 177, 145, 0.1)'
+      : 'transparent',
     cursor: 'pointer',
+    textAlign: 'left',
     fontFamily: theme.typography.fontFamily,
-    fontSize: 13,
-    lineHeight: '16px',
-    fontWeight: 600,
-    color: theme.palette.text.primary,
+    transition: 'background-color 0.15s ease, border-color 0.15s ease',
 
-    '& svg': {
-      color: 'inherit',
+    '&:hover': {
+      backgroundColor:
+        theme.palette.mode === 'dark'
+          ? 'rgba(62, 196, 163, 0.1)'
+          : 'rgba(46, 177, 145, 0.08)',
     },
   }),
 );
+
+export const RatingStars = styled('span')({
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: 2,
+  flexShrink: 0,
+});
+
+export const RatingStar = styled('span')<{ $filled?: boolean }>(({ theme, $filled }) => ({
+  display: 'inline-flex',
+  color: $filled ? theme.palette.primary.main : theme.palette.divider,
+  lineHeight: 0,
+}));
+
+export const RatingOptionLabel = styled('span')(({ theme }) => ({
+  fontSize: 13,
+  lineHeight: '18px',
+  fontWeight: 600,
+  color: theme.palette.text.primary,
+}));
 
 export const PriceLabels = styled('div')(({ theme }) => ({
   display: 'flex',
@@ -628,7 +668,7 @@ export const DoctorsHeader = styled('div')(({ theme }) => ({
   minHeight: 40,
   width: '100%',
 
-  [theme.breakpoints.down('sm')]: {
+  [theme.breakpoints.down('md')]: {
     flexDirection: 'column',
     alignItems: 'stretch',
   },
@@ -643,14 +683,15 @@ export const FoundText = styled('span')(({ theme }) => ({
 }));
 
 export const SortSelect = styled(TextField)(({ theme }) => ({
-  minWidth: 220,
+  minWidth: 180,
+  maxWidth: '100%',
 
   '& .MuiOutlinedInput-root': {
     minHeight: 40,
     borderRadius: 8,
   },
 
-  [theme.breakpoints.down('sm')]: {
+  [theme.breakpoints.down('md')]: {
     width: '100%',
     minWidth: 0,
   },
@@ -666,7 +707,7 @@ export const DoctorGrid = styled('div')(({ theme }) => ({
     gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
   },
 
-  [theme.breakpoints.up('md')]: {
+  [theme.breakpoints.up('lg')]: {
     gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
     gap: theme.spacing(3),
   },
@@ -677,7 +718,8 @@ export const DoctorCardRoot = styled('article')(({ theme }) => ({
   flexDirection: 'column',
   gap: 14,
   padding: 17,
-  borderRadius: 16,
+  minWidth: 0,
+  borderRadius: 8,
   backgroundColor: theme.palette.background.paper,
   border: `1px solid ${theme.palette.divider}`,
   boxShadow:
@@ -724,9 +766,13 @@ export const DoctorName = styled('h3')(({ theme }) => ({
   lineHeight: '22px',
   fontWeight: 700,
   color: theme.palette.text.primary,
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+  minWidth: 0,
 }));
 
-export const HeartButton = styled('button')(({ theme }) => ({
+export const HeartButton = styled('button')<{ $active?: boolean }>(({ theme, $active }) => ({
   display: 'inline-flex',
   alignItems: 'center',
   justifyContent: 'center',
@@ -736,7 +782,7 @@ export const HeartButton = styled('button')(({ theme }) => ({
   background: 'none',
   padding: 0,
   cursor: 'pointer',
-  color: theme.palette.text.secondary,
+  color: $active ? theme.palette.primary.main : theme.palette.text.secondary,
   flexShrink: 0,
 }));
 
@@ -811,12 +857,12 @@ export const PriceRow = styled('div')(({ theme }) => ({
   gap: theme.spacing(1),
 }));
 
-export const Price = styled('span')(({ theme }) => ({
+export const Price = styled('span')<{ $promo?: boolean }>(({ theme, $promo }) => ({
   fontFamily: theme.typography.fontFamily,
   fontSize: 20,
   lineHeight: '26px',
   fontWeight: 700,
-  color: theme.palette.text.primary,
+  color: $promo ? theme.palette.promo : theme.palette.text.primary,
 }));
 
 export const StruckPrice = styled('span')(({ theme }) => ({
@@ -853,6 +899,7 @@ export const BookButton = styled(Button)({
   width: '100%',
   minHeight: 40,
   height: 40,
+  borderRadius: 8,
   color: '#FFFFFF',
 });
 
@@ -883,7 +930,7 @@ export const ShowMoreButton = styled(Button)(({ theme }) => ({
   borderColor: theme.palette.divider,
   color: theme.palette.text.primary,
 
-  [theme.breakpoints.up('md')]: {
+  [theme.breakpoints.up('lg')]: {
     gridColumn: '1 / span 3',
   },
 }));

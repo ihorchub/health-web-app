@@ -18,4 +18,5 @@ export type GetPatientCabinet200RecentlyViewedItem = {
   basePrice: number;
   /** @nullable */
   promoPrice: number | null;
+  ratingAverage: number;
 };

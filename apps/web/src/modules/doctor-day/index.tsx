@@ -1,11 +1,10 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
 import { useAppRole } from '@/hooks/useAppRole';
 import {
   DayScheduleDialog,
-  ProposeTimeDialog,
   VisitCardDialog,
 } from '@/modules/doctor-day/components/DoctorDayModals';
 import { DoctorDaySidebar } from '@/modules/doctor-day/components/DoctorDaySidebar';
@@ -54,22 +53,20 @@ export const DoctorDayPage = () => {
   const [tab, setTab] = useState<DoctorDayTab>('visits');
   const [visibleCount, setVisibleCount] = useState(8);
   const [detailVisit, setDetailVisit] = useState<DoctorDayVisit | null>(null);
-  const [proposeVisit, setProposeVisit] = useState<DoctorDayVisit | null>(null);
   const [scheduleOpen, setScheduleOpen] = useState(false);
+  const listRef = useRef<HTMLElement | null>(null);
 
   const {
     visits,
     nextVisit: heroVisit,
     freeWindows,
-    pendingPatients,
+    freeSlotIsos,
+    pastVisitsMonth,
     metrics,
-    proposeSlots,
-    proposeSlotIsos,
     weekDays,
     isLoading,
     completeVisit,
     cancelVisit,
-    proposeVisit: submitPropose,
   } = useDoctorDayDashboard(DEMO_DOCTOR_DAY);
 
   const doctorName = me?.firstName ?? 'Оксано';
@@ -80,47 +77,78 @@ export const DoctorDayPage = () => {
     [visits],
   );
 
-  const filteredVisits = useMemo(() => {
-    const withoutHero = heroVisit
-      ? sortedVisits.filter((visit) => visit.id !== heroVisit.id)
-      : sortedVisits;
+  const sortedPastMonth = useMemo(
+    () => [...pastVisitsMonth].sort((a, b) => b.startsAt.localeCompare(a.startsAt)),
+    [pastVisitsMonth],
+  );
 
-    if (tab === 'pending') {
-      return withoutHero.filter((visit) => visit.status === 'reschedule_pending');
+  const isPastVisit = (visit: DoctorDayVisit) =>
+    visit.status === 'completed' ||
+    visit.status === 'cancelled' ||
+    visit.status === 'rescheduled';
+
+  const activeDayVisits = useMemo(
+    () => sortedVisits.filter((visit) => !isPastVisit(visit)),
+    [sortedVisits],
+  );
+
+  const pastDayVisits = useMemo(
+    () => sortedVisits.filter((visit) => isPastVisit(visit)),
+    [sortedVisits],
+  );
+
+  const filteredVisits = useMemo(() => {
+    if (tab === 'past') {
+      return sortedPastMonth;
     }
     if (tab === 'cancellations') {
-      return withoutHero.filter((visit) => visit.status === 'cancelled');
+      return sortedVisits.filter((visit) => visit.status === 'cancelled');
     }
     if (tab === 'free') {
       return [];
     }
-    return withoutHero;
-  }, [heroVisit, sortedVisits, tab]);
+    return activeDayVisits;
+  }, [activeDayVisits, sortedPastMonth, sortedVisits, tab]);
 
   const tabCounts: Record<DoctorDayTab, number> = {
     visits: metrics.visitsToday,
-    pending: metrics.pendingDecisions,
+    past: metrics.pastVisitsMonth,
     free: metrics.freeHoursToday,
     cancellations: metrics.cancellations7d,
   };
 
   const shown = filteredVisits.slice(0, visibleCount);
 
+  const listTitle =
+    tab === 'past' ? t('tabs.past') : tab === 'cancellations' ? t('tabs.cancellations') : t('list.visitsTitle');
+
+  const listMeta = isLoading
+    ? t('list.loading')
+    : tab === 'past'
+      ? t('list.pastMonthMeta', {
+          total: filteredVisits.length,
+          shown: shown.length,
+        })
+      : t('list.visitsMeta', {
+          total: filteredVisits.length,
+          shown: shown.length,
+        });
+
   const markCompleted = async (id: string) => {
     try {
       await completeVisit(id);
-      toast.success(t('rowActions.complete'));
+      toast.success(t('rowActions.completeSuccess'));
     } catch {
-      toast.error(t('rowActions.complete'));
+      toast.error(t('rowActions.completeError'));
     }
   };
 
   const cancelOne = async (id: string) => {
     try {
       await cancelVisit(id);
-      toast.message(t('rowActions.cancel'));
+      toast.success(t('rowActions.cancelSuccess'));
     } catch {
-      toast.error(t('rowActions.cancel'));
+      toast.error(t('rowActions.cancelError'));
     }
   };
 
@@ -146,9 +174,6 @@ export const DoctorDayPage = () => {
             onComplete={() => {
               void markCompleted(heroVisit.id);
             }}
-            onPropose={() => {
-              setProposeVisit(heroVisit);
-            }}
             onCancel={() => {
               void cancelOne(heroVisit.id);
             }}
@@ -157,19 +182,19 @@ export const DoctorDayPage = () => {
 
         <LayoutRow>
           <MainColumn>
-            <DoctorDayTabs active={tab} counts={tabCounts} onChange={setTab} />
+            <DoctorDayTabs
+              active={tab}
+              counts={tabCounts}
+              onChange={(next) => {
+                setTab(next);
+                setVisibleCount(8);
+              }}
+            />
 
-            <section>
+            <section ref={listRef}>
               <SectionHead>
-                <SectionTitle>{t('list.visitsTitle')}</SectionTitle>
-                <SectionMeta>
-                  {isLoading
-                    ? t('list.loading')
-                    : t('list.visitsMeta', {
-                        total: sortedVisits.length,
-                        shown: shown.length + (tab === 'visits' && heroVisit ? 1 : 0),
-                      })}
-                </SectionMeta>
+                <SectionTitle>{listTitle}</SectionTitle>
+                <SectionMeta>{listMeta}</SectionMeta>
               </SectionHead>
 
               {tab === 'free' ? (
@@ -178,25 +203,52 @@ export const DoctorDayPage = () => {
                     {window.start}–{window.end} · {window.slotsCount}
                   </EmptyBlock>
                 ))
-              ) : shown.length > 0 ? (
-                shown.map((visit) => (
-                  <DoctorVisitRow
-                    key={visit.id}
-                    visit={visit}
-                    onOpen={() => {
-                      setDetailVisit(visit);
-                    }}
-                    onComplete={() => {
-                      void markCompleted(visit.id);
-                    }}
-                    onPropose={() => {
-                      setProposeVisit(visit);
-                    }}
-                    onCancel={() => {
-                      void cancelOne(visit.id);
-                    }}
-                  />
-                ))
+              ) : shown.length > 0 || (tab === 'visits' && pastDayVisits.length > 0) ? (
+                <>
+                  {shown.map((visit) => (
+                    <DoctorVisitRow
+                      key={visit.id}
+                      visit={visit}
+                      onOpen={() => {
+                        setDetailVisit(visit);
+                      }}
+                      onComplete={
+                        visit.status === 'upcoming'
+                          ? () => {
+                              void markCompleted(visit.id);
+                            }
+                          : undefined
+                      }
+                      onCancel={
+                        visit.status === 'upcoming'
+                          ? () => {
+                              void cancelOne(visit.id);
+                            }
+                          : undefined
+                      }
+                    />
+                  ))}
+
+                  {tab === 'visits' && pastDayVisits.length > 0 ? (
+                    <>
+                      <SectionHead>
+                        <SectionTitle>{t('list.pastTitle')}</SectionTitle>
+                        <SectionMeta>
+                          {t('list.pastMeta', { total: pastDayVisits.length })}
+                        </SectionMeta>
+                      </SectionHead>
+                      {pastDayVisits.map((visit) => (
+                        <DoctorVisitRow
+                          key={visit.id}
+                          visit={visit}
+                          onOpen={() => {
+                            setDetailVisit(visit);
+                          }}
+                        />
+                      ))}
+                    </>
+                  ) : null}
+                </>
               ) : (
                 <EmptyBlock>
                   <strong>{t('empty.title')}</strong>
@@ -222,7 +274,6 @@ export const DoctorDayPage = () => {
               nextVisit={heroVisit ?? null}
               weekDays={weekDays}
               freeWindows={freeWindows}
-              pendingPatients={pendingPatients}
               onOpenSchedule={() => {
                 setScheduleOpen(true);
               }}
@@ -247,39 +298,10 @@ export const DoctorDayPage = () => {
             void markCompleted(detailVisit.id);
           }
         }}
-        onPropose={() => {
-          if (!detailVisit) {
-            return;
-          }
-          setProposeVisit(detailVisit);
-          setDetailVisit(null);
-        }}
         onCancel={() => {
           if (detailVisit) {
             void cancelOne(detailVisit.id);
           }
-        }}
-      />
-
-      <ProposeTimeDialog
-        visit={proposeVisit}
-        open={Boolean(proposeVisit)}
-        slotLabels={proposeSlots}
-        slotIsos={proposeSlotIsos}
-        onClose={() => {
-          setProposeVisit(null);
-        }}
-        onSubmit={(proposedStartAt) => {
-          if (!proposeVisit) {
-            return;
-          }
-          void submitPropose(proposeVisit.id, proposedStartAt)
-            .then(() => {
-              toast.success(t('modals.proposeTitle'));
-            })
-            .catch(() => {
-              toast.error(t('modals.proposeTitle'));
-            });
         }}
       />
 
@@ -289,7 +311,7 @@ export const DoctorDayPage = () => {
           setScheduleOpen(false);
         }}
         visits={sortedVisits}
-        freeWindows={freeWindows}
+        freeSlotIsos={freeSlotIsos}
         onOpenVisit={(visit) => {
           setDetailVisit(visit);
         }}

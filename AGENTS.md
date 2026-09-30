@@ -54,7 +54,7 @@ Digital Healthcare Booking Platform — a self-service website where patients fi
 - **Rolling bookable month (R-13):** from today through one month later minus one day (e.g. 10 Aug → through 9 Sep). Doctor Zone A = same window; Zone B = after that up to 3 months (no bookings, plannable). See `docs/spec/ia-chrome-decision.md`.
 - **One doctor = one timeline** (MVP). No multi-room or parallel scheduling.
 - **Double booking must be impossible:** enforced at the database level (constraint/transaction), not just UI. Two patients booking the same slot at the same instant — one succeeds, one gets a clear refusal.
-- **Appointment statuses:** Upcoming, Reschedule Pending, Completed, Cancelled, Rescheduled. No-show is out of MVP. Final statuses (Completed, Cancelled, Rescheduled) have no further transitions.
+- **Appointment statuses:** Upcoming, Completed, Cancelled, Rescheduled. No-show and Reschedule Pending are out of MVP. Final statuses (Completed, Cancelled, Rescheduled) have no further transitions.
 - **Data isolation:** a patient sees only their own appointments; a doctor sees only their own calendar. Enforced server-side per request, not by hiding UI.
 - **EN/UK localisation:** switchable in-app, persists across sessions. All UI text in translation files.
 - **Light/dark themes:** both fully designed, follows OS setting on first visit, toggle persists. No white flash.

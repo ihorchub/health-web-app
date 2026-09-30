@@ -2,6 +2,10 @@
   "title": "Notifications",
   "readAll": "Read all",
   "empty": "No new notifications",
+  "detailTitle": "Notification",
+  "detailClose": "Close",
+  "detailOpenDay": "Go to doctor day",
+  "detailOpenAppointments": "Go to my appointments",
   "events": {
     "patient_booked": "{{patientName}} booked a visit for {{visit}}",
     "patient_cancelled": "{{patientName}} cancelled the visit on {{visit}}",
@@ -9,6 +13,7 @@
     "patient_accepted_proposal": "{{patientName}} accepted the proposed time {{visit}}",
     "patient_picked_other_slot": "{{patientName}} chose another time {{visit}}",
     "doctor_cancelled": "{{doctorName}} cancelled the visit on {{visit}}",
-    "doctor_proposed_time": "{{doctorName}} proposed a new time {{visit}}"
+    "doctor_proposed_time": "{{doctorName}} proposed a new time {{visit}}",
+    "proposal_expired": "Proposed new time expired — visit stays at {{visit}}"
   }
 }

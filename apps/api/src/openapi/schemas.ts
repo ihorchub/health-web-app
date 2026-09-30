@@ -374,6 +374,7 @@ export const DoctorListCard = Type.Object({
   photoUrl: NullableString,
   basePrice: Type.Number(),
   promoPrice: NullableNumber,
+  ratingAverage: Type.Number(),
 });
 export type DoctorListCard = Static<typeof DoctorListCard>;
 
@@ -529,6 +530,7 @@ export type PatchDoctorScheduleBody = Static<typeof PatchDoctorScheduleBody>;
 export const DoctorDashboardVisit = Type.Object({
   id: Type.String(),
   patientDisplayName: Type.String(),
+  patientPhotoUrl: NullableString,
   startAt: Type.String(),
   format: VisitFormat,
   reason: NullableString,
@@ -542,8 +544,18 @@ export const DoctorDashboardMetrics = Type.Object({
   pendingCount: Type.Number(),
   freeSlotsToday: Type.Number(),
   cancellationsLast7Days: Type.Number(),
+  pastVisitsThisMonth: Type.Number(),
 });
 export type DoctorDashboardMetrics = Static<typeof DoctorDashboardMetrics>;
+
+export const DoctorDashboardWeekStripDay = Type.Object({
+  date: Type.String(),
+  visits: Type.Number(),
+  pending: Type.Number(),
+  cancelled: Type.Number(),
+  free: Type.Number(),
+});
+export type DoctorDashboardWeekStripDay = Static<typeof DoctorDashboardWeekStripDay>;
 
 export const DoctorDashboardResponse = Type.Object({
   date: Type.String(),
@@ -551,7 +563,9 @@ export const DoctorDashboardResponse = Type.Object({
   visits: Type.Array(DoctorDashboardVisit),
   nextVisit: NullableObj(DoctorDashboardVisit),
   pendingPatients: Type.Array(DoctorDashboardVisit),
+  pastVisitsMonth: Type.Array(DoctorDashboardVisit),
   freeWindowsToday: Type.Array(Type.String()),
+  weekStrip: Type.Array(DoctorDashboardWeekStripDay),
 });
 export type DoctorDashboardResponse = Static<typeof DoctorDashboardResponse>;
 

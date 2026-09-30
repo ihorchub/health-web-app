@@ -10,6 +10,7 @@ export interface CabinetDoctorSummary {
   photoUrl: string | null;
   basePrice: number;
   promoPrice: number | null;
+  ratingAverage: number;
 }
 
 export interface CabinetAppointmentRow {

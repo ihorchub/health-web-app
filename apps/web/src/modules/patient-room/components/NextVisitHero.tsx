@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
+import { DoctorPhoto } from '@/components/DoctorPhoto/DoctorPhoto';
 import {
   DangerOutlineButton,
   DoctorLine,
@@ -12,8 +13,6 @@ import {
   OutlineButton,
   OverlineLabel,
   RowActions,
-  RowAvatar,
-  RowAvatarFallback,
   StatusPill,
   TimeBlock,
   TimeMeta,
@@ -23,7 +22,6 @@ import {
 import type { CabinetAppointment } from '@/modules/patient-room/types';
 import { formatRelativeDayLabel, formatTime } from '@/modules/patient-room/utils/formatCabinetDate';
 import { doctorDisplayName } from '@/modules/patient-room/utils/mapCabinet';
-import { resolveMediaUrl } from '@/utils/mediaUrl';
 
 interface NextVisitHeroProps {
   appointment: CabinetAppointment;
@@ -49,8 +47,6 @@ export const NextVisitHero = ({
       })
     : '';
   const clinicLabel = appointment.clinicName;
-  const photoUrl = resolveMediaUrl(appointment.doctorPhotoUrl);
-  const initials = `${appointment.doctorFirstName.charAt(0)}${appointment.doctorLastName.charAt(0)}`;
   const dayLabel = formatRelativeDayLabel(appointment.startsAt, i18n.language, {
     today: t('cabinet:today'),
     tomorrow: t('cabinet:upcoming.tomorrow'),
@@ -79,11 +75,12 @@ export const NextVisitHero = ({
 
       <NextVisitBody>
         <NextVisitContent>
-          {photoUrl ? (
-            <RowAvatar src={photoUrl} alt="" />
-          ) : (
-            <RowAvatarFallback aria-hidden>{initials}</RowAvatarFallback>
-          )}
+          <DoctorPhoto
+            photoUrl={appointment.doctorPhotoUrl}
+            firstName={appointment.doctorFirstName}
+            lastName={appointment.doctorLastName}
+            size="sm"
+          />
 
           <TimeBlock>
             <TimeValue>{formatTime(appointment.startsAt, i18n.language)}</TimeValue>

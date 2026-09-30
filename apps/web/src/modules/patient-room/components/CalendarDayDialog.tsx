@@ -86,6 +86,11 @@ const buildMonthCells = (viewDate: Date) => {
     cells.push({ day: null, ymd: null });
   }
 
+  // Always 6 weeks so paired month cards share the same height.
+  while (cells.length < 42) {
+    cells.push({ day: null, ymd: null });
+  }
+
   return cells;
 };
 

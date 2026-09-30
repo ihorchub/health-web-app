@@ -45,4 +45,5 @@ export interface CabinetDoctorCard {
   photoUrl: string | null;
   basePrice: number;
   promoPrice: number | null;
+  ratingAverage: number;
 }

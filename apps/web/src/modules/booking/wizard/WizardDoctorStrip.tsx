@@ -1,9 +1,9 @@
 import type { DoctorProfile } from '@/api/doctors';
+import { DoctorPhoto } from '@/components/DoctorPhoto/DoctorPhoto';
 import {
   DoctorStrip,
   StripMeta,
   StripName,
-  StripPhoto,
   StripText,
 } from '@/modules/booking/wizard/doctorStripStyles';
 
@@ -26,7 +26,12 @@ export const WizardDoctorStrip = ({
 
   return (
     <DoctorStrip>
-      <StripPhoto src={doctor.photoUrl ?? undefined} alt="" />
+      <DoctorPhoto
+        photoUrl={doctor.photoUrl}
+        firstName={doctor.firstName}
+        lastName={doctor.lastName}
+        size="sm"
+      />
       <StripText>
         <StripName>
           {doctorPrefix} {doctor.firstName} {doctor.lastName}

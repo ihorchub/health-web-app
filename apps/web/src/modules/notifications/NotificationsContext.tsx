@@ -32,6 +32,7 @@ const FE_TYPES = new Set<NotificationEventType>([
   'patient_picked_other_slot',
   'doctor_cancelled',
   'doctor_proposed_time',
+  'proposal_expired',
 ]);
 
 const payloadString = (payload: Record<string, unknown>, key: string): string => {
@@ -60,6 +61,9 @@ const mapApiNotification = (item: ApiNotificationItem): AppNotification | null =
     case 'proposal_accepted':
       type = 'patient_accepted_proposal';
       break;
+    case 'proposal_expired':
+      type = 'proposal_expired';
+      break;
     default:
       if (FE_TYPES.has(item.type as NotificationEventType)) {
         type = item.type as NotificationEventType;
@@ -84,6 +88,10 @@ const mapApiNotification = (item: ApiNotificationItem): AppNotification | null =
     patientName: payloadString(payload, 'patientName') || undefined,
     doctorName: payloadString(payload, 'doctorName') || undefined,
     visitAt: visitAt || undefined,
+    appointmentId:
+      payloadString(payload, 'appointmentId') ||
+      payloadString(payload, 'newAppointmentId') ||
+      undefined,
   };
 };
 

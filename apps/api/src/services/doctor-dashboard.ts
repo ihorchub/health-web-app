@@ -13,18 +13,27 @@ import {
 } from "../lib/booking-horizon.js";
 import { getZonedDateParts, zonedTimeToUtc } from "../lib/timezone.js";
 import { ApiError } from "../lib/errors.js";
-import { autoCompleteDueAppointments } from "./appointments.js";
+import { runAppointmentMaintenance } from "./appointments.js";
 import { dayBoundsUtc, loadDoctorForBooking, loadOccupancyInRange } from "./booking-validation.js";
 import { generateDaySlots } from "./slots.js";
 
 export type DoctorDashboardVisit = {
   id: string;
   patientDisplayName: string;
+  patientPhotoUrl: string | null;
   startAt: string;
   format: "offline" | "online";
   reason: string | null;
   status: string;
   proposedStartAt: string | null;
+};
+
+export type DoctorWeekStripDay = {
+  date: string;
+  visits: number;
+  pending: number;
+  cancelled: number;
+  free: number;
 };
 
 export type DoctorDashboardResult = {
@@ -34,12 +43,24 @@ export type DoctorDashboardResult = {
     pendingCount: number;
     freeSlotsToday: number;
     cancellationsLast7Days: number;
+    /** Completed visits from the 1st of the current month (Kyiv) through now. */
+    pastVisitsThisMonth: number;
   };
   visits: DoctorDashboardVisit[];
   nextVisit: DoctorDashboardVisit | null;
   pendingPatients: DoctorDashboardVisit[];
+  /** Completed visits from month start (Kyiv) — SCR-08 “past visits” tab. */
+  pastVisitsMonth: DoctorDashboardVisit[];
   freeWindowsToday: string[];
+  /** Mon–Sun strip for the week containing `date` (Kyiv). Dot counts for SCR-08 sidebar. */
+  weekStrip: DoctorWeekStripDay[];
 };
+
+function mondayOfWeek(date: CalendarDate): CalendarDate {
+  const jsDay = new Date(Date.UTC(date.year, date.month - 1, date.day)).getUTCDay();
+  const mondayOffset = (jsDay + 6) % 7;
+  return addCalendarDays(date, -mondayOffset);
+}
 
 function toVisit(
   row: {
@@ -51,11 +72,13 @@ function toVisit(
     proposedStartAt: Date | null;
     firstName: string;
     lastName: string;
+    photoUrl: string | null;
   },
 ): DoctorDashboardVisit {
   return {
     id: row.id,
     patientDisplayName: `${row.firstName} ${row.lastName}`,
+    patientPhotoUrl: row.photoUrl,
     startAt: row.startAt.toISOString(),
     format: row.format,
     reason: row.reason,
@@ -70,8 +93,8 @@ export async function getDoctorDashboard(input: {
   now?: Date;
 }): Promise<DoctorDashboardResult> {
   const now = input.now ?? new Date();
-  // R-02: flush due Upcoming → Completed before building the day view.
-  await autoCompleteDueAppointments(now);
+  // Expire unanswered proposals, then R-02 auto-complete due Upcoming.
+  await runAppointmentMaintenance(now);
 
   const zoneBounds = getZoneABounds(now);
   let dateLocal: CalendarDate = zoneBounds.zoneAStartDate;
@@ -96,6 +119,7 @@ export async function getDoctorDashboard(input: {
       proposedStartAt: appointments.proposedStartAt,
       firstName: patientProfiles.firstName,
       lastName: patientProfiles.lastName,
+      photoUrl: patientProfiles.photoUrl,
     })
     .from(appointments)
     .innerJoin(patientProfiles, eq(patientProfiles.userId, appointments.patientId))
@@ -104,15 +128,17 @@ export async function getDoctorDashboard(input: {
         eq(appointments.doctorId, input.doctorId),
         gte(appointments.startAt, startUtc),
         lt(appointments.startAt, endExclusiveUtc),
-        inArray(appointments.status, ["Upcoming", "Reschedule Pending"]),
+        inArray(appointments.status, ["Upcoming", "Completed", "Cancelled", "Rescheduled"]),
       ),
     )
     .orderBy(appointments.startAt);
 
   const visits = dayRows.map(toVisit);
-  const pendingPatients = visits.filter((v) => v.status === "Reschedule Pending");
+  const activeVisits = visits.filter((v) => v.status === "Upcoming");
   const nextVisit =
-    visits.find((v) => new Date(v.startAt).getTime() >= now.getTime()) ?? visits[0] ?? null;
+    activeVisits.find((v) => new Date(v.startAt).getTime() >= now.getTime()) ??
+    activeVisits[0] ??
+    null;
 
   const sevenDaysAgo = addCalendarDays(zoneBounds.zoneAStartDate, -7);
   const sevenStart = zonedTimeToUtc(sevenDaysAgo.year, sevenDaysAgo.month, sevenDaysAgo.day, 0, 0, 0);
@@ -144,25 +170,120 @@ export async function getDoctorDashboard(input: {
     freeWindowsToday = slots.filter((s) => s.status === "free").map((s) => s.startAt);
   }
 
-  // pending count across Zone A (not just today)
-  const [pendingAgg] = await db
-    .select({ value: sql<number>`count(*)::int` })
+  const nowParts = getZonedDateParts(now);
+  const monthStartLocal: CalendarDate = { year: nowParts.year, month: nowParts.month, day: 1 };
+  const monthStartUtc = zonedTimeToUtc(
+    monthStartLocal.year,
+    monthStartLocal.month,
+    monthStartLocal.day,
+    0,
+    0,
+    0,
+  );
+
+  const monthPastRows = await db
+    .select({
+      id: appointments.id,
+      startAt: appointments.startAt,
+      format: appointments.format,
+      reason: appointments.reason,
+      status: appointments.status,
+      proposedStartAt: appointments.proposedStartAt,
+      firstName: patientProfiles.firstName,
+      lastName: patientProfiles.lastName,
+      photoUrl: patientProfiles.photoUrl,
+    })
+    .from(appointments)
+    .innerJoin(patientProfiles, eq(patientProfiles.userId, appointments.patientId))
+    .where(
+      and(
+        eq(appointments.doctorId, input.doctorId),
+        eq(appointments.status, "Completed"),
+        gte(appointments.startAt, monthStartUtc),
+        lt(appointments.startAt, now),
+      ),
+    )
+    .orderBy(appointments.startAt);
+
+  const pastVisitsMonth = monthPastRows.map(toVisit);
+
+  const weekStart = mondayOfWeek(dateLocal);
+  const weekEndExclusive = addCalendarDays(weekStart, 7);
+  const weekStartUtc = zonedTimeToUtc(weekStart.year, weekStart.month, weekStart.day, 0, 0, 0);
+  const weekEndUtc = zonedTimeToUtc(
+    weekEndExclusive.year,
+    weekEndExclusive.month,
+    weekEndExclusive.day,
+    0,
+    0,
+    0,
+  );
+
+  const weekRows = await db
+    .select({
+      startAt: appointments.startAt,
+      status: appointments.status,
+    })
     .from(appointments)
     .where(
-      and(eq(appointments.doctorId, input.doctorId), eq(appointments.status, "Reschedule Pending")),
+      and(
+        eq(appointments.doctorId, input.doctorId),
+        gte(appointments.startAt, weekStartUtc),
+        lt(appointments.startAt, weekEndUtc),
+        inArray(appointments.status, ["Upcoming", "Cancelled", "Completed"]),
+      ),
     );
+
+  const byDate = new Map<string, { visits: number; cancelled: number }>();
+  for (let i = 0; i < 7; i += 1) {
+    byDate.set(formatCalendarDate(addCalendarDays(weekStart, i)), {
+      visits: 0,
+      cancelled: 0,
+    });
+  }
+  for (const row of weekRows) {
+    const parts = getZonedDateParts(row.startAt);
+    const key = formatCalendarDate({ year: parts.year, month: parts.month, day: parts.day });
+    const bucket = byDate.get(key);
+    if (!bucket) continue;
+    if (row.status === "Cancelled") {
+      bucket.cancelled += 1;
+    } else {
+      // Upcoming + Completed → “has visits”
+      bucket.visits += 1;
+    }
+  }
+
+  const weekStrip: DoctorWeekStripDay[] = [];
+  for (let i = 0; i < 7; i += 1) {
+    const dayDate = addCalendarDays(weekStart, i);
+    const key = formatCalendarDate(dayDate);
+    const counts = byDate.get(key)!;
+    const hasStatusDots = counts.visits + counts.cancelled > 0;
+    weekStrip.push({
+      date: key,
+      visits: counts.visits,
+      pending: 0,
+      cancelled: counts.cancelled,
+      // Presence flag for the grey “free” legend when the day has no visit/cancelled dots.
+      free: hasStatusDots ? 0 : 1,
+    });
+  }
 
   return {
     date: dateIso,
     metrics: {
-      visitsToday: visits.length,
-      pendingCount: Number(pendingAgg?.value ?? 0),
+      visitsToday: activeVisits.length,
+      pendingCount: 0,
       freeSlotsToday: freeWindowsToday.length,
       cancellationsLast7Days: Number(cancelAgg?.value ?? 0),
+      pastVisitsThisMonth: pastVisitsMonth.length,
     },
     visits,
     nextVisit,
-    pendingPatients,
+    pendingPatients: [],
+    pastVisitsMonth,
     freeWindowsToday,
+    weekStrip,
   };
 }

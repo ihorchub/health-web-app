@@ -12,6 +12,7 @@
     "db:studio": "drizzle-kit studio",
     "test": "vitest run",
     "db:seed": "tsx src/db/run-seed-reference.ts",
+    "db:seed:reviews": "tsx src/db/run-seed-reviews.ts",
     "openapi:export": "tsx src/scripts/export-openapi.ts"
   },
   "dependencies": {

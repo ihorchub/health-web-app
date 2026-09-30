@@ -1,5 +1,6 @@
 export * from './appointments/appointments';
 export * from './auth/auth';
+export * from './default/default';
 export * from './doctor-schedule/doctor-schedule';
 export * from './doctors/doctors';
 export * from './health/health';

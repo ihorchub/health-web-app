@@ -18,4 +18,5 @@ export type GetRecentlyViewed200ItemsItem = {
   basePrice: number;
   /** @nullable */
   promoPrice: number | null;
+  ratingAverage: number;
 };

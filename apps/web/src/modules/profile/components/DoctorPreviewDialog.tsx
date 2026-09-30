@@ -1,6 +1,7 @@
 import { IconHeart, IconStarFilled, IconX } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
 
+import { DoctorPhoto } from '@/components/DoctorPhoto/DoctorPhoto';
 import {
   FavouriteButton,
   PreviewAddress,
@@ -27,7 +28,6 @@ import {
   PreviewNameBlock,
   PreviewNameRow,
   PreviewOverline,
-  PreviewPhoto,
   PreviewPrice,
   PreviewPriceBlock,
   PreviewPriceRating,
@@ -51,7 +51,6 @@ import {
   StarAccent,
 } from '@/modules/profile/styles';
 import type { DoctorProfileData } from '@/modules/profile/types';
-import { resolveMediaUrl } from '@/utils/mediaUrl';
 import { pickLocalizedDescription } from '@/utils/pickLocalizedDescription';
 
 interface DoctorPreviewDialogProps {
@@ -96,7 +95,13 @@ export const DoctorPreviewDialog = ({
 
       <PreviewBody>
         <PreviewIdentity>
-          <PreviewPhoto src={resolveMediaUrl(profile.photoUrl) ?? undefined} alt="" />
+          <DoctorPhoto
+            photoUrl={profile.photoUrl}
+            firstName={profile.firstName}
+            lastName={profile.lastName}
+            size="xl"
+            shape="rounded"
+          />
           <PreviewIdentityMain>
             <PreviewNameRow>
               <PreviewNameBlock>
@@ -147,7 +152,9 @@ export const DoctorPreviewDialog = ({
           <PreviewPriceBlock>
             <PreviewOverline>{t('preview.consultation')}</PreviewOverline>
             <PreviewPriceRow>
-              <PreviewPrice>{t('preview.price', { amount: displayPrice })}</PreviewPrice>
+              <PreviewPrice $promo={profile.promoPrice != null}>
+                {t('preview.price', { amount: displayPrice })}
+              </PreviewPrice>
               {profile.promoPrice != null ? (
                 <PreviewStruckPrice>
                   {t('preview.price', { amount: profile.basePrice })}

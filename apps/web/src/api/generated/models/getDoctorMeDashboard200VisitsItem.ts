@@ -11,6 +11,8 @@ import type { GetDoctorMeDashboard200VisitsItemStatus } from './getDoctorMeDashb
 export type GetDoctorMeDashboard200VisitsItem = {
   id: string;
   patientDisplayName: string;
+  /** @nullable */
+  patientPhotoUrl: string | null;
   startAt: string;
   format: typeof GetDoctorMeDashboard200VisitsItemFormat[keyof typeof GetDoctorMeDashboard200VisitsItemFormat];
   /** @nullable */
