@@ -1,6 +1,6 @@
 # Backend specification
 
-**Status:** Implementation-ready — SCR-01…SCR-12 + FLO walkthroughs; API contracts aligned to **Paper design priority** (14 Sep 2026); stack locked 14 Sep 2026  
+**Status:** Implementation-ready — SCR-01…SCR-10 + FLO walkthroughs (SCR-12 / FLO-03 **Out of MVP**); API contracts aligned to product change (doctor propose removed; patient-only reschedule with 1h deadline); stack locked 14 Sep 2026  
 **Source of truth (behaviour):** [product-spec.md](./product-spec.md) (IA overlay folded 31 Aug 2026) · **API shape / fields on screens:** Paper file (design wins on UI conflicts; this file is updated to match)  
 **Pair file:** [frontend-spec.md](./frontend-spec.md) — **Contract** blocks must match.  
 **Implementation:** [tech-stack.md](./tech-stack.md) — monorepo, OpenAPI, defaults.
@@ -127,9 +127,10 @@ Forgot password, social login, license **verification**, dual role, clinic admin
 
 #### Stored status enum
 
-`Upcoming` · `Reschedule Pending` · `Completed` · `Cancelled` · `Rescheduled`
+`Upcoming` · `Completed` · `Cancelled` · `Rescheduled`
 
-`Past` is **not** stored — query grouping only.
+`Past` is **not** stored — query grouping only.  
+`Reschedule Pending` is **Out of MVP** — do not store or transition to it.
 
 #### Core fields (appointments table)
 
@@ -144,49 +145,59 @@ Forgot password, social login, license **verification**, dual role, clinic admin
 | `reason` | Optional text |
 | `status` | Enum above |
 | `cancelled_by` | `patient` \| `doctor` \| null |
-| `proposed_start_at` | Set when `Reschedule Pending` |
 | `replaces_appointment_id` | Links new `Upcoming` to old `Rescheduled` row |
 | `completed_at` | Set on manual or auto complete |
 
+Do **not** store `proposed_start_at` in MVP (doctor proposal out).
+
 #### Slot occupancy (calendar truth)
 
-| Status | Occupies `start_at` | Occupies `proposed_start_at` |
-|---|---|---|
-| `Upcoming` | taken | — |
-| `Reschedule Pending` | taken (original) | reserved |
-| `Completed` | past (not bookable) | — |
-| `Cancelled` | free | free |
-| `Rescheduled` | free | free |
+| Status | Occupies `start_at` |
+|---|---|
+| `Upcoming` | taken |
+| `Completed` | past (not bookable) |
+| `Cancelled` | free |
+| `Rescheduled` | free |
+
+There is no reserved/proposed hold. A time is free, taken by one `Upcoming`, or past.
 
 #### Allowed transitions
 
-Same diagram as product **R-02**. Final statuses have no further transitions.
+```text
+(create by booking) → Upcoming
+
+Upcoming → Completed
+Upcoming → Cancelled
+Upcoming → Rescheduled          (patient reschedule; new Upcoming in same action)
+
+Completed / Cancelled / Rescheduled → (none)
+```
 
 #### Commands (named operations)
 
 | Command | Actor | From → To |
 |---|---|---|
 | `book` | patient | → `Upcoming` |
-| `patientReschedule` | patient | `Upcoming` → `Rescheduled` + new `Upcoming` |
-| `doctorPropose` | doctor | `Upcoming` → `Reschedule Pending` |
-| `patientAcceptProposal` | patient | `Reschedule Pending` → `Rescheduled` + new `Upcoming` at proposed time |
-| `patientPickAnotherFromPending` | patient | `Reschedule Pending` → `Rescheduled` + new `Upcoming` at chosen time |
-| `cancel` | patient/doctor | `Upcoming` or `Reschedule Pending` → `Cancelled` |
+| `patientReschedule` | patient | `Upcoming` → `Rescheduled` + new `Upcoming` (atomic); requires ≥ 1 hour before current `start_at` |
+| `cancel` | patient/doctor | `Upcoming` → `Cancelled` |
 | `markCompleted` | doctor | `Upcoming` → `Completed` |
 | `autoComplete` | system job | `Upcoming` → `Completed` when `start_at + duration` passed |
 
-Patient reschedule while `Reschedule Pending` is **forbidden** — use pending decision commands only.
+Removed from MVP: `doctorPropose`, `patientAcceptProposal`, `patientPickAnotherFromPending`.
+
+Doctor cannot move, propose, or book a patient. On a visit the doctor may only complete or cancel.
 
 #### Auto-complete job
 
 - Runs periodically (e.g. every minute).
 - `Upcoming` where `start_at + duration_minutes <= now()` → `Completed`.
-- Never auto-completes `Reschedule Pending`.
+- Applies only to `Upcoming`.
 
 #### Invariants
 
-- Two-record reschedule: old row `Rescheduled` (final), new row `Upcoming`; link via `replaces_appointment_id`.
-- On any successful move: old slot freed, new slot taken/reserved per status rules.
+- Two-record reschedule: old row `Rescheduled` (final), new row `Upcoming`; link via `replaces_appointment_id`; old slot frees and new slot taken in the **same transaction**.
+- `patientReschedule` refused when `now() > start_at - 1 hour` → `APPOINTMENT_TOO_LATE_TO_RESCHEDULE`.
+- Cancel has **no** time-limit window.
 - `cancelled_by` set on every `Cancelled`.
 
 #### Errors
@@ -196,7 +207,7 @@ Patient reschedule while `Reschedule Pending` is **forbidden** — use pending d
 | `APPOINTMENT_NOT_FOUND` | |
 | `APPOINTMENT_FORBIDDEN` | Wrong patient/doctor |
 | `APPOINTMENT_INVALID_TRANSITION` | Status does not allow action |
-| `APPOINTMENT_PENDING_EXISTS` | Second proposal or move while pending |
+| `APPOINTMENT_TOO_LATE_TO_RESCHEDULE` | Fewer than 1 hour before current `start_at` |
 
 ---
 
@@ -227,7 +238,7 @@ The database does **not** keep a permanent row for every empty 10:20 slot. When 
 
 1. Reads the doctor’s working hours for that day.
 2. Steps through possible start times (using visit duration).
-3. Removes times already taken or reserved by appointments.
+3. Removes times already taken by `Upcoming` appointments.
 
 So “free” always reflects the **current** appointments table. If the doctor changes Zone B hours, you do not need to delete thousands of stale slot rows.
 
@@ -249,21 +260,22 @@ Slots are **not** pre-stored as rows for every free minute.
 
 1. Load doctor schedule template + exceptions for the day (working hours, lunch, vacation).
 2. Generate candidate starts stepping by `visit_duration_minutes` for that day/zone.
-3. Subtract occupancy from appointments where status occupies that time (`Upcoming`, `Reschedule Pending` original + proposed).
+3. Subtract occupancy from appointments where status occupies that time (`Upcoming` only).
 4. Return only candidates passing `bookable()` and format rules.
 
 **Why:** Zone B edits do not require mass slot row updates; occupancy always reflects live appointments.
 
 #### Double booking prevention — implementation
 
-Within `book` / reschedule confirm / accept proposal:
+Within `book` / `patientReschedule` confirm:
 
 1. `BEGIN`
 2. Re-run availability check for `(doctor_id, start_at)` with row-level lock on overlapping appointments.
-3. `INSERT` new appointment OR update statuses.
-4. `COMMIT`
+3. For reschedule: also assert `now() <= old.start_at - 1 hour`; else abort with `APPOINTMENT_TOO_LATE_TO_RESCHEDULE`.
+4. `INSERT` new appointment and/or update statuses (reschedule: old → `Rescheduled`, new → `Upcoming` in same transaction).
+5. `COMMIT`
 
-**Unique partial index** (conceptual): no two rows for same `doctor_id` + `start_at` where status in (`Upcoming`, `Reschedule Pending` occupying that start). Implementation may use exclusion constraint on time range `[start_at, start_at + duration)`.
+**Unique partial index** (conceptual): no two rows for same `doctor_id` + `start_at` where status = `Upcoming`. Implementation may use exclusion constraint on time range `[start_at, start_at + duration)`.
 
 Concurrent second writer gets `SLOT_TAKEN` — plain-language refusal to client (**FLO-06**).
 
@@ -272,10 +284,11 @@ Concurrent second writer gets `SLOT_TAKEN` — plain-language refusal to client 
 | API status | Meaning |
 |---|---|
 | `free` | Bookable |
-| `taken` | `Upcoming` or original of pending |
-| `reserved` | Proposed time of pending |
+| `taken` | Held by an `Upcoming` appointment |
 | `past` | Before now or outside Zone A |
 | `day_off` | No working hours |
+
+No `reserved` status in MVP.
 
 One doctor, one timeline — format does not create parallel slots (**R-04**).
 
@@ -289,7 +302,7 @@ Server truth on every read; no slot held during SCR-05 confirm. Frontend: React 
 |---|---|
 | `SLOT_TAKEN` | Concurrent or stale confirm (**FLO-06**) |
 | `SLOT_OUTSIDE_WINDOW` | Outside Zone A or past |
-| `SLOT_NOT_FREE` | Taken/reserved/off |
+| `SLOT_NOT_FREE` | Taken/off |
 
 ---
 
@@ -601,8 +614,8 @@ Review list pagination size on profile — suggest 10 with “load more”.
 
 ### Contract
 
-- In: `doctorId: string`, `date` (ISO date, optional — default first bookable day or today); optional `contextAppointmentId: string` when rescheduling (validates same doctor)
-- Out: `{ zoneAStart, zoneAEnd, visitDurationMinutes, supportedFormats[], days[]?, slots[] }` — for requested `date`, `slots[]`: `{ startAt, status }` where status = `free` \| `taken` \| `reserved` \| `past` \| `day_off`; optional per-day summary for two-month UI
+- In: `doctorId: string`, `date` (ISO date, optional — default first bookable day or today); optional `contextAppointmentId: string` when rescheduling (validates same doctor, own `Upcoming`)
+- Out: `{ zoneAStart, zoneAEnd, visitDurationMinutes, supportedFormats[], days[]?, slots[] }` — for requested `date`, `slots[]`: `{ startAt, status }` where status = `free` \| `taken` \| `past` \| `day_off`; optional per-day summary for two-month UI
 - Errors: `DOCTOR_NOT_FOUND`, `CALENDAR_FAILED`, `APPOINTMENT_FORBIDDEN`
 - Auth: **patient** for booking flows
 
@@ -628,8 +641,8 @@ Review list pagination size on profile — suggest 10 with “load more”.
 ### Invariants
 
 - Only `free` slots may proceed to SCR-05 confirm.
-- `taken` / `reserved` / `past` / `day_off` never returned as bookable.
-- Reschedule context: `contextAppointmentId` must be patient’s `Upcoming` with same `doctorId`.
+- `taken` / `past` / `day_off` never returned as bookable.
+- Reschedule context: `contextAppointmentId` must be patient’s own `Upcoming` with same `doctorId`. Server may also expose whether move is still allowed (≥ 1 hour); hard refuse is on confirm.
 
 ### Errors
 
@@ -641,7 +654,7 @@ Review list pagination size on profile — suggest 10 with “load more”.
 
 ### Out of scope
 
-Holding slot without booking; booking outside Zone A.
+Holding slot without booking; booking outside Zone A; reserved/proposed slots.
 
 ### Open questions
 
@@ -666,13 +679,13 @@ Polling interval — frontend architecture.
 
 - In: path `id: string`; body `newStartAt`, `format`, optional `reason`
 - Out: `{ oldAppointment, newAppointment }` — old `Rescheduled`, new `Upcoming`
-- Errors: same slot errors + `APPOINTMENT_INVALID_TRANSITION`, `APPOINTMENT_FORBIDDEN`
+- Errors: same slot errors + `APPOINTMENT_INVALID_TRANSITION`, `APPOINTMENT_FORBIDDEN`, `APPOINTMENT_TOO_LATE_TO_RESCHEDULE`
 - Auth: patient, owner only
 
 ### Who is allowed
 
 - Patient books for self only.
-- Reschedule: own `Upcoming` only; not while another `Reschedule Pending` on same row (use SCR-12 flow).
+- Reschedule: own `Upcoming` only; same doctor; ≥ 1 hour before current `start_at`.
 
 ### Commands / queries
 
@@ -685,11 +698,12 @@ Polling interval — frontend architecture.
 
 **On success:**
 
-1. Transaction commits appointment.
+1. Transaction commits appointment (reschedule: old → `Rescheduled` + new → `Upcoming` atomically).
 2. Create notification for **doctor** (**R-10**). Patient not notified (they acted).
-3. Return appointment DTO.
+3. Return appointment DTO(s).
 
-**On `SLOT_TAKEN`:** no appointment created; client stays in wizard step 2.
+**On `SLOT_TAKEN`:** no appointment created/updated; client stays in wizard step 2.  
+**On `APPOINTMENT_TOO_LATE_TO_RESCHEDULE`:** original stays `Upcoming`; cancel may still be available.
 
 ### Invariants
 
@@ -697,6 +711,7 @@ Polling interval — frontend architecture.
 - Format must be supported by doctor; default `offline` if both.
 - Slot not held while confirm screen open.
 - Duration = doctor’s `visit_duration_minutes` at `startAt` (from schedule at book time).
+- `patientReschedule`: `now() <= old.start_at - interval '1 hour'`.
 
 ### Errors
 
@@ -704,11 +719,11 @@ Slot + appointment codes from shared sections.
 
 ### Out of scope
 
-Payment; family booking; slot hold.
+Payment; family booking; slot hold; doctor proposal / pending accept paths.
 
 ### Open questions
 
-EN/UK copy for `SLOT_TAKEN` — frontend i18n.
+EN/UK copy for `SLOT_TAKEN` / `APPOINTMENT_TOO_LATE_TO_RESCHEDULE` — frontend i18n.
 
 ---
 
@@ -719,8 +734,8 @@ EN/UK copy for `SLOT_TAKEN` — frontend i18n.
 ### Contract
 
 - In: session; actions on appointments; `POST` review from Past row; clear recently viewed
-- Out: cabinet aggregate — `upcoming[]`, `past[]`, `pendingBanner`, `nextAppointment`, `miniCalendar[]`, `favourites[]`, `recentlyViewed[]`, `myReviews: { leftCount, pendingCount }`, `metrics` (widget hints), per-row `canReview`, `existingReview` (all entity ids are `string`)
-- Errors: `APPOINTMENT_FORBIDDEN`, `APPOINTMENT_INVALID_TRANSITION`, `REVIEW_ALREADY_EXISTS`, `REVIEW_FORBIDDEN`, validation errors
+- Out: cabinet aggregate — `upcoming[]`, `past[]`, `nextAppointment`, `miniCalendar[]`, `favourites[]`, `recentlyViewed[]`, `myReviews: { leftCount, pendingCount }`, `metrics` (widget hints), per-row `canReview`, `existingReview`, `canMove`, `canCancel` (all entity ids are `string`)
+- Errors: `APPOINTMENT_FORBIDDEN`, `APPOINTMENT_INVALID_TRANSITION`, `APPOINTMENT_TOO_LATE_TO_RESCHEDULE`, `REVIEW_ALREADY_EXISTS`, `REVIEW_FORBIDDEN`, validation errors
 - Auth: patient, self only
 
 ### Who is allowed
@@ -735,37 +750,37 @@ EN/UK copy for `SLOT_TAKEN` — frontend i18n.
 | `GET` | `/api/v1/patients/me/reviews` | patient | Optional detail for «Переглянути»: `{ left[], pending[] }` |
 | `DELETE` | `/api/v1/patients/me/recently-viewed` | patient | Clear all — Paper «Очистити» |
 | `GET` | `/api/v1/patients/me/appointments` | patient | Alternative: list only |
-| `POST` | `/api/v1/appointments/:id/cancel` | patient | `id: string`; `Upcoming` or pending via SCR-12 |
+| `POST` | `/api/v1/appointments/:id/cancel` | patient | `id: string`; `Upcoming` only |
 | `GET` | `/api/v1/patients/me/favourites` | patient | Carousel data (if not using cabinet) |
 | `GET` | `/api/v1/patients/me/recently-viewed` | patient | Last 10 doctors |
 | `POST` | `/api/v1/reviews` | patient | `{ appointmentId: string, rating (1-5), text? }` |
 
-**Appointment row `Out`:** `id: string`, doctor, place, `startAt`, duration, `format`, `status`, `reason`, `cancelledBy`, `proposedStartAt` (if pending), `canMove`, `canCancel`, `pendingDecisionUrl` (SCR-12).
+**Appointment row `Out`:** `id: string`, doctor, place, `startAt`, duration, `format`, `status`, `reason`, `cancelledBy`, `canMove` (true when `Upcoming` and ≥ 1 hour before start), `canCancel` (true when `Upcoming`).
 
-**Grouping:** Upcoming = `Upcoming` + `Reschedule Pending`; Past = `Completed` + `Cancelled` + `Rescheduled`.
+**Grouping:** Upcoming = `Upcoming` only; Past = `Completed` + `Cancelled` + `Rescheduled`.
 
-**Review rules (**R-14**):** one review per Past appointment; `canReview` true when Past status and no review yet. `myReviews.pendingCount` = Past rows with `canReview`.
+**Review rules (**R-14**):** one review per Past appointment; `canReview` true when Past status and no review yet. `myReviews.pendingCount` = Past rows with `canReview` (review-pending, not reschedule-pending).
 
-**Cancel:** `cancel` command; notify doctor; slot freed per **R-02**.
+**Cancel:** `cancel` command; notify doctor; slot freed per **R-02**. No time-limit window.
 
-**Move:** no dedicated endpoint — client opens wizard → SCR-04/05 reschedule endpoint.
+**Move:** no dedicated endpoint — client opens wizard → SCR-04/05 reschedule endpoint. Hide Move when `canMove` false.
 
 ### Invariants
 
-- `Reschedule Pending` rows: `canMove` false; decision via SCR-12.
-- Cancelling pending releases proposed slot.
+- No `pendingBanner` / SCR-12 fields in MVP.
+- Final statuses have no cancel/move.
 
 ### Notifications triggered
 
-Patient cancel → doctor notified. Patient reschedule success → doctor notified (on SCR-05).
+Patient cancel → doctor notified. Patient reschedule success → doctor notified (on SCR-05). Doctor cancel → patient sees via bell; list shows who = doctor.
 
 ### Out of scope
 
-Doctor calendar; payment; family profiles.
+Doctor calendar; payment; family profiles; doctor-proposal pending banner / SCR-12.
 
 ### Open questions
 
-Whether proposed time shown on list row vs SCR-12 only — **Open** (frontend).
+None that block this section.
 
 ---
 
@@ -821,9 +836,9 @@ None — photo same upload rules as license (images only, 10 MB).
 
 ### Contract
 
-- In: `date` (optional, default today); actions on visits
-- Out: `{ metrics, visits[], nextVisit, pendingPatients[], freeWindowsToday[] }` for Zone A day
-- Errors: `APPOINTMENT_FORBIDDEN`, `APPOINTMENT_INVALID_TRANSITION`, `SLOT_NOT_FREE`, `SLOT_OUTSIDE_WINDOW`
+- In: `date` (optional, default today); actions: `mark_completed`, `cancel_visit`
+- Out: `{ metrics, visits[], nextVisit, freeWindowsToday[] }` for Zone A day
+- Errors: `APPOINTMENT_FORBIDDEN`, `APPOINTMENT_INVALID_TRANSITION`
 - Auth: doctor, self only
 
 ### Who is allowed
@@ -837,28 +852,25 @@ None — photo same upload rules as license (images only, 10 MB).
 | `GET` | `/api/v1/doctors/me/dashboard` | doctor | `?date=`; includes metrics |
 | `POST` | `/api/v1/appointments/:id/complete` | doctor | `id: string`; `Upcoming` → `Completed` |
 | `POST` | `/api/v1/appointments/:id/cancel` | doctor | One visit; `cancelledBy=doctor` |
-| `POST` | `/api/v1/appointments/:id/propose` | doctor | Body: `{ proposedStartAt, format? }` → `Reschedule Pending` |
 
-**Metrics:** `visitsToday`, `pendingCount`, `freeSlotsToday`, `cancellationsLast7Days`.
+No `POST .../propose` in MVP.
 
-**Propose:** `doctorPropose` command; patient notified; proposed slot reserved.  
-**Design note (Paper):** modal shows Offline/Online toggle — API accepts optional `format`; default = existing visit format if omitted.
+**Metrics:** `visitsToday`, `freeSlotsToday`, `cancellationsLast7Days`. No `pendingCount` / pending-patients list.
 
-**Visit row:** `id: string`, patient display name (first + last), time, format, reason, status, `proposedStartAt` when pending.
+**Visit row:** `id: string`, patient display name (first + last), time, format, reason, status, `cancelledBy` when cancelled.
 
 ### Invariants
 
 - Visits only inside Zone A on this screen.
-- No second proposal while pending.
-- No single-cancel of `Reschedule Pending` here (patient SCR-12 or SCR-09 bulk).
+- Doctor may only complete or cancel an `Upcoming` visit — cannot move, propose, or book a patient.
 
 ### Notifications
 
-Cancel visit → patient. Propose → patient. Complete → none.
+Cancel visit → patient. Complete → none.
 
 ### Out of scope
 
-Bulk cancel (SCR-09); other doctors’ data.
+Bulk cancel (SCR-09); other doctors’ data; propose new time; book patient.
 
 ### Open questions
 
@@ -897,8 +909,7 @@ Day nav UI only — no API change.
 
 ### Invariants
 
-- Bulk cancel: each affected visit → `Cancelled`, `cancelledBy=doctor`, notify each patient (**R-08**, **FLO-05**).
-- Pending in range: cancelled + reserved slot released.
+- Bulk cancel: each affected `Upcoming` visit → `Cancelled`, `cancelledBy=doctor`, notify each patient (**R-08**, **FLO-05**).
 - No silent auto-cancel via hours edit.
 
 ### Out of scope
@@ -936,9 +947,9 @@ None for storage model (see `tech-stack.md` §7).
 
 **Notification `Out`:** `id: string`, `type`, `createdAt`, `read`, payload (`appointmentId: string`, doctor/patient name, event summary). Types align with **R-10** event table.
 
-**Events that create notifications:** patient books; patient cancels; doctor cancels (incl. bulk); patient reschedules; doctor proposes; patient accepts/picks another/cancels pending.
+**Events that create notifications:** patient books; patient cancels; doctor cancels (incl. bulk); patient reschedules.
 
-Actor who performed action does **not** receive notification for that action.
+Actor who performed action does **not** receive notification for that action. Doctor propose / accept / pick-another pending events are **Out of MVP**.
 
 ### Invariants
 
@@ -963,43 +974,10 @@ Exact notification copy per type — frontend i18n templates.
 
 ## SCR-12 Reschedule pending
 
-**Product pointer:** [SCR-12](./product-spec.md#scr-12-reschedule-pending-patient-decision), [R-02](./product-spec.md#r-02-appointment-statuses), [R-07](./product-spec.md#r-07-rescheduling), [R-10](./product-spec.md#r-10-notifications)
+**Status:** Out of MVP.  
+**Product pointer:** [SCR-12](./product-spec.md#scr-12-reschedule-pending-patient-decision), [R-07](./product-spec.md#r-07-rescheduling)
 
-### Contract
-
-- In: `appointmentId: string` (pending visit); action: `accept` | `pick_another` (via SCR-04/05) | `cancel`
-- Out: `accept` → old `Rescheduled`, new `Upcoming` at proposed time; `cancel` → `Cancelled`; pick another → same as reschedule confirm with pending context
-- Errors: `APPOINTMENT_FORBIDDEN`, `APPOINTMENT_INVALID_TRANSITION`, `SLOT_TAKEN` (on accept if proposed slot lost)
-- Auth: patient, owner only
-
-### Who is allowed
-
-- Patient who owns the pending appointment.
-
-### Commands / queries
-
-| Method | Path | Auth | Notes |
-|---|---|---|---|
-| `GET` | `/api/v1/appointments/:id/pending-decision` | patient | `id: string` — original vs proposed summary for SCR-12 UI |
-| `POST` | `/api/v1/appointments/:id/accept-proposal` | patient | `patientAcceptProposal` |
-| `POST` | `/api/v1/appointments/:id/cancel` | patient | Pending cancel — releases both slots |
-| `POST` | `/api/v1/appointments/:id/reschedule` | patient | Pick another (FLO-03 path) — supersedes proposal |
-
-**Accept:** if proposed slot no longer free → `SLOT_TAKEN` / `SLOT_NOT_FREE`; patient may pick another or cancel.
-
-### Invariants
-
-- No fourth action; no independent FLO-02 while pending.
-- On accept/pick another: doctor notified; patient not.
-- On cancel: doctor notified.
-
-### Out of scope
-
-Pending expiry; changing doctor.
-
-### Open questions
-
-Panel vs full page — frontend only.
+Doctor cannot propose a new time. Patient reschedule is **FLO-02** only. Do not expose `propose`, `accept-proposal`, or `pending-decision` endpoints in the current delivery.
 
 ---
 
@@ -1017,7 +995,7 @@ Panel vs full page — frontend only.
 | Success | Notification → doctor; return `Upcoming` |
 | SCR-06 | `GET /patients/me/cabinet` |
 
-**Invariants at confirm:** Zone A, not taken/reserved, format valid, **R-03** one timeline.
+**Invariants at confirm:** Zone A, not taken, format valid, **R-03** one timeline.
 
 ---
 
@@ -1025,25 +1003,16 @@ Panel vs full page — frontend only.
 
 | Step | Server |
 |---|---|
-| SCR-06 Move | Verify `Upcoming`, same patient |
+| SCR-06 Move | Verify `Upcoming`, same patient; `canMove` requires ≥ 1 hour before `start_at` |
 | SCR-04 | Calendar with `contextAppointmentId` |
-| SCR-05 | `POST /appointments/:id/reschedule` — old `Rescheduled`, new `Upcoming`, atomic slot swap |
+| SCR-05 | `POST /appointments/:id/reschedule` — old `Rescheduled`, new `Upcoming`, atomic slot swap; refuse with `APPOINTMENT_TOO_LATE_TO_RESCHEDULE` if < 1 hour |
 | Notify doctor on success |
-
-Blocked while `Reschedule Pending` on same appointment.
 
 ---
 
 ## FLO-03 Doctor proposes a new time
 
-| Step | Server |
-|---|---|
-| SCR-08 propose | `POST /appointments/:id/propose` with `proposedStartAt` in Zone A |
-| State | `Reschedule Pending`; original taken, proposed reserved |
-| SCR-10 | Notification → patient |
-| SCR-12 accept | `POST accept-proposal` |
-| SCR-12 pick another | `POST reschedule` (pending context) |
-| SCR-12 cancel | `POST cancel` |
+**Status:** Out of MVP. Doctor cannot propose or book patients. Patient moves via **FLO-02** only. Do not build propose / accept-proposal / pending-decision APIs.
 
 ---
 
@@ -1052,10 +1021,9 @@ Blocked while `Reschedule Pending` on same appointment.
 | Actor | Endpoint | Notes |
 |---|---|---|
 | Patient `Upcoming` | `POST /appointments/:id/cancel` | SCR-06 |
-| Patient pending | `POST cancel` on SCR-12 | Both slots freed |
-| Doctor one visit | `POST cancel` | SCR-08, `Upcoming` only |
+| Doctor one visit | `POST /appointments/:id/cancel` | SCR-08, `Upcoming` only |
 
-Final statuses not cancellable. `cancelledBy` set. Other party notified.
+Final statuses not cancellable. `cancelledBy` set. Other party notified. No pending-cancel path.
 
 ---
 
@@ -1077,7 +1045,7 @@ No silent cancel via hours shrink in Zone B (no appointments there).
 3. Second hits unique constraint / availability check → `409` or `400` with `SLOT_TAKEN`.
 4. Frontend shows plain-language refusal; user picks another slot.
 
-No notification to refused patient. Doctor notified only for winner.
+Same race applies to `POST .../reschedule` onto an occupied slot. No notification to refused patient. Doctor notified only for winner.
 
 ---
 
@@ -1097,6 +1065,6 @@ Full tooling detail: **[tech-stack.md](./tech-stack.md)**.
 | File storage | Local `uploads/`; 10 MB; jpeg/png/webp/pdf (pdf license only) |
 | Sessions | Postgres; HTTP-only cookie; 14-day TTL |
 | Passwords | argon2 (or bcrypt); min 8 chars |
-| Tests | Vitest + Postgres (Compose) — slots, book race, authz |
+| Tests | Vitest + Postgres (Compose) — slots, book race, authz, reschedule 1h deadline |
 | Auto-complete job | Cron/worker: `Upcoming` → `Completed` after slot end |
-| Design vs older product lines | Paper wins for onboarding steps, gender, optional license, patient photo, clear recently-viewed, reviews widget counts, format on calendar step, optional format on propose |
+| Design vs older product lines | Paper wins for onboarding steps, gender, optional license, patient photo, clear recently-viewed, reviews widget counts, format on calendar step. Doctor propose / optional format on propose — **Out of MVP** |

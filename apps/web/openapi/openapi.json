@@ -132,6 +132,25 @@
         }
       }
     },
+    "/uploads/{*}": {
+      "get": {
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "*",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        }
+      }
+    },
     "/v1/reference/cities": {
       "get": {
         "operationId": "getReferenceCities",
@@ -1456,6 +1475,7 @@
                           "doctorId",
                           "doctorFirstName",
                           "doctorLastName",
+                          "doctorPhotoUrl",
                           "specialty",
                           "clinicName",
                           "cityName",
@@ -1484,6 +1504,10 @@
                           },
                           "doctorLastName": {
                             "type": "string"
+                          },
+                          "doctorPhotoUrl": {
+                            "type": "string",
+                            "nullable": true
                           },
                           "specialty": {
                             "type": "string"
@@ -1621,6 +1645,7 @@
                           "doctorId",
                           "doctorFirstName",
                           "doctorLastName",
+                          "doctorPhotoUrl",
                           "specialty",
                           "clinicName",
                           "cityName",
@@ -1649,6 +1674,10 @@
                           },
                           "doctorLastName": {
                             "type": "string"
+                          },
+                          "doctorPhotoUrl": {
+                            "type": "string",
+                            "nullable": true
                           },
                           "specialty": {
                             "type": "string"
@@ -1784,6 +1813,7 @@
                         "doctorId",
                         "doctorFirstName",
                         "doctorLastName",
+                        "doctorPhotoUrl",
                         "specialty",
                         "clinicName",
                         "cityName",
@@ -1812,6 +1842,10 @@
                         },
                         "doctorLastName": {
                           "type": "string"
+                        },
+                        "doctorPhotoUrl": {
+                          "type": "string",
+                          "nullable": true
                         },
                         "specialty": {
                           "type": "string"
@@ -1947,6 +1981,7 @@
                         "doctorId",
                         "doctorFirstName",
                         "doctorLastName",
+                        "doctorPhotoUrl",
                         "specialty",
                         "clinicName",
                         "cityName",
@@ -1975,6 +2010,10 @@
                         },
                         "doctorLastName": {
                           "type": "string"
+                        },
+                        "doctorPhotoUrl": {
+                          "type": "string",
+                          "nullable": true
                         },
                         "specialty": {
                           "type": "string"
@@ -2134,7 +2173,8 @@
                           "cityName",
                           "photoUrl",
                           "basePrice",
-                          "promoPrice"
+                          "promoPrice",
+                          "ratingAverage"
                         ],
                         "properties": {
                           "id": {
@@ -2165,6 +2205,9 @@
                           "promoPrice": {
                             "type": "number",
                             "nullable": true
+                          },
+                          "ratingAverage": {
+                            "type": "number"
                           }
                         }
                       }
@@ -2182,7 +2225,8 @@
                           "cityName",
                           "photoUrl",
                           "basePrice",
-                          "promoPrice"
+                          "promoPrice",
+                          "ratingAverage"
                         ],
                         "properties": {
                           "id": {
@@ -2213,6 +2257,9 @@
                           "promoPrice": {
                             "type": "number",
                             "nullable": true
+                          },
+                          "ratingAverage": {
+                            "type": "number"
                           }
                         }
                       }
@@ -2297,6 +2344,7 @@
                           "doctorId",
                           "doctorFirstName",
                           "doctorLastName",
+                          "doctorPhotoUrl",
                           "specialty",
                           "clinicName",
                           "cityName",
@@ -2325,6 +2373,10 @@
                           },
                           "doctorLastName": {
                             "type": "string"
+                          },
+                          "doctorPhotoUrl": {
+                            "type": "string",
+                            "nullable": true
                           },
                           "specialty": {
                             "type": "string"
@@ -2462,6 +2514,7 @@
                           "doctorId",
                           "doctorFirstName",
                           "doctorLastName",
+                          "doctorPhotoUrl",
                           "specialty",
                           "clinicName",
                           "cityName",
@@ -2490,6 +2543,10 @@
                           },
                           "doctorLastName": {
                             "type": "string"
+                          },
+                          "doctorPhotoUrl": {
+                            "type": "string",
+                            "nullable": true
                           },
                           "specialty": {
                             "type": "string"
@@ -2656,7 +2713,8 @@
                           "cityName",
                           "photoUrl",
                           "basePrice",
-                          "promoPrice"
+                          "promoPrice",
+                          "ratingAverage"
                         ],
                         "properties": {
                           "id": {
@@ -2687,6 +2745,9 @@
                           "promoPrice": {
                             "type": "number",
                             "nullable": true
+                          },
+                          "ratingAverage": {
+                            "type": "number"
                           }
                         }
                       }
@@ -2823,7 +2884,8 @@
                           "cityName",
                           "photoUrl",
                           "basePrice",
-                          "promoPrice"
+                          "promoPrice",
+                          "ratingAverage"
                         ],
                         "properties": {
                           "id": {
@@ -2854,6 +2916,9 @@
                           "promoPrice": {
                             "type": "number",
                             "nullable": true
+                          },
+                          "ratingAverage": {
+                            "type": "number"
                           }
                         }
                       }
@@ -4221,7 +4286,8 @@
                     "visits",
                     "nextVisit",
                     "pendingPatients",
-                    "freeWindowsToday"
+                    "freeWindowsToday",
+                    "weekStrip"
                   ],
                   "properties": {
                     "date": {
@@ -4257,6 +4323,7 @@
                         "required": [
                           "id",
                           "patientDisplayName",
+                          "patientPhotoUrl",
                           "startAt",
                           "format",
                           "reason",
@@ -4269,6 +4336,10 @@
                           },
                           "patientDisplayName": {
                             "type": "string"
+                          },
+                          "patientPhotoUrl": {
+                            "type": "string",
+                            "nullable": true
                           },
                           "startAt": {
                             "type": "string"
@@ -4339,6 +4410,7 @@
                       "required": [
                         "id",
                         "patientDisplayName",
+                        "patientPhotoUrl",
                         "startAt",
                         "format",
                         "reason",
@@ -4351,6 +4423,10 @@
                         },
                         "patientDisplayName": {
                           "type": "string"
+                        },
+                        "patientPhotoUrl": {
+                          "type": "string",
+                          "nullable": true
                         },
                         "startAt": {
                           "type": "string"
@@ -4423,6 +4499,7 @@
                         "required": [
                           "id",
                           "patientDisplayName",
+                          "patientPhotoUrl",
                           "startAt",
                           "format",
                           "reason",
@@ -4435,6 +4512,10 @@
                           },
                           "patientDisplayName": {
                             "type": "string"
+                          },
+                          "patientPhotoUrl": {
+                            "type": "string",
+                            "nullable": true
                           },
                           "startAt": {
                             "type": "string"
@@ -4504,6 +4585,36 @@
                       "type": "array",
                       "items": {
                         "type": "string"
+                      }
+                    },
+                    "weekStrip": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "date",
+                          "visits",
+                          "pending",
+                          "cancelled",
+                          "free"
+                        ],
+                        "properties": {
+                          "date": {
+                            "type": "string"
+                          },
+                          "visits": {
+                            "type": "number"
+                          },
+                          "pending": {
+                            "type": "number"
+                          },
+                          "cancelled": {
+                            "type": "number"
+                          },
+                          "free": {
+                            "type": "number"
+                          }
+                        }
                       }
                     }
                   }

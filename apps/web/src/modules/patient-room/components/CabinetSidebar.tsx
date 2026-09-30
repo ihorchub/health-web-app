@@ -1,8 +1,9 @@
-import { IconChevronLeft, IconChevronRight } from '@tabler/icons-react';
+import { IconChevronLeft, IconChevronRight, IconStarFilled } from '@tabler/icons-react';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
+import { DoctorPhoto } from '@/components/DoctorPhoto/DoctorPhoto';
 import {
   CalendarGrid,
   CalendarHeader,
@@ -11,9 +12,13 @@ import {
   CalendarNavButton,
   CalendarShell,
   DayCell,
+  LegendDot,
   LegendItem,
-  PromoAvatar,
+  PromoClinic,
+  PromoDoctorInfo,
   PromoDoctorRow,
+  PromoRating,
+  PromoSpecialty,
   WidgetAction,
   WidgetBody,
   WidgetCard,
@@ -159,7 +164,10 @@ export const CabinetSidebar = ({
             ))}
           </CalendarGrid>
           <CalendarLegend>
-            <LegendItem>{t('cabinet:sidebar.legendVisit')}</LegendItem>
+            <LegendItem>
+              <LegendDot />
+              {t('cabinet:sidebar.legendVisit')}
+            </LegendItem>
             <span>{t('cabinet:sidebar.legendToday')}</span>
           </CalendarLegend>
         </CalendarShell>
@@ -181,7 +189,7 @@ export const CabinetSidebar = ({
               clinic: reminderVisit.clinicName,
             })}
           </WidgetMeta>
-          <WidgetAction variant="outlined" color="inherit" onClick={onOpenVisit}>
+          <WidgetAction fullWidth variant="outlined" color="inherit" onClick={onOpenVisit}>
             {t('cabinet:sidebar.toVisit')}
           </WidgetAction>
         </WidgetCard>
@@ -191,19 +199,38 @@ export const CabinetSidebar = ({
         <WidgetCard>
           <WidgetTitle>{t('cabinet:sidebar.newDoctor')}</WidgetTitle>
           <PromoDoctorRow>
-            <PromoAvatar src={promoDoctor.photoUrl ?? undefined} alt="" />
-            <div>
+            <DoctorPhoto
+              photoUrl={promoDoctor.photoUrl}
+              firstName={promoDoctor.firstName}
+              lastName={promoDoctor.lastName}
+              size="md"
+            />
+            <PromoDoctorInfo>
               <WidgetBody>
                 {promoDoctor.firstName} {promoDoctor.lastName}
               </WidgetBody>
-              <WidgetMeta>
+              <PromoSpecialty>
                 {t(`search:specialties.${promoDoctor.specialty}`, {
                   defaultValue: promoDoctor.specialty,
                 })}
-              </WidgetMeta>
-            </div>
+              </PromoSpecialty>
+              <PromoClinic>
+                {[promoDoctor.clinicName, promoDoctor.cityName].filter(Boolean).join(', ')}
+              </PromoClinic>
+              <PromoRating>
+                <IconStarFilled size={14} aria-hidden />
+                {promoDoctor.ratingAverage > 0
+                  ? promoDoctor.ratingAverage.toFixed(1)
+                  : '—'}
+              </PromoRating>
+            </PromoDoctorInfo>
           </PromoDoctorRow>
-          <WidgetAction variant="contained" color="primary" onClick={onBookPromo}>
+          <WidgetAction
+            fullWidth
+            variant="contained"
+            color="primary"
+            onClick={onBookPromo}
+          >
             {t('cabinet:sidebar.book')}
           </WidgetAction>
         </WidgetCard>
@@ -218,7 +245,7 @@ export const CabinetSidebar = ({
           <WidgetMeta>
             {t('cabinet:sidebar.reviewsPending', { count: myReviews.pendingCount })}
           </WidgetMeta>
-          <WidgetAction variant="text" color="primary" onClick={onViewReviews}>
+          <WidgetAction fullWidth variant="outlined" color="inherit" onClick={onViewReviews}>
             {t('cabinet:sidebar.reviewsView')}
           </WidgetAction>
         </WidgetCard>
@@ -229,8 +256,9 @@ export const CabinetSidebar = ({
           <WidgetTitle>{t('cabinet:sidebar.howTitle')}</WidgetTitle>
           <WidgetMeta>{t('cabinet:sidebar.howBody')}</WidgetMeta>
           <WidgetAction
-            variant="text"
-            color="primary"
+            fullWidth
+            variant="outlined"
+            color="inherit"
             onClick={() => {
               void navigate(AppRoute.HOME);
             }}

@@ -4,7 +4,6 @@ import {
   postBookAppointment as generatedPostBookAppointment,
   postCancelAppointment as generatedPostCancelAppointment,
   postCompleteAppointment as generatedPostCompleteAppointment,
-  postProposeAppointment as generatedPostProposeAppointment,
   postRescheduleAppointment as generatedPostRescheduleAppointment,
 } from '@/api/generated/appointments/appointments';
 import type {
@@ -15,10 +14,6 @@ import type {
   RescheduleAppointmentBody,
   RescheduleAppointmentResponse,
 } from '@/api/appointments/types';
-import type {
-  ProposeAppointmentBody,
-  ProposeAppointmentResponse,
-} from '@/api/doctors/dashboard.types';
 
 /** POST /api/v1/appointments */
 export const postBookAppointment = (body: BookAppointmentBody) => {
@@ -43,14 +38,6 @@ export const postCancelAppointment = async (id: string): Promise<AppointmentDto>
 export const postCompleteAppointment = async (id: string): Promise<AppointmentDto> => {
   const data = await generatedPostCompleteAppointment(id);
   return data.appointment as AppointmentDto;
-};
-
-/** POST /api/v1/appointments/:id/propose */
-export const postProposeAppointment = (id: string, body: ProposeAppointmentBody) => {
-  return generatedPostProposeAppointment(
-    id,
-    body,
-  ) as Promise<ProposeAppointmentResponse>;
 };
 
 /** GET /api/v1/appointments/:id/pending-decision */

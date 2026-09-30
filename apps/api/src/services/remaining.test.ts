@@ -42,6 +42,9 @@ describe("doctor-dashboard", () => {
     expect(dash.metrics.visitsToday).toBe(1);
     expect(dash.visits).toHaveLength(1);
     expect(dash.freeWindowsToday.length).toBeGreaterThan(0);
+    const stripDay = dash.weekStrip.find((d) => d.date === "2026-08-11");
+    expect(stripDay?.visits).toBe(1);
+    expect(dash.weekStrip).toHaveLength(7);
   });
 
   it("isolates another doctor's visits", async () => {

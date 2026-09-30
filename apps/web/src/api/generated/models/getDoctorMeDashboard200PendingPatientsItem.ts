@@ -11,6 +11,8 @@ import type { GetDoctorMeDashboard200PendingPatientsItemStatus } from './getDoct
 export type GetDoctorMeDashboard200PendingPatientsItem = {
   id: string;
   patientDisplayName: string;
+  /** @nullable */
+  patientPhotoUrl: string | null;
   startAt: string;
   format: typeof GetDoctorMeDashboard200PendingPatientsItemFormat[keyof typeof GetDoctorMeDashboard200PendingPatientsItemFormat];
   /** @nullable */

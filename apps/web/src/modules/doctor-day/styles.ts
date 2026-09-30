@@ -258,7 +258,9 @@ export const DoctorLine = styled('span')(({ theme }) => ({
 }));
 
 export const OutlineButton = styled(Button)(({ theme }) => ({
+  height: 40,
   minHeight: 40,
+  boxSizing: 'border-box',
   paddingInline: theme.spacing(2),
   borderRadius: 8,
   fontWeight: 600,
@@ -281,16 +283,26 @@ export const HeroActions = styled('div')(({ theme }) => ({
   '& > .MuiButton-root': {
     flex: '1 1 calc(50% - 8px)',
     minWidth: 120,
+    height: 40,
+    minHeight: 40,
+    boxSizing: 'border-box',
+    borderRadius: 8,
+    fontWeight: 600,
+    textTransform: 'none',
+    paddingTop: 0,
+    paddingBottom: 0,
   },
 
   [theme.breakpoints.up('md')]: {
     flexBasis: 'auto',
     width: 'auto',
     flexShrink: 0,
+    flexWrap: 'nowrap',
 
     '& > .MuiButton-root': {
       flex: '0 0 auto',
       minWidth: 0,
+      whiteSpace: 'nowrap',
     },
   },
 }));
@@ -615,13 +627,17 @@ export const RowActions = styled('div')(({ theme }) => ({
 
   [theme.breakpoints.up('md')]: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexWrap: 'nowrap',
     alignItems: 'center',
     justifyContent: 'flex-end',
-    width: 220,
+    width: 'auto',
+    maxWidth: 'none',
+    gap: theme.spacing(1),
 
     '& .MuiButton-root': {
       width: 'auto',
+      flexShrink: 0,
+      whiteSpace: 'nowrap',
     },
   },
 }));
@@ -721,9 +737,7 @@ export const WeekDay = styled('button')<{ $active?: boolean }>(({ theme, $active
   borderRadius: 12,
   border: $active ? `1.5px solid ${theme.palette.primary.main}` : '1.5px solid transparent',
   cursor: 'pointer',
-  backgroundColor: $active
-    ? 'rgba(46, 177, 145, 0.12)'
-    : theme.palette.background.default,
+  backgroundColor: theme.palette.background.default,
   color: theme.palette.text.primary,
 }));
 
@@ -774,25 +788,48 @@ export const WeekDot = styled('span')<{ $tone: 'visit' | 'pending' | 'cancelled'
 export const WeekLegend = styled('div')(({ theme }) => ({
   display: 'flex',
   flexWrap: 'wrap',
-  gap: theme.spacing(1),
+  gap: theme.spacing(1.5),
+  alignItems: 'center',
   fontSize: 11,
   color: theme.palette.text.secondary,
+}));
+
+export const WeekLegendItem = styled('span')(({ theme }) => ({
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: theme.spacing(0.5),
 }));
 
 export const PendingAvatar = styled('span')(({ theme }) => ({
   display: 'inline-flex',
   alignItems: 'center',
   justifyContent: 'center',
-  width: 36,
-  height: 36,
+  width: 40,
+  height: 40,
   flexShrink: 0,
   borderRadius: 999,
-  backgroundColor: theme.palette.mode === 'light' ? '#163E52' : theme.palette.background.paper,
+  overflow: 'hidden',
+  backgroundColor: theme.palette.mode === 'light' ? '#163E52' : '#0E2430',
   color: theme.palette.mode === 'light' ? '#F3F7F8' : theme.palette.text.primary,
   fontFamily: theme.typography.fontFamily,
   fontSize: 12,
   lineHeight: '16px',
   fontWeight: 600,
+  letterSpacing: '0.02em',
+}));
+
+export const PendingAvatarImage = styled('img')({
+  width: '100%',
+  height: '100%',
+  objectFit: 'cover',
+  display: 'block',
+});
+
+export const PendingList = styled('div')(({ theme }) => ({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: theme.spacing(1.5),
+  width: '100%',
 }));
 
 export const FreeRow = styled('div')(({ theme }) => ({
@@ -800,10 +837,25 @@ export const FreeRow = styled('div')(({ theme }) => ({
   justifyContent: 'space-between',
   alignItems: 'center',
   padding: theme.spacing(1.25, 1.5),
-  borderRadius: 10,
-  backgroundColor: theme.palette.action.hover,
+  borderRadius: 12,
+  backgroundColor: theme.palette.background.default,
+  fontFamily: theme.typography.fontFamily,
   fontSize: 14,
+  lineHeight: '20px',
   fontWeight: 600,
+  color: theme.palette.text.primary,
+}));
+
+export const FreeShowMore = styled('button')(({ theme }) => ({
+  border: 'none',
+  background: 'none',
+  padding: theme.spacing(0.5, 0),
+  cursor: 'pointer',
+  alignSelf: 'flex-start',
+  fontFamily: theme.typography.fontFamily,
+  fontSize: 13,
+  fontWeight: 600,
+  color: theme.palette.primary.main,
 }));
 
 export const PendingRow = styled('div')(({ theme }) => ({
@@ -841,12 +893,14 @@ export const QuickLink = styled('button')(({ theme }) => ({
   alignItems: 'center',
   gap: theme.spacing(1.5),
   width: '100%',
-  padding: theme.spacing(1.25, 0),
+  padding: theme.spacing(1.25, 1.5),
   border: 'none',
-  background: 'none',
+  borderRadius: 12,
+  backgroundColor: theme.palette.background.default,
   cursor: 'pointer',
   fontFamily: theme.typography.fontFamily,
   fontSize: 15,
+  lineHeight: '22px',
   fontWeight: 600,
   color: theme.palette.text.primary,
   textAlign: 'left',

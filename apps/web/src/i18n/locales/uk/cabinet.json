@@ -57,7 +57,9 @@
   "cancelledByPatient": "Скасовано вами",
   "favourites": {
     "title": "Обрані лікарі",
-    "all": "Усі ›"
+    "all": "Усі ›",
+    "carouselPrev": "Попередні картки",
+    "carouselNext": "Наступні картки"
   },
   "recent": {
     "title": "Нещодавно переглянуті",

@@ -6,6 +6,7 @@ import { patientFavourites, patientRecentlyViewed } from "../db/schema/patient-l
 import { doctorProfiles } from "../db/schema/profiles.js";
 import { cities, clinics } from "../db/schema/reference.js";
 import { ApiError } from "../lib/errors.js";
+import { getDoctorReviewStatsMap } from "./reviews.js";
 
 const RECENTLY_VIEWED_LIMIT = 10;
 
@@ -19,6 +20,7 @@ export type DoctorListCard = {
   photoUrl: string | null;
   basePrice: number;
   promoPrice: number | null;
+  ratingAverage: number;
 };
 
 async function assertDoctorExists(doctorId: string): Promise<void> {
@@ -52,7 +54,14 @@ async function loadDoctorCards(doctorIds: string[]): Promise<DoctorListCard[]> {
     .where(inArray(doctorProfiles.userId, doctorIds));
 
   const byId = new Map(rows.map((r) => [r.id, r]));
-  return doctorIds.map((id) => byId.get(id)).filter((r): r is NonNullable<typeof r> => Boolean(r));
+  const ratingMap = await getDoctorReviewStatsMap(doctorIds);
+  return doctorIds
+    .map((id) => byId.get(id))
+    .filter((r): r is NonNullable<typeof r> => Boolean(r))
+    .map((r) => ({
+      ...r,
+      ratingAverage: ratingMap.get(r.id)?.ratingAverage ?? 0,
+    }));
 }
 
 export async function addFavourite(patientId: string, doctorId: string): Promise<{ ok: true; isFavourite: true }> {

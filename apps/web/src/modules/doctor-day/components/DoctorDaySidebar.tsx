@@ -1,21 +1,17 @@
 import { IconCalendar, IconUserCircle } from '@tabler/icons-react';
 import { Button } from '@mui/material';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
 import type {
   DoctorDayVisit,
   FreeWindowSlot,
-  PendingPatientRow,
   WeekDaySummary,
 } from '@/modules/doctor-day/types';
 import {
   FreeRow,
-  PendingAvatar,
-  PendingCopy,
-  PendingMeta,
-  PendingName,
-  PendingRow,
+  FreeShowMore,
   QuickLink,
   WeekDay,
   WeekDayLabel,
@@ -24,6 +20,7 @@ import {
   WeekDot,
   WeekDots,
   WeekLegend,
+  WeekLegendItem,
   WidgetCard,
   WidgetHead,
   WidgetLink,
@@ -37,26 +34,16 @@ interface DoctorDaySidebarProps {
   nextVisit: DoctorDayVisit | null;
   weekDays: WeekDaySummary[];
   freeWindows: FreeWindowSlot[];
-  pendingPatients: PendingPatientRow[];
   onOpenSchedule: () => void;
   onOpenVisit: () => void;
 }
 
-const initials = (name: string) =>
-  name
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() ?? '')
-    .join('');
+const FREE_WINDOWS_PREVIEW = 5;
 
 const weekDots = (day: WeekDaySummary) => {
-  const dots: Array<'visit' | 'pending' | 'cancelled' | 'free'> = [];
+  const dots: Array<'visit' | 'cancelled' | 'free'> = [];
   if (day.visits > 0) {
     dots.push('visit');
-  }
-  if (day.pending > 0) {
-    dots.push('pending');
   }
   if (day.cancelled > 0) {
     dots.push('cancelled');
@@ -74,12 +61,16 @@ export const DoctorDaySidebar = ({
   nextVisit,
   weekDays,
   freeWindows,
-  pendingPatients,
   onOpenSchedule,
   onOpenVisit,
 }: DoctorDaySidebarProps) => {
   const { t, i18n } = useTranslation('doctorDay');
   const navigate = useNavigate();
+  const [freeExpanded, setFreeExpanded] = useState(false);
+  const freePreview = freeExpanded
+    ? freeWindows
+    : freeWindows.slice(0, FREE_WINDOWS_PREVIEW);
+  const hasMoreFree = freeWindows.length > FREE_WINDOWS_PREVIEW;
 
   return (
     <>
@@ -104,10 +95,18 @@ export const DoctorDaySidebar = ({
           ))}
         </WeekDays>
         <WeekLegend>
-          <span>{t('sidebar.legendVisits')}</span>
-          <span>{t('sidebar.legendFree')}</span>
-          <span>{t('sidebar.legendPending')}</span>
-          <span>{t('sidebar.legendCancelled')}</span>
+          <WeekLegendItem>
+            <WeekDot $tone="visit" />
+            {t('sidebar.legendVisits')}
+          </WeekLegendItem>
+          <WeekLegendItem>
+            <WeekDot $tone="free" />
+            {t('sidebar.legendFree')}
+          </WeekLegendItem>
+          <WeekLegendItem>
+            <WeekDot $tone="cancelled" />
+            {t('sidebar.legendCancelled')}
+          </WeekLegendItem>
         </WeekLegend>
       </WidgetCard>
 
@@ -145,7 +144,7 @@ export const DoctorDaySidebar = ({
             {t('sidebar.scheduleLink')}
           </WidgetLink>
         </WidgetHead>
-        {freeWindows.map((window) => (
+        {freePreview.map((window) => (
           <FreeRow key={window.id}>
             <span>
               {t('sidebar.freeRow', {
@@ -156,23 +155,16 @@ export const DoctorDaySidebar = ({
             </span>
           </FreeRow>
         ))}
-      </WidgetCard>
-
-      <WidgetCard>
-        <WidgetTitle>{t('sidebar.pendingTitle')}</WidgetTitle>
-        {pendingPatients.map((row) => (
-          <PendingRow key={row.id}>
-            <PendingAvatar>{initials(row.patientName)}</PendingAvatar>
-            <PendingCopy>
-              <PendingName>{row.patientName}</PendingName>
-              <PendingMeta>
-                {row.fromTime.includes(' ')
-                  ? `${row.fromTime} → ${row.toTime}`
-                  : t('sidebar.pendingRowTime', { from: row.fromTime, to: row.toTime })}
-              </PendingMeta>
-            </PendingCopy>
-          </PendingRow>
-        ))}
+        {hasMoreFree ? (
+          <FreeShowMore
+            type="button"
+            onClick={() => {
+              setFreeExpanded((open) => !open);
+            }}
+          >
+            {freeExpanded ? t('sidebar.freeShowLess') : t('sidebar.freeShowMore')}
+          </FreeShowMore>
+        ) : null}
       </WidgetCard>
 
       <WidgetCard>

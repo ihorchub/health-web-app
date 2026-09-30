@@ -751,12 +751,12 @@ export const PreviewPriceRow = styled('div')({
   gap: 10,
 });
 
-export const PreviewPrice = styled('span')(({ theme }) => ({
+export const PreviewPrice = styled('span')<{ $promo?: boolean }>(({ theme, $promo }) => ({
   fontFamily: theme.typography.fontFamily,
   fontSize: 22,
   lineHeight: '30px',
   fontWeight: 700,
-  color: theme.palette.text.primary,
+  color: $promo ? theme.palette.promo : theme.palette.text.primary,
 }));
 
 export const PreviewStruckPrice = styled('span')(({ theme }) => ({

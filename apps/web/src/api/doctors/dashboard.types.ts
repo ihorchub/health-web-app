@@ -7,16 +7,26 @@ export interface DoctorDashboardMetrics {
   pendingCount: number;
   freeSlotsToday: number;
   cancellationsLast7Days: number;
+  pastVisitsThisMonth: number;
 }
 
 export interface DoctorDashboardVisit {
   id: string;
   patientDisplayName: string;
+  patientPhotoUrl: string | null;
   startAt: string;
   format: AppointmentFormat;
   reason: string | null;
   status: AppointmentStatus | string;
   proposedStartAt: string | null;
+}
+
+export interface DoctorDashboardWeekStripDay {
+  date: string;
+  visits: number;
+  pending: number;
+  cancelled: number;
+  free: number;
 }
 
 export interface DoctorDashboardResponse {
@@ -25,31 +35,13 @@ export interface DoctorDashboardResponse {
   visits: DoctorDashboardVisit[];
   nextVisit: DoctorDashboardVisit | null;
   pendingPatients: DoctorDashboardVisit[];
+  pastVisitsMonth: DoctorDashboardVisit[];
   /** Free slot start times (ISO) for the requested day. */
   freeWindowsToday: string[];
+  /** Mon–Sun status counts for the week containing `date`. */
+  weekStrip: DoctorDashboardWeekStripDay[];
 }
 
 export interface DoctorDashboardParams {
   date: string;
-}
-
-export interface ProposeAppointmentBody {
-  proposedStartAt: string;
-  format?: AppointmentFormat;
-}
-
-export interface ProposeAppointmentResponse {
-  appointment: {
-    id: string;
-    doctorId: string;
-    patientId: string;
-    startAt: string;
-    endAt: string;
-    format: AppointmentFormat;
-    status: AppointmentStatus;
-    reason: string | null;
-    visitDurationMinutes: number;
-    proposedStartAt: string | null;
-    cancelledBy: 'patient' | 'doctor' | null;
-  };
 }

@@ -10,6 +10,7 @@ import { and, eq, inArray } from "drizzle-orm";
 
 import { getDb } from "../db/client.js";
 import { appointments } from "../db/schema/appointments.js";
+import { doctorProfiles, patientProfiles } from "../db/schema/profiles.js";
 import { ApiError } from "../lib/errors.js";
 import { newId } from "../lib/ids.js";
 import { loadDoctorForBooking, validateSlotOrThrow } from "./booking-validation.js";
@@ -39,6 +40,24 @@ const UNIQUE_VIOLATION = "23505";
 
 function isUniqueViolation(err: unknown): boolean {
   return typeof err === "object" && err !== null && (err as { code?: string }).code === UNIQUE_VIOLATION;
+}
+
+async function loadPatientDisplayName(userId: string): Promise<string> {
+  const [row] = await getDb()
+    .select({ firstName: patientProfiles.firstName, lastName: patientProfiles.lastName })
+    .from(patientProfiles)
+    .where(eq(patientProfiles.userId, userId))
+    .limit(1);
+  return row ? `${row.firstName} ${row.lastName}`.trim() : "";
+}
+
+async function loadDoctorDisplayName(userId: string): Promise<string> {
+  const [row] = await getDb()
+    .select({ firstName: doctorProfiles.firstName, lastName: doctorProfiles.lastName })
+    .from(doctorProfiles)
+    .where(eq(doctorProfiles.userId, userId))
+    .limit(1);
+  return row ? `${row.firstName} ${row.lastName}`.trim() : "";
 }
 
 export async function getAppointmentById(id: string): Promise<AppointmentRecord> {
@@ -84,10 +103,16 @@ export async function bookAppointment(input: BookAppointmentInput): Promise<Appo
   }
 
   const appointment = await getAppointmentById(id);
+  const patientName = await loadPatientDisplayName(input.patientId);
   await createNotification({
     userId: input.doctorId,
     type: "appointment_booked",
-    payload: { appointmentId: id, patientId: input.patientId },
+    payload: {
+      appointmentId: id,
+      patientId: input.patientId,
+      patientName,
+      startAt: appointment.startAt.toISOString(),
+    },
   });
   return appointment;
 }
@@ -116,13 +141,20 @@ export async function cancelAppointment(input: CancelAppointmentInput): Promise<
 
   const updated = await getAppointmentById(input.appointmentId);
   const notifyUserId = input.actorRole === "patient" ? appointment.doctorId : appointment.patientId;
+  const payload: Record<string, unknown> = {
+    appointmentId: appointment.id,
+    cancelledBy: input.actorRole,
+    startAt: appointment.startAt.toISOString(),
+  };
+  if (input.actorRole === "patient") {
+    payload.patientName = await loadPatientDisplayName(appointment.patientId);
+  } else {
+    payload.doctorName = await loadDoctorDisplayName(appointment.doctorId);
+  }
   await createNotification({
     userId: notifyUserId,
     type: "appointment_cancelled",
-    payload: {
-      appointmentId: appointment.id,
-      cancelledBy: input.actorRole,
-    },
+    payload,
   });
   return updated;
 }
@@ -203,6 +235,7 @@ export async function patientReschedule(input: PatientRescheduleInput): Promise<
     oldAppointment: await getAppointmentById(old.id),
     newAppointment: await getAppointmentById(newAppointmentId),
   };
+  const patientName = await loadPatientDisplayName(input.patientId);
   await createNotification({
     userId: old.doctorId,
     type: "appointment_rescheduled",
@@ -210,6 +243,8 @@ export async function patientReschedule(input: PatientRescheduleInput): Promise<
       oldAppointmentId: old.id,
       newAppointmentId,
       patientId: input.patientId,
+      patientName,
+      startAt: input.newStartAt.toISOString(),
     },
   });
   return result;
@@ -236,6 +271,11 @@ export async function doctorPropose(input: DoctorProposeInput): Promise<Appointm
     throw new ApiError("AUTH_VALIDATION_FAILED", 400, { proposedStartAt: "SAME_AS_CURRENT" });
   }
 
+  // Patient needs ≥20 minutes to respond before the soonest relevant start.
+  if (proposalExpiryDeadlineMs(appointment.startAt, input.proposedStartAt, now) <= now.getTime()) {
+    throw new ApiError("AUTH_VALIDATION_FAILED", 400, { proposedStartAt: "TOO_LATE_FOR_PROPOSAL" });
+  }
+
   const doctor = await loadDoctorForBooking(appointment.doctorId);
   const format = input.format ?? appointment.format;
   if (!doctor.supportedFormats.includes(format)) {
@@ -258,12 +298,15 @@ export async function doctorPropose(input: DoctorProposeInput): Promise<Appointm
   }
 
   const updated = await getAppointmentById(appointment.id);
+  const doctorName = await loadDoctorDisplayName(appointment.doctorId);
   await createNotification({
     userId: appointment.patientId,
     type: "reschedule_proposed",
     payload: {
       appointmentId: appointment.id,
       proposedStartAt: input.proposedStartAt.toISOString(),
+      doctorName,
+      startAt: appointment.startAt.toISOString(),
     },
   });
   return updated;
@@ -348,6 +391,7 @@ export async function patientAcceptProposal(input: {
     oldAppointment: await getAppointmentById(old.id),
     newAppointment: await getAppointmentById(newAppointmentId),
   };
+  const patientName = await loadPatientDisplayName(input.patientId);
   await createNotification({
     userId: old.doctorId,
     type: "proposal_accepted",
@@ -355,6 +399,8 @@ export async function patientAcceptProposal(input: {
       oldAppointmentId: old.id,
       newAppointmentId,
       patientId: input.patientId,
+      patientName,
+      startAt: old.proposedStartAt!.toISOString(),
     },
   });
   return result;
@@ -383,4 +429,87 @@ export async function autoCompleteDueAppointments(now: Date = new Date()): Promi
     .where(and(eq(appointments.status, "Upcoming"), inArray(appointments.id, dueIds)));
 
   return dueIds.length;
+}
+
+/** Lead time before a visit when an unanswered proposal expires. */
+export const PROPOSAL_RESPONSE_LEAD_MS = 20 * 60_000;
+
+/**
+ * Deadline for patient response: 20 minutes before the soonest *still-relevant* start.
+ * - Always includes the proposed time.
+ * - Includes the original only while it is still in the future (so a late propose onto a
+ *   future slot is not instantly expired just because the old time already passed).
+ */
+export function proposalExpiryDeadlineMs(
+  startAt: Date,
+  proposedStartAt: Date,
+  now: Date = new Date(),
+): number {
+  const candidates = [proposedStartAt.getTime()];
+  if (startAt.getTime() > now.getTime()) {
+    candidates.push(startAt.getTime());
+  }
+  return Math.min(...candidates) - PROPOSAL_RESPONSE_LEAD_MS;
+}
+
+/**
+ * If the patient has not answered by the proposal deadline, drop the proposal: back to
+ * `Upcoming` at the original time, release the reserved slot, notify both parties.
+ */
+export async function expireStalePendingProposals(now: Date = new Date()): Promise<number> {
+  const db = getDb();
+  const pendingRows = await db
+    .select({
+      id: appointments.id,
+      doctorId: appointments.doctorId,
+      patientId: appointments.patientId,
+      startAt: appointments.startAt,
+      proposedStartAt: appointments.proposedStartAt,
+    })
+    .from(appointments)
+    .where(eq(appointments.status, "Reschedule Pending"));
+
+  const due = pendingRows.filter((row) => {
+    if (!row.proposedStartAt) return false;
+    return proposalExpiryDeadlineMs(row.startAt, row.proposedStartAt, now) <= now.getTime();
+  });
+
+  let expired = 0;
+  for (const row of due) {
+    const updated = await db
+      .update(appointments)
+      .set({ status: "Upcoming", proposedStartAt: null })
+      .where(and(eq(appointments.id, row.id), eq(appointments.status, "Reschedule Pending")))
+      .returning({ id: appointments.id });
+
+    if (updated.length === 0) continue;
+    expired += 1;
+
+    const patientName = await loadPatientDisplayName(row.patientId);
+    const doctorName = await loadDoctorDisplayName(row.doctorId);
+    const payload = {
+      appointmentId: row.id,
+      startAt: row.startAt.toISOString(),
+      patientName,
+      doctorName,
+    };
+    await createNotification({
+      userId: row.patientId,
+      type: "proposal_expired",
+      payload,
+    });
+    await createNotification({
+      userId: row.doctorId,
+      type: "proposal_expired",
+      payload,
+    });
+  }
+
+  return expired;
+}
+
+/** Run proposal expiry then auto-complete (order matters for reverted Upcoming). */
+export async function runAppointmentMaintenance(now: Date = new Date()): Promise<void> {
+  await expireStalePendingProposals(now);
+  await autoCompleteDueAppointments(now);
 }

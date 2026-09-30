@@ -1,12 +1,10 @@
-export type DoctorDayTab = 'visits' | 'pending' | 'free' | 'cancellations';
+export type DoctorDayTab = 'visits' | 'past' | 'free' | 'cancellations';
 
 export type DoctorVisitStatus =
   | 'upcoming'
-  | 'reschedule_pending'
   | 'completed'
   | 'cancelled'
-  | 'rescheduled'
-  | 'reserved';
+  | 'rescheduled';
 
 export type VisitFormat = 'offline' | 'online';
 
@@ -21,8 +19,6 @@ export interface DoctorDayVisit {
   format: VisitFormat;
   reason?: string;
   cancelledBy?: CancelledBy;
-  pendingNote?: string;
-  proposedTime?: string;
   phone?: string;
   email?: string;
 }
@@ -34,20 +30,12 @@ export interface FreeWindowSlot {
   slotsCount: number;
 }
 
-export interface PendingPatientRow {
-  id: string;
-  patientName: string;
-  fromTime: string;
-  toTime: string;
-}
-
 export interface WeekDaySummary {
   ymd: string;
   weekdayShort: string;
   dayNumber: number;
   visits: number;
   free: number;
-  pending: number;
   cancelled: number;
   isToday: boolean;
   isSelected: boolean;

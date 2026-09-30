@@ -12,9 +12,9 @@ import { toast } from 'sonner';
 
 import type { DoctorSearchCard, SearchSort } from '@/api/doctors';
 import { useDeleteFavourite, usePostFavourite } from '@/api/patients';
+import { DoctorPhoto } from '@/components/DoctorPhoto/DoctorPhoto';
 import { StateMascot } from '@/components/StateMascot/StateMascot';
 import {
-  Avatar,
   BookButton,
   CardActions,
   CardIdentity,
@@ -61,7 +61,6 @@ import {
 } from '@/modules/search/styles';
 import { AppRole } from '@/types/role';
 import { AppRoute, doctorProfilePath } from '@/utils/routeUtils/routes';
-import { resolveMediaUrl } from '@/utils/mediaUrl';
 
 const LIKA_EMPTY = '/brand/lika-poses/lika4.png';
 const LIKA_ERROR = '/brand/lika-poses/lika5.png';
@@ -149,7 +148,12 @@ export const DoctorCard = ({
       }}
     >
       <CardTop>
-        <Avatar src={resolveMediaUrl(doctor.photoUrl) ?? undefined} alt="" />
+        <DoctorPhoto
+          photoUrl={doctor.photoUrl}
+          firstName={doctor.firstName}
+          lastName={doctor.lastName}
+          size="md"
+        />
         <CardIdentity>
           <NameRow>
             <DoctorName>
@@ -157,6 +161,7 @@ export const DoctorCard = ({
             </DoctorName>
             <HeartButton
               type="button"
+              $active={doctor.isFavourite && !isGuest}
               aria-label={doctor.isFavourite ? t('card.unfavorite') : t('card.favorite')}
               onClick={(event) => {
                 event.stopPropagation();
@@ -210,7 +215,7 @@ export const DoctorCard = ({
       </MetaBlock>
 
       <PriceRow>
-        <Price>{displayPrice} ₴</Price>
+        <Price $promo={doctor.promoPrice !== null}>{displayPrice} ₴</Price>
         {doctor.promoPrice !== null ? (
           <>
             <StruckPrice>{doctor.basePrice} ₴</StruckPrice>

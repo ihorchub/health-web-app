@@ -88,7 +88,7 @@ export const DialogTitle = styled('h2')(({ theme }) => ({
   color: theme.palette.text.primary,
 }));
 
-export const IconRoundButton = styled('button')(({ theme }) => ({
+export const IconRoundButton = styled('button')<{ $active?: boolean }>(({ theme, $active }) => ({
   display: 'inline-flex',
   alignItems: 'center',
   justifyContent: 'center',
@@ -99,7 +99,7 @@ export const IconRoundButton = styled('button')(({ theme }) => ({
   border: `1px solid ${theme.palette.divider}`,
   borderRadius: 999,
   backgroundColor: theme.palette.background.paper,
-  color: theme.palette.text.secondary,
+  color: $active ? theme.palette.primary.main : theme.palette.text.secondary,
   cursor: 'pointer',
 
   '&:hover': {
@@ -273,12 +273,12 @@ export const PriceRow = styled('div')(({ theme }) => ({
   gap: theme.spacing(1.25),
 }));
 
-export const Price = styled('div')(({ theme }) => ({
+export const Price = styled('div')<{ $promo?: boolean }>(({ theme, $promo }) => ({
   fontFamily: theme.typography.fontFamily,
   fontSize: 22,
   lineHeight: '30px',
   fontWeight: 700,
-  color: theme.palette.brand.main,
+  color: $promo ? theme.palette.promo : theme.palette.text.primary,
 }));
 
 export const StruckPrice = styled('div')(({ theme }) => ({

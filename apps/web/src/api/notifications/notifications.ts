@@ -10,7 +10,8 @@ export type ApiNotificationType =
   | 'appointment_cancelled'
   | 'appointment_rescheduled'
   | 'reschedule_proposed'
-  | 'proposal_accepted';
+  | 'proposal_accepted'
+  | 'proposal_expired';
 
 export interface ApiNotificationItem {
   id: string;

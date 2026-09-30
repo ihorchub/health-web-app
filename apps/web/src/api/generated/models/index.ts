@@ -38,6 +38,7 @@ export * from './getDoctorMeDashboard200PendingPatientsItemStatus';
 export * from './getDoctorMeDashboard200VisitsItem';
 export * from './getDoctorMeDashboard200VisitsItemFormat';
 export * from './getDoctorMeDashboard200VisitsItemStatus';
+export * from './getDoctorMeDashboard200WeekStripItem';
 export * from './getDoctorMeDashboardParams';
 export * from './getDoctorMeProfile200';
 export * from './getDoctorMeProfile200EducationItem';

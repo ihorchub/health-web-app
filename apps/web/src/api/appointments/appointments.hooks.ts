@@ -5,7 +5,6 @@ import {
   postBookAppointment,
   postCancelAppointment,
   postCompleteAppointment,
-  postProposeAppointment,
   postRescheduleAppointment,
 } from '@/api/appointments/appointments';
 import type {
@@ -15,10 +14,6 @@ import type {
   RescheduleAppointmentBody,
   RescheduleAppointmentResponse,
 } from '@/api/appointments/types';
-import type {
-  ProposeAppointmentBody,
-  ProposeAppointmentResponse,
-} from '@/api/doctors/dashboard.types';
 import { doctorsQueryKeys } from '@/api/doctors/doctors.hooks';
 import { patientsQueryKeys } from '@/api/patients/patients.hooks';
 
@@ -80,23 +75,6 @@ export const usePostCancelAppointment = () => {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['doctors', 'me', 'dashboard'] });
       void queryClient.invalidateQueries({ queryKey: patientsQueryKeys.cabinet() });
-      void queryClient.invalidateQueries({ queryKey: ['notifications'] });
-    },
-  });
-};
-
-/** POST /api/v1/appointments/:id/propose */
-export const usePostProposeAppointment = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation<
-    ProposeAppointmentResponse,
-    Error,
-    { id: string; body: ProposeAppointmentBody }
-  >({
-    mutationFn: ({ id, body }) => postProposeAppointment(id, body),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['doctors', 'me', 'dashboard'] });
       void queryClient.invalidateQueries({ queryKey: ['notifications'] });
     },
   });

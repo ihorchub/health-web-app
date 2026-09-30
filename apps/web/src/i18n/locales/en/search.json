@@ -78,6 +78,7 @@
     "tomorrow": "Tomorrow",
     "thisWeek": "This week",
     "rating": "Doctor rating",
+    "ratingAndUp": "{{value}}+ & up",
     "price": "Visit price",
     "priceFrom": "from {{value}} UAH",
     "priceTo": "to {{value}} UAH+",

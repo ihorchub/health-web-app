@@ -15,6 +15,8 @@ export type GetPatientCabinet200PastItem = {
   doctorId: string;
   doctorFirstName: string;
   doctorLastName: string;
+  /** @nullable */
+  doctorPhotoUrl: string | null;
   specialty: string;
   clinicName: string;
   cityName: string;

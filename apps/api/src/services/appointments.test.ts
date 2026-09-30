@@ -13,12 +13,14 @@ import {
   bookAppointment,
   cancelAppointment,
   doctorPropose,
+  expireStalePendingProposals,
   getAppointmentById,
   getPendingDecision,
   markCompleted,
   patientAcceptProposal,
   patientReschedule,
 } from "./appointments.js";
+import { listUnread } from "./notifications.js";
 
 // Fixed "now": Monday 10 Aug 2026, 08:00 Kyiv. All test slots are chosen relative to this.
 const NOW = zonedTimeToUtc(2026, 8, 10, 8, 0, 0);
@@ -344,5 +346,114 @@ describe("doctorPropose and patientAcceptProposal", () => {
         now: NOW,
       }),
     ).rejects.toMatchObject({ code: "APPOINTMENT_FORBIDDEN" });
+  });
+});
+
+describe("expireStalePendingProposals", () => {
+  const createdUserIds: string[] = [];
+  afterEach(async () => {
+    await cleanupTestData(createdUserIds.splice(0));
+  });
+
+  it("reverts pending to Upcoming 20 minutes before the earlier slot and notifies both", async () => {
+    const { doctorId, patientId } = await setupDoctorAndPatient();
+    createdUserIds.push(doctorId, patientId);
+    const booked = await bookAppointment({
+      doctorId,
+      patientId,
+      startAt: FREE_SLOT,
+      format: "offline",
+      now: NOW,
+    });
+
+    await doctorPropose({
+      appointmentId: booked.id,
+      doctorId,
+      proposedStartAt: OTHER_FREE_SLOT,
+      now: NOW,
+    });
+
+    // Earlier slot is original FREE_SLOT 10:00 → deadline 09:40.
+    const nearDeadline = zonedTimeToUtc(2026, 8, 11, 9, 41, 0);
+    expect(await expireStalePendingProposals(nearDeadline)).toBe(1);
+
+    const restored = await getAppointmentById(booked.id);
+    expect(restored.status).toBe("Upcoming");
+    expect(restored.proposedStartAt).toBeNull();
+
+    const patientInbox = await listUnread(patientId);
+    const doctorInbox = await listUnread(doctorId);
+    expect(patientInbox.items.some((n) => n.type === "proposal_expired")).toBe(true);
+    expect(doctorInbox.items.some((n) => n.type === "proposal_expired")).toBe(true);
+  });
+
+  it("does not expire when more than 20 minutes remain before the earlier slot", async () => {
+    const { doctorId, patientId } = await setupDoctorAndPatient();
+    createdUserIds.push(doctorId, patientId);
+    const booked = await bookAppointment({
+      doctorId,
+      patientId,
+      startAt: FREE_SLOT,
+      format: "offline",
+      now: NOW,
+    });
+
+    await doctorPropose({
+      appointmentId: booked.id,
+      doctorId,
+      proposedStartAt: OTHER_FREE_SLOT,
+      now: NOW,
+    });
+
+    const stillSafe = zonedTimeToUtc(2026, 8, 11, 9, 0, 0);
+    expect(await expireStalePendingProposals(stillSafe)).toBe(0);
+    expect((await getAppointmentById(booked.id)).status).toBe("Reschedule Pending");
+  });
+
+  it("keeps a proposal when the original time already passed but the proposed slot is still ahead", async () => {
+    const { doctorId, patientId } = await setupDoctorAndPatient();
+    createdUserIds.push(doctorId, patientId);
+    const booked = await bookAppointment({
+      doctorId,
+      patientId,
+      startAt: FREE_SLOT,
+      format: "offline",
+      now: NOW,
+    });
+
+    const laterSlot = zonedTimeToUtc(2026, 8, 11, 14, 0, 0);
+    await doctorPropose({
+      appointmentId: booked.id,
+      doctorId,
+      proposedStartAt: laterSlot,
+      now: NOW,
+    });
+
+    // Original 10:00 already passed; proposed 14:00 → deadline 13:40. Still pending at 12:00.
+    const afterOriginal = zonedTimeToUtc(2026, 8, 11, 12, 0, 0);
+    expect(await expireStalePendingProposals(afterOriginal)).toBe(0);
+    expect((await getAppointmentById(booked.id)).status).toBe("Reschedule Pending");
+  });
+
+  it("rejects propose when the patient would have no time left to answer", async () => {
+    const { doctorId, patientId } = await setupDoctorAndPatient();
+    createdUserIds.push(doctorId, patientId);
+    const booked = await bookAppointment({
+      doctorId,
+      patientId,
+      startAt: FREE_SLOT,
+      format: "offline",
+      now: NOW,
+    });
+
+    const soonSlot = zonedTimeToUtc(2026, 8, 11, 10, 10, 0);
+    await expect(
+      doctorPropose({
+        appointmentId: booked.id,
+        doctorId,
+        proposedStartAt: soonSlot,
+        now: zonedTimeToUtc(2026, 8, 11, 10, 0, 0),
+      }),
+    ).rejects.toMatchObject({ code: "AUTH_VALIDATION_FAILED" });
   });
 });

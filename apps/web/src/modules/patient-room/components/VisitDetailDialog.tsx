@@ -1,12 +1,12 @@
 import { IconX } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
 
+import { DoctorPhoto } from '@/components/DoctorPhoto/DoctorPhoto';
 import {
   DangerOutlineButton,
   OutlineButton,
   StatusPill,
   VisitDetailActions,
-  VisitDetailAvatar,
   VisitDetailBody,
   VisitDetailClose,
   VisitDetailDialogRoot,
@@ -117,7 +117,12 @@ export const VisitDetailDialog = ({
 
       <VisitDetailBody>
         <VisitDetailMeta>
-          <VisitDetailAvatar alt="" />
+          <DoctorPhoto
+            photoUrl={appointment.doctorPhotoUrl}
+            firstName={appointment.doctorFirstName}
+            lastName={appointment.doctorLastName}
+            size="md"
+          />
           <VisitDetailMetaCopy>
             <VisitDetailSpecialty>{specialty}</VisitDetailSpecialty>
             <span>

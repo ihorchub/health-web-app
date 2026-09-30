@@ -78,6 +78,7 @@
     "tomorrow": "Завтра",
     "thisWeek": "Цього тижня",
     "rating": "Рейтинг лікаря",
+    "ratingAndUp": "{{value}}+ і вище",
     "price": "Ціна прийому",
     "priceFrom": "від {{value}} грн",
     "priceTo": "до {{value}} грн+",

@@ -1,6 +1,6 @@
 # Frontend specification
 
-**Status:** Aligned with product-spec (31 Aug 2026); implementation stack locked 14 Sep 2026  
+**Status:** Aligned with product-spec (updated — doctor propose / `Reschedule Pending` / SCR-12 / FLO-03 out of MVP); implementation stack locked 14 Sep 2026  
 **Source of truth:** [product-spec.md](./product-spec.md) (IA overlay folded)  
 **IA / chrome:** [ia-chrome-decision.md](./ia-chrome-decision.md) — dialogue record; product-spec wins after fold.  
 **Pair file:** [backend-spec.md](./backend-spec.md) — **Contract** blocks must match.  
@@ -35,7 +35,7 @@ How to fill: one `SCR-*` at a time. Use skill `write-layer-spec`.
 | SCR-04 calendar refresh | React Query refetch **30s** while wizard open + on focus; invalidate after book |
 | API errors | Map `error.code` to i18n strings |
 
-Layout/chrome **Open** items (exact notification dropdown, SCR-12 panel vs page) are design polish — do not block API integration.
+Layout/chrome **Open** items (exact notification dropdown) are design polish — do not block API integration. SCR-12 / FLO-03 are **Out of MVP**.
 
 ---
 
@@ -326,9 +326,9 @@ None.
 
 ### Contract
 
-- In: `doctorId`, `date` (optional — default today or first bookable day); optional `appointmentId` when rescheduling
-- Out: slots for selected day (`startAt`, `status`: free | taken | reserved | past | day_off); `visitDurationMinutes`; supported `formats[]`; `zoneAStart`, `zoneAEnd` for calendar disable logic
-- Errors: `DOCTOR_NOT_FOUND`, `CALENDAR_FAILED`
+- In: `doctorId`, `date` (optional — default today or first bookable day); optional `appointmentId` when rescheduling (FLO-02)
+- Out: slots for selected day (`startAt`, `status`: free | taken | past | day_off); `visitDurationMinutes`; supported `formats[]`; `zoneAStart`, `zoneAEnd` for calendar disable logic
+- Errors: `DOCTOR_NOT_FOUND`, `CALENDAR_FAILED`, `APPOINTMENT_FORBIDDEN`
 - Auth: patient (logged in to book; guest may preview only if product allows — **booking requires login**)
 
 ### Layout / regions
@@ -345,11 +345,12 @@ None.
 
 | State | Meaning | Clickable? |
 |---|---|---|
-| Free | Inside working hours, correct duration, not lunch/day off, not taken/reserved, not in the past, inside Zone A (R-03) | Yes → SCR-05 |
-| Taken | Held by an Upcoming appointment or original time of Reschedule Pending (R-02, R-03) | No |
-| Reserved | Proposed time of a Reschedule Pending (R-02, R-03) | No |
+| Free | Inside working hours, correct duration, not lunch/day off, not taken, not in the past, inside Zone A (R-03) | Yes → SCR-05 |
+| Taken | Held by an `Upcoming` appointment (R-02, R-03) | No |
 
-- **Full day** — all slots taken/reserved: explicit "full" message.
+There is no reserved/proposed slot status in MVP (doctor proposal out).
+
+- **Full day** — all slots taken: explicit "full" message.
 - **Day off** — doctor is not working: explicit message.
 - **No free times** — explicit empty state, not a broken grid.
 - **Past times today** — not offered.
@@ -365,17 +366,16 @@ None.
 
 ### Behaviour
 
-- Slots are derived from working hours minus duration, lunch, vacation, taken, reserved (R-03, R-05, R-08).
+- Slots are derived from working hours minus duration, lunch, vacation, taken (R-03, R-05, R-08).
 - One doctor, one timeline. Format does not create extra slots or a second calendar (R-03, R-04).
 - Clicking a free slot → wizard step 3 (**SCR-05**), carrying doctor + start time.
-- Clicking a taken/reserved slot does nothing.
+- Clicking a taken slot does nothing.
 - Calendar must **auto-refresh** so other patients see taken slots disappear (R-03). **React Query** refetch interval **30s** while wizard step 2 is open + refetch on focus (`tech-stack.md`).
 
 ### Entry context
 
 - **New booking (FLO-01):** from SCR-03 profile. Patient picks any free slot.
-- **Reschedule (FLO-02):** from SCR-06. Same doctor, pick a new free slot.
-- **Reschedule from pending (SCR-12):** same doctor, pick a new slot.
+- **Reschedule (FLO-02):** from SCR-06. Same doctor, pick a new free slot. Move is only available when ≥ 1 hour remains before the current visit start (R-07).
 
 ### Client-side checks
 
@@ -392,11 +392,11 @@ None — slot availability is determined by the server. The UI disables non-free
 - Booking outside rolling bookable window (Zone A)
 - Parallel online/offline calendars (one timeline in MVP)
 - Video consultation
+- Reserved / proposed slots; doctor proposal picker
 
 ### Open questions
 
-- Visual distinction between taken and reserved slots — not defined in product spec.
-- Auto-refresh mechanism (polling, WebSocket, etc.) — postponed to architecture (R-03).
+None that block this section. Auto-refresh interval is implementation (`tech-stack.md`).
 
 ---
 
@@ -406,9 +406,9 @@ None — slot availability is determined by the server. The UI disables non-free
 
 ### Contract
 
-- In: `doctorId`, `startAt`, `format` (offline | online), `reason` (optional); or `appointmentId` + new `startAt` for reschedule
-- Out: on success — `appointment` as `Upcoming`; UI shows **success toast/alert** then navigates to **SCR-06**
-- Errors: `SLOT_TAKEN` (concurrent refusal), `SLOT_OUTSIDE_WINDOW`, `SLOT_NOT_FREE`, `APPOINTMENT_INVALID_TRANSITION`, validation errors
+- In: `doctorId`, `startAt`, `format` (offline | online), `reason` (optional); or `appointmentId` + new `startAt` / `format` / optional `reason` for patient reschedule (FLO-02)
+- Out: on success — `appointment` as `Upcoming` (new book) or `{ oldAppointment: Rescheduled, newAppointment: Upcoming }` (reschedule); UI shows **success toast/alert** then navigates to **SCR-06**
+- Errors: `SLOT_TAKEN` (concurrent refusal), `SLOT_OUTSIDE_WINDOW`, `SLOT_NOT_FREE`, `APPOINTMENT_INVALID_TRANSITION`, `APPOINTMENT_TOO_LATE_TO_RESCHEDULE` (< 1 hour before current start), validation errors
 - Auth: patient
 
 ### Layout / regions
@@ -433,6 +433,7 @@ None — slot availability is determined by the server. The UI disables non-free
 | Default | Summary + (optional) reason + Confirm enabled |
 | Loading | Confirm disabled / loading indicator while request is in progress |
 | Refused (concurrent / already taken) | Plain-language refusal (`SLOT_TAKEN`); stay in wizard; return to step 2 to pick another time |
+| Refused (too late to reschedule) | Plain-language refusal (`APPOINTMENT_TOO_LATE_TO_RESCHEDULE`); cancel may still be available on SCR-06 |
 | Success | **Toast/alert** (R-16); then navigate to **SCR-06** cabinet |
 | Error (non-concurrent) | Themed error state; user can go back to SCR-04 |
 
@@ -453,7 +454,7 @@ None — slot availability is determined by the server. The UI disables non-free
 
 **Actions**
 
-- **Confirm**: submits `doctor`, `start time`, `format`, `reason` (may be empty).
+- **Confirm**: submits `doctor`, `start time`, `format`, `reason` (may be empty). For reschedule: same fields plus existing `appointmentId`.
 - **Back**: returns to **SCR-04 Calendar**. The slot is not held while this screen is open; it stays free until confirm succeeds.
 
 ### Client-side checks (UX only)
@@ -462,11 +463,20 @@ None — slot availability is determined by the server. The UI disables non-free
 - Format must match what the doctor supports:
   - if both supported → ensure a format is selected (default Offline)
   - if only one supported → no selection required (read-only label)
+- Reschedule: UI may hide/disable Move earlier on SCR-06 when < 1 hour remains; server still enforces the deadline on confirm.
 
 ### Theme / bell notes
 
 - Bell exists in the header on this screen (R-10). The exact wording of the doctor’s bell message is determined by the triggering action (book / reschedule).
 - After a successful patient booking/reschedule on SCR-05, the patient is **not** notified; the doctor receives the notification.
+
+### Behaviour / rules (reschedule)
+
+- Same doctor only. New time must be free and inside Zone A.
+- Patient **may** change Offline ↔ Online here if the doctor supports the new format.
+- On success: old appointment → `Rescheduled`; **new** appointment → `Upcoming` **in one atomic action**. Old slot free; new slot taken. History/link kept (**R-07**).
+- Reschedule allowed only if **≥ 1 hour** remains before the current visit start (**R-07**).
+- This screen is only for new book or patient own-reschedule (**FLO-02**). Doctor proposal / pending decision is **Out of MVP**.
 
 ### Out of scope
 
@@ -478,11 +488,13 @@ None — slot availability is determined by the server. The UI disables non-free
 - Picking duration (duration is read-only from SCR-04 / R-05)
 - outside the rolling bookable window
 - Parallel Online/Offline calendars
+- Doctor proposal / `Reschedule Pending` / SCR-12
 
 ### Open questions
 
 - Exact EN/UK sentences for:
   - the concurrent refusal / already-taken message on SCR-05
+  - the too-late-to-reschedule message
   - the doctor’s bell message after a successful patient confirm
 
 ## SCR-06 My appointments (patient cabinet)
@@ -491,9 +503,9 @@ None — slot availability is determined by the server. The UI disables non-free
 
 ### Contract
 
-- In: patient session; actions: `cancel`, `start_move`, `start_pending_decision`, `submit_review` (from Past row), `list_favourites`, `list_recently_viewed`
-- Out: cabinet widgets + appointments grouped **Upcoming** / **Past**; favourite doctors carousel; last 10 recently viewed doctors; review eligibility per Past row
-- Errors: `APPOINTMENT_FORBIDDEN`, `APPOINTMENT_INVALID_TRANSITION`, `REVIEW_ALREADY_EXISTS`, validation errors
+- In: patient session; actions: `cancel`, `start_move`, `submit_review` (from Past row), `list_favourites`, `list_recently_viewed`
+- Out: cabinet widgets + appointments grouped **Upcoming** / **Past**; favourite doctors carousel; last 10 recently viewed doctors; review eligibility per Past row; per-row `canMove` / `canCancel`
+- Errors: `APPOINTMENT_FORBIDDEN`, `APPOINTMENT_INVALID_TRANSITION`, `APPOINTMENT_TOO_LATE_TO_RESCHEDULE`, `REVIEW_ALREADY_EXISTS`, `REVIEW_FORBIDDEN`, validation errors
 - Auth: patient, self only
 
 ### Layout / regions
@@ -505,14 +517,15 @@ None — slot availability is determined by the server. The UI disables non-free
 **Left main:**
 
 1. Greeting + primary CTA → SCR-02  
-2. Pending banner if any `Reschedule Pending` → SCR-12  
-3. Next appointment (actions by status)  
-4. Mini-calendar for **rolling bookable window** (dots = patient’s visits)  
-5. Upcoming list  
-6. **Favourites** carousel (R-15)  
-7. **Recently viewed** — last 10 unique doctor opens (hide if empty)  
-8. Specialty cards → SCR-02  
-9. **Past** rows — CTA **Залишити відгук** if no review yet → modal (★ + optional text); after submit show **Ваш відгук** on row
+2. Next appointment (actions by status)  
+3. Mini-calendar for **rolling bookable window** (dots = patient’s visits)  
+4. Upcoming list  
+5. **Favourites** carousel (R-15)  
+6. **Recently viewed** — last 10 unique doctor opens (hide if empty)  
+7. Specialty cards → SCR-02  
+8. **Past** rows — CTA **Залишити відгук** if no review yet → modal (★ + optional text); after submit show **Ваш відгук** on row
+
+No pending-proposal banner. Doctor proposal / SCR-12 is **Out of MVP**.
 
 **Right column:**
 
@@ -524,7 +537,7 @@ None — slot availability is determined by the server. The UI disables non-free
 
 **Appointment groups:**
 
-- **Upcoming** = `Upcoming` + `Reschedule Pending`  
+- **Upcoming** = `Upcoming` only  
 - **Past** = `Completed` + `Cancelled` + `Rescheduled`
 
 ### Fields shown
@@ -540,23 +553,12 @@ Each appointment row shows:
 - Reason, if the patient entered one
 - If `Cancelled`: who cancelled (`patient` or `doctor`)
 
-### `Reschedule Pending` on this screen
-
-- Lives in the **Upcoming** group.
-- Marked `Reschedule Pending`.
-- Shows the **original** time (still taken).
-- Must **not** be treated as a normal `Upcoming` appointment that can be moved independently.
-- Actions on that row go to **SCR-12** (accept / pick another / cancel), not FLO-02 move.
-
-**Open:** whether the proposed time is also shown on the row, or only on **SCR-12**.
-
 ### Actions by status
 
 | Status | Move | Cancel | Other |
 |---|---|---|---|
-| `Upcoming` | Yes — same doctor only | Yes | — |
-| `Reschedule Pending` | No | Yes (via pending decision) | `SCR-12` decision flow |
-| `Completed` / `Cancelled` / `Rescheduled` | No | No | — |
+| `Upcoming` | Yes — same doctor only, and only if ≥ 1 hour before `startAt` (R-07) | Yes — no time limit (R-06) | — |
+| `Completed` / `Cancelled` / `Rescheduled` | No | No | Past row may offer write review (R-14) |
 
 ### States
 
@@ -572,15 +574,14 @@ Each appointment row shows:
 
 - This screen shows **only this patient’s** appointments.
 - After a successful confirm on **SCR-05**, the new `Upcoming` appointment appears in the **Upcoming** group.
-- Cancelling from here changes the appointment to `Cancelled`, moves it to **Past**, keeps the row visible, and shows who cancelled.
-- Move is available only for `Upcoming`, uses the **same doctor** only, and continues through **SCR-04** → **SCR-05**.
-- While `Reschedule Pending`, the patient cannot start a separate own-reschedule from this list.
+- Cancelling from here changes the appointment to `Cancelled`, moves it to **Past**, keeps the row visible, and shows who cancelled. No time-limit window on cancel.
+- Move is available only for `Upcoming` when ≥ 1 hour remains before start, uses the **same doctor** only, and continues through **SCR-04** → **SCR-05** as one atomic action (old → `Rescheduled`, new → `Upcoming`).
 - `Completed` appears here when the doctor marks it or after slot end; this screen does not mark completed.
 
 ### Data shown / submitted
 
 - **Shown:** this patient’s appointments, grouped into **Upcoming** and **Past**
-- **Submitted:** cancel; start move (wizard); start pending decision; **submit review** (`appointmentId`, `rating`, optional `text`); favourite toggles elsewhere on SCR-02/03 too
+- **Submitted:** cancel; start move (wizard); **submit review** (`appointmentId`, `rating`, optional `text`); favourite toggles elsewhere on SCR-02/03 too
 
 ### Notifications triggered
 
@@ -599,8 +600,8 @@ Doctor-initiated cancel:
 
 None beyond action availability by status:
 
-- `Move` only for `Upcoming`
-- `Reschedule Pending` routes to `SCR-12`, not independent move
+- `Move` only for `Upcoming` when ≥ 1 hour before start (`canMove`)
+- `Cancel` for `Upcoming` (`canCancel`)
 - Final statuses (`Completed`, `Cancelled`, `Rescheduled`) have no actions
 
 ### Theme / bell notes
@@ -617,11 +618,11 @@ None beyond action availability by status:
 - Separate confirmation page after booking
 - Inventing a separate appointment detail screen beyond this list
 - Changing doctor during move
+- Doctor-proposal pending banner / SCR-12 / `Reschedule Pending`
 
 ### Open questions
 
 - Exact list layout (tabs vs stacked sections) — product spec leaves this to frontend later.
-- Whether the proposed time is also shown on the `Reschedule Pending` row, or only on `SCR-12`.
 
 ---
 
@@ -775,20 +776,20 @@ DOB: must be in the past. Doctor photo: jpeg/png/webp, max 10 MB (`tech-stack.md
 
 ### Contract
 
-- In: doctor session; `date`; actions: `mark_completed`, `cancel_visit`, `propose_new_time`
-- Out: dashboard widgets + visits for selected day inside **Zone A**; metrics (visits today, pending, free slots today, cancellations last 7 days)
-- Errors: `APPOINTMENT_FORBIDDEN`, `APPOINTMENT_INVALID_TRANSITION`, `SLOT_NOT_FREE`, `SLOT_OUTSIDE_WINDOW`
+- In: doctor session; `date`; actions: `mark_completed`, `cancel_visit`
+- Out: dashboard widgets + visits for selected day inside **Zone A**; metrics (visits today, free slots today, cancellations last 7 days)
+- Errors: `APPOINTMENT_FORBIDDEN`, `APPOINTMENT_INVALID_TRANSITION`
 - Auth: doctor, self only
 
 ### Layout / regions
 
 **Doctor home after login (R-16).** Avatar «Мій кабінет».
 
-**Top:** greeting + date · **four metrics** (full width).
+**Top:** greeting + date · **three metrics** (full width): visits today · free slots today · cancellations last 7 days. No “pending proposal” metric.
 
-**Desktop:** left main + right widgets (reminder, free windows today + SCR-09 link, pending patients 1–3 rows, quick links).
+**Desktop:** left main + right widgets (reminder, free windows today + SCR-09 link, quick links). No pending-patients widget.
 
-**Left main:** day navigation (week strip or mini-calendar — **Open**) · next visit hero · time-ordered list · actions · overflow.
+**Left main:** day navigation (week strip or mini-calendar — **Open**) · next visit hero · time-ordered list · actions (complete / cancel) · overflow.
 
 Visits only inside **Zone A**; after Zone A → plan on SCR-09.
 
@@ -802,29 +803,19 @@ Each visit shows:
 - Patient name
 - Format (Offline / Online)
 - Reason, if the patient entered one
-- Status (`Upcoming`, `Reschedule Pending`, `Completed`, `Cancelled`, `Rescheduled`)
+- Status (`Upcoming`, `Completed`, `Cancelled`, `Rescheduled`)
 - If `Cancelled`: who cancelled
-
-### `Reschedule Pending` on this screen
-
-- The original appointment time appears on this list.
-- The proposed time is also occupied/reserved.
-- Both times must **not** look free.
-- This row must not behave like a normal `Upcoming` visit.
-
-**Open:** exact visual treatment for showing that the proposed time is also occupied.
 
 ### Actions by status
 
-| Status | Mark completed | Cancel this visit | Propose a new time |
-|---|---|---|---|
-| `Upcoming` | Yes | Yes | Yes |
-| `Reschedule Pending` | No | No as a single action here | No second proposal |
-| `Completed` / `Cancelled` / `Rescheduled` | No | No | No |
+| Status | Mark completed | Cancel this visit |
+|---|---|---|
+| `Upcoming` | Yes | Yes |
+| `Completed` / `Cancelled` / `Rescheduled` | No | No |
 
 Notes:
 
-- `Reschedule Pending` cannot be cancelled as a single action from this screen; bulk/range cancel belongs to `SCR-09`.
+- **Propose a new time / book patient: Out.** Do not show those actions.
 - No-show is out of MVP and must not appear as an action.
 
 ### States
@@ -842,23 +833,14 @@ Notes:
 - It lands on **today**.
 - The doctor can open other days inside the rolling bookable window (Zone A); days after that belong to `SCR-09`, not this list.
 - Mark completed changes `Upcoming` to `Completed`; this screen is the manual path.
-- Cancel one visit changes `Upcoming` to `Cancelled`, keeps it visible, frees the slot, and records `who cancelled = doctor`.
-- Propose new time never silently moves the appointment; patient must later accept, pick another slot, or cancel on `SCR-12`.
+- Cancel one visit changes `Upcoming` to `Cancelled`, keeps it visible, frees the slot, records `who cancelled = doctor`, and notifies the patient.
 - One timeline: Offline and Online visits share the same day list.
-
-### Propose new time
-
-- Same doctor only; patient does not change.
-- New time must be a real free slot inside the patient’s rolling bookable window (Zone A).
-- Doctor cannot propose after Zone A ends.
-- On send: original becomes `Reschedule Pending`; proposed slot becomes reserved; patient is notified.
-
-**Open:** exact proposal slot-picker UI. It is not `SCR-04` and not a new screen ID.
+- Doctor cannot move, propose, or book a patient.
 
 ### Data shown / submitted
 
 - **Shown:** this doctor’s visits for the selected day, inside the rolling bookable window (Zone A)
-- **Submitted:** mark completed; cancel one upcoming visit; propose a new start time
+- **Submitted:** mark completed; cancel one upcoming visit
 
 Format stays the booked format. Doctor does not change format on an existing booked visit in MVP.
 
@@ -868,16 +850,14 @@ Format stays the booked format. Doctor does not change format on an existing boo
 |---|---|---|
 | Mark completed | — | — |
 | Cancel this visit | Yes | — (they did it) |
-| Propose a new time | Yes | — (they did it) |
 
-Patient book/cancel/reschedule/accept notifications may still appear in the bell on this screen, but they do not originate here.
+Patient book/cancel/reschedule notifications may still appear in the bell on this screen, but they do not originate here.
 
 ### Client-side checks
 
 None beyond action availability by status:
 
-- `Mark completed`, `Cancel this visit`, and `Propose a new time` are available only for `Upcoming`
-- `Reschedule Pending` has no second proposal and no single-visit cancel action here
+- `Mark completed` and `Cancel this visit` are available only for `Upcoming`
 - Final statuses have no actions
 
 ### Theme / bell notes
@@ -889,6 +869,7 @@ None beyond action availability by status:
 
 - Other doctors’ calendars
 - No-show
+- Propose new time / book patient
 - Bulk cancel / vacation / hours / duration / price (`SCR-09`)
 - Video
 - Changing format of a booked visit
@@ -898,8 +879,6 @@ None beyond action availability by status:
 ### Open questions
 
 - Exact day-picker/day-navigation UI
-- Exact proposal slot-picker UI
-- Exact visual treatment for showing the proposed reserved time during `Reschedule Pending`
 
 ---
 
@@ -986,7 +965,7 @@ Seed doctors may differ for demo data.
   - rest of day
   - rest of week
   - custom date range inside the rolling bookable window (Zone A)
-- `Reschedule Pending` visits inside that period are cancelled too, and the reserved proposed slot is released
+- Each affected `Upcoming` visit is cancelled
 - Each affected patient gets an in-app notification
 - After a day has no bookings left, the doctor may mark that day as vacation
 
@@ -1005,7 +984,7 @@ One-visit cancel stays on `SCR-08`.
 ### Behaviour
 
 - This screen shows only this doctor’s schedule.
-- Slots patients see are derived from working hours minus duration, lunch/breaks, vacation/day off, taken, and reserved times.
+- Slots patients see are derived from working hours minus duration, lunch/breaks, vacation/day off, and taken times.
 - Duration can change only in Zone B; already-booked visits keep the duration they were booked with.
 - Hours can change only in Zone B.
 - Supported format can change later, but only for times that are not booked; already-booked visits keep their format.
@@ -1102,11 +1081,8 @@ One-visit cancel stays on `SCR-08`.
 | Patient cancels | — (they did it) | Yes |
 | Doctor cancels (one, a day, a range) | Yes — each affected patient | — (they did it) |
 | Patient reschedules | — (they did it) | Yes |
-| Doctor proposes a new time | Yes | — |
-| Patient accepts the proposal | — | Yes |
-| Patient picks another slot in the proposal flow | — | Yes |
 
-`They did it` means the actor who performed the action does not get a notification for that same action.
+`They did it` means the actor who performed the action does not get a notification for that same action. Doctor propose / accept / pick-another pending events are **Out of MVP**.
 
 ### States
 
@@ -1162,137 +1138,10 @@ None beyond read actions:
 
 ## SCR-12 Reschedule pending
 
-**Product pointer:** [SCR-12](./product-spec.md#scr-12-reschedule-pending-patient-decision), [R-02](./product-spec.md#r-02-appointment-statuses), [R-03](./product-spec.md#r-03-honest-slots-and-double-booking), [R-06](./product-spec.md#r-06-cancellation), [R-07](./product-spec.md#r-07-rescheduling), [R-10](./product-spec.md#r-10-notifications), [FLO-03](./product-spec.md#flo-03-doctor-proposes-a-new-time)
+**Status:** Out of MVP.  
+**Product pointer:** [SCR-12](./product-spec.md#scr-12-reschedule-pending-patient-decision), [R-07](./product-spec.md#r-07-rescheduling)
 
-### Contract
-
-- In: current logged-in patient; one pending visit they are allowed to decide on; submitted action is `accept`, `pick another`, or `cancel`
-- Out: pending-visit decision result
-  - `accept` → new `Upcoming`, old `Rescheduled`, then return to `SCR-06`
-  - `pick another` → continue to `SCR-04` then `SCR-05` within the same proposal flow
-  - `cancel` → visit `Cancelled`, then return to `SCR-06`
-- Errors: **Open** — exact error codes not defined in product spec; expected cases: refusal if the pending visit is not theirs/gone, plain-language refusal if the proposed slot is no longer reservable at accept time
-- Auth: patient, self only
-
-### Surface
-
-- `SCR-12` is one decision surface for a pending doctor proposal.
-- It may be a full screen or a panel/modal on `SCR-06` / the bell.
-- It is not a new independent product area beyond this one screen ID.
-
-**Open:** exact chrome/layout of the decision surface.
-
-### Fields shown
-
-The surface shows enough information for the patient to decide:
-
-- Doctor
-- Place
-- Original date/time (still taken)
-- Proposed date/time (reserved)
-- Format of the visit
-
-Notes:
-
-- The doctor does not change format on an already-booked visit in MVP.
-- If the patient chooses `pick another`, they may switch Offline ↔ Online only if the doctor supports it, and that choice happens on `SCR-05` as usual.
-
-**Open:** exact arrangement of the summary fields.
-
-### Actions
-
-Exactly three actions:
-
-1. **Accept** the proposed time
-2. **Pick another** available slot with the same doctor
-3. **Cancel** the appointment
-
-Rules:
-
-- No fourth action
-- No independent own-reschedule while pending
-- No change of doctor
-
-### States
-
-| State | What the user sees |
-|---|---|
-| Default | Pending-decision surface with original/proposed summary and three actions |
-| Loading | Themed loading state |
-| Refusal — ownership/missing | If the pending visit is not theirs or is gone: refusal, not someone else’s decision |
-| Refusal — proposed slot no longer reservable | Plain-language refusal; patient can then pick another or cancel |
-
-### Behaviour
-
-- No expiry on pending in MVP.
-- While pending:
-  - original slot stays **taken**
-  - proposed slot stays **reserved**
-  - nobody else can book either
-- `Accept`:
-  - original → `Rescheduled`
-  - new appointment → `Upcoming` at the proposed time
-  - old slot becomes free
-  - new slot becomes taken
-  - doctor is notified; patient is not
-- `Pick another`:
-  - continues to `SCR-04` with the same doctor, inside Zone A
-  - final confirm happens on `SCR-05`
-  - on success, original → `Rescheduled`, new appointment → `Upcoming`
-  - old slot becomes free
-  - new slot becomes taken
-  - previous reserved proposal is released if a different time is confirmed
-  - doctor is notified on success
-- `Cancel`:
-  - original → `Cancelled`
-  - proposed slot is released
-  - old slot becomes free
-  - visit stays visible
-  - `who cancelled = patient`
-  - doctor is notified
-  - no undo
-
-### Data shown / submitted
-
-- **Shown:** original vs proposed summary above
-- **Submitted:** `accept`, `start pick another`, `cancel`
-
-### Notifications triggered
-
-| Action | Patient | Doctor |
-|---|---|---|
-| Accept | — (they did it) | Yes |
-| Pick another (on success) | — (they did it) | Yes |
-| Cancel | — (they did it) | Yes |
-
-The inbound “doctor proposed a new time” bell item is a common entry path. Opening/acting on that item marks it read per `R-10`.
-
-### Client-side checks
-
-None beyond action availability:
-
-- only the three allowed actions are available
-- `pick another` stays in the same-doctor proposal flow
-- proposed slot may still be refused at accept time if it is no longer reservable
-
-### Theme / bell notes
-
-- Language, theme, and bell are present on this surface.
-- Loading and refusal states are localized and themed.
-
-### Out of scope
-
-- Changing doctor
-- Pending expiry
-- Doctor silently moving the appointment
-- Video/link
-- Independent own-reschedule while pending
-- Payment
-
-### Open questions
-
-- Exact chrome/layout of the decision surface
-- Exact arrangement of original/proposed summary fields
+Doctor cannot propose a new time. Patient reschedule is **FLO-02** only (`SCR-06` → `SCR-04` → `SCR-05`). Do not specify or build this screen in the current delivery.
 
 ---
 
@@ -1332,7 +1181,7 @@ No extra confirmation page exists beyond `SCR-05`.
    - Patient picks a day.
    - Days outside the rolling bookable window are disabled.
    - Past times are not offered.
-   - Patient sees free / taken / reserved / day off / full / empty states.
+   - Patient sees free / taken / day off / full / empty states.
    - Format is visible here, but not chosen on the slot.
    - Patient clicks a free slot.
 
@@ -1363,7 +1212,6 @@ At confirm time, the slot is still:
 - using that doctor’s duration
 - not lunch / day off
 - not taken
-- not reserved
 - not in the past
 - inside the rolling bookable window (Zone A)
 
@@ -1382,6 +1230,7 @@ One doctor has one timeline. `Offline` and `Online` cannot double-book the same 
 - Holding the slot on the confirm screen
 - outside the rolling bookable window
 - Guest booking
+- Doctor booking patients
 
 ### Open questions
 
@@ -1395,24 +1244,23 @@ None that block this flow. Concurrent detail stays in `FLO-06`.
 
 ### Purpose
 
-A patient moves their own `Upcoming` visit to another real free time with the same doctor. The old time becomes free and the new time becomes taken.
+A patient moves their own `Upcoming` visit to another real free time with the same doctor. In **one action** the old time becomes free and the new time becomes taken.
 
 ### Who
 
-Patient only, on their own `Upcoming` appointment.
-
-This is not the doctor-proposal path. While an appointment is `Reschedule Pending`, this flow cannot be started.
+Patient only, on their own `Upcoming` appointment. Doctor cannot reschedule for them.
 
 ### Start / end
 
-- **Start:** `SCR-06` — `Move` on an `Upcoming` appointment
+- **Start:** `SCR-06` — `Move` on an `Upcoming` appointment (only if ≥ 1 hour before start)
 - **End:** `SCR-06` — new visit under `Upcoming`; old record in `Past` as `Rescheduled`
 
 ### UI walkthrough
 
 1. **`SCR-06` My appointments**
    - Patient chooses `Move` on an `Upcoming` row.
-   - This action is not available on `Reschedule Pending`, `Completed`, `Cancelled`, or `Rescheduled`.
+   - Not available on `Completed`, `Cancelled`, or `Rescheduled`.
+   - If fewer than 1 hour remain before start, Move is unavailable / refused (**R-07**). Cancel may still be available.
 
 2. **`SCR-04` Calendar**
    - The calendar is for the same doctor only.
@@ -1428,7 +1276,7 @@ This is not the doctor-proposal path. While an appointment is `Reschedule Pendin
    - The slot is not held while this screen is open.
 
 4. **Success path**
-   - Confirm succeeds.
+   - Confirm succeeds **atomically**.
    - Old appointment becomes `Rescheduled` (final).
    - New appointment becomes `Upcoming`.
    - History/link is kept.
@@ -1439,17 +1287,16 @@ This is not the doctor-proposal path. While an appointment is `Reschedule Pendin
    - Doctor is notified.
    - Patient is not notified for their own action.
 
-5. **Concurrent refusal path**
-   - If the new slot was taken at the same moment, confirm is refused in plain language.
-   - Original visit stays `Upcoming`.
-   - Patient may pick another free time or back out.
-   - Concurrent detail belongs to `FLO-06`.
+5. **Refusal path**
+   - New slot taken concurrently → plain-language refusal; original stays `Upcoming`; pick another or back out (**FLO-06**).
+   - Too close to current start (< 1 hour) → plain-language refusal (`APPOINTMENT_TOO_LATE_TO_RESCHEDULE`); original stays `Upcoming` unless already past the deadline for other reasons.
 
 ### What must be true at confirm
 
 - New slot is still free
 - Same doctor
 - New slot is inside the rolling bookable window (Zone A)
+- At least **1 hour** still remains before the **current** visit start
 - New slot uses that doctor’s duration at that time
 - Already-booked duration of the old visit is not rewritten in place
 
@@ -1461,88 +1308,24 @@ This is not the doctor-proposal path. While an appointment is `Reschedule Pendin
 ### Out of scope
 
 - Changing doctor
-- Starting this flow while `Reschedule Pending`
-- Silent doctor move
+- Doctor propose / silent move / book patient
 - Payment
 - Video
 - outside the rolling bookable window
+- Reschedule within 1 hour of start
 
 ### Open questions
 
-None that block this flow. Doctor proposal stays in `FLO-03`.
+None that block this flow.
 
 ---
 
 ## FLO-03 Doctor proposes a new time
 
-**Product pointer:** [FLO-03](./product-spec.md#flo-03-doctor-proposes-a-new-time), [R-07](./product-spec.md#r-07-rescheduling), [R-02](./product-spec.md#r-02-appointment-statuses), [R-03](./product-spec.md#r-03-honest-slots-and-double-booking), [R-04](./product-spec.md#r-04-appointment-format), [R-10](./product-spec.md#r-10-notifications), [R-13](./product-spec.md#r-13-booking-horizon)
+**Status:** Out of MVP.  
+**Product pointer:** [FLO-03](./product-spec.md#flo-03-doctor-proposes-a-new-time), [R-07](./product-spec.md#r-07-rescheduling)
 
-### Purpose
-
-The doctor offers a different real free time. The visit does **not** move until the patient accepts, picks another slot, or cancels. No silent move.
-
-### Who
-
-Doctor proposes. Patient decides. Same doctor throughout; the patient cannot be sent to another doctor.
-
-### Start / end
-
-- **Start:** `SCR-08` — Propose a new time on an `Upcoming` visit.
-- **End (patient):** `SCR-12` then `SCR-06`, in one of three outcomes.
-
-### Steps (Confirmed)
-
-1. **`SCR-08`** — Doctor chooses `Propose a new time` on `Upcoming` only.
-   - Not while already `Reschedule Pending`
-   - Not on completed / cancelled / rescheduled
-   - Format of the booked visit does not change here
-
-2. Doctor picks another free slot of their own, inside the patient’s rolling bookable window (Zone A).
-   - They cannot propose after Zone A ends
-   - Picker chrome is later (not `SCR-04`, not a new screen ID)
-
-3. On send:
-   - original → `Reschedule Pending`
-   - original slot stays **taken**
-   - proposed slot is **reserved**
-   - nobody else can book either slot
-   - other calendars refresh by themselves
-   - no expiry in MVP
-
-4. **`SCR-10`** — Patient gets an in-app bell item (“doctor proposed a new time”).
-   - Doctor is not notified (they did it).
-
-5. **`SCR-12`** — Patient decides:
-   - **Accept** → original `Rescheduled`; new `Upcoming` at the proposed time. Old slot free; new taken. Doctor notified.
-   - **Pick another** → same doctor, `SCR-04` → `SCR-05`, still this flow (not `FLO-02`). New `Upcoming`; original `Rescheduled`; previous reserved proposal released if they picked a different time. Doctor notified.
-   - **Cancel** → `Cancelled`; both slots free; stays visible. Doctor notified.
-   - Back without choosing: stays pending.
-
-While pending, the patient cannot start `FLO-02` from `SCR-06`.
-
-### Notifications
-
-At each decision outcome:
-
-| Step | Patient | Doctor |
-|---|---|---|
-| Doctor sends proposal | Yes | — |
-| Patient accepts / picks another / cancels | — | Yes |
-
-### Out of scope for this flow
-
-Out:
-- silent move
-- changing doctor
-- proposing outside Zone A
-- pending expiry
-- doctor changing format of the booked visit
-- second proposal while one is pending
-- video
-
-### Open questions (FLO-03)
-
-None that block this section. Slot-picker chrome → frontend later.
+Doctor cannot propose a new time and cannot book patients. Patient moves via **FLO-02** only. Do not specify or build this flow in the current delivery.
 
 ---
 
@@ -1563,7 +1346,6 @@ Patient or doctor. Each only on visits they are allowed to cancel. This flow is 
 | Actor | Start | What they may cancel here |
 |---|---|---|
 | Patient | `SCR-06` | `Upcoming` |
-| Patient | `SCR-12` (pending decision) | `Reschedule Pending` |
 | Doctor | `SCR-08` | `Upcoming` only (one visit) |
 
 End: same lists — row stays, status `Cancelled`, who cancelled shown.
@@ -1576,19 +1358,11 @@ End: same lists — row stays, status `Cancelled`, who cancelled shown.
 2. Status → `Cancelled` (final). Slot free. Calendars refresh.
 3. Doctor notified. Patient is not (they did it). Who cancelled = patient.
 
-**Patient, `Reschedule Pending` (`SCR-12`)**
-
-1. Cancel on the pending decision (not independent Move).
-2. Original → `Cancelled`. Proposed slot released; original slot free.
-3. Doctor notified. Who cancelled = patient.
-
 **Doctor, one `Upcoming` (`SCR-08`)**
 
 1. Cancel this visit (not no-show).
 2. Status → `Cancelled` (final). Slot free. Calendars refresh.
 3. That patient notified. Doctor is not (they did it). Who cancelled = doctor.
-
-Doctor does not single-cancel `Reschedule Pending` here. Pending in a range is `FLO-05`.
 
 ### What cannot be cancelled
 
@@ -1603,7 +1377,7 @@ Doctor does not single-cancel `Reschedule Pending` here. Pending in a range is `
 
 ### Out of scope for this flow
 
-Bulk/day/range (`FLO-05`); no-show; undo; payment; doctor score; silent cancel by shortening hours.
+Bulk/day/range (`FLO-05`); no-show; undo; payment; doctor score; silent cancel by shortening hours; SCR-12 pending cancel.
 
 ### Open questions (FLO-04)
 
@@ -1638,8 +1412,7 @@ Doctor only. Own schedule only.
   - rest of day
   - rest of week
   - custom range inside Zone A
-- `Reschedule Pending` in that period is cancelled too; reserved proposed slot released.
-- Each affected patient is notified.
+- Each affected `Upcoming` visit is cancelled; each affected patient is notified.
 - `who cancelled = doctor`
 - Doctor is not notified for their own action.
 - Slots become free.
@@ -1655,7 +1428,7 @@ Doctor only. Own schedule only.
 - Change vacation
 - Price: new value applies from first day after Zone A at the earliest
 - No bulk-cancel of appointments here — there are none
-- No “shorten hours here and cancel pending visits”
+- No “shorten hours here and cancel visits”
 
 ### Default until they edit Zone B
 
@@ -1718,8 +1491,8 @@ The same rule also applies if one path is a new booking and the other is a resch
 ### Also true
 
 - One timeline: `Offline` and `Online` cannot both take the same time.
-- A reserved proposed time (`Reschedule Pending`) is not free for a third patient.
 - After cancel or a successful patient reschedule, the old time is free again and the same race can happen on that slot.
+- There is no reserved/proposed hold in MVP.
 
 ### Notifications
 

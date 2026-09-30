@@ -1,8 +1,8 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { RouterProvider } from 'react-router-dom';
-import { Toaster } from 'sonner';
 
+import { AppToaster } from '@/components/Toaster/AppToaster';
 import { PopupsProvider } from '@/context/PopupsContext';
 import { AppThemeProvider } from '@/context/ThemeContext';
 import i18n from '@/i18n';
@@ -35,7 +35,7 @@ export const App = () => {
       <AppThemeProvider>
         <PopupsProvider>
           <RouterProvider key={language} router={router} />
-          <Toaster richColors position="top-center" />
+          <AppToaster />
         </PopupsProvider>
       </AppThemeProvider>
     </QueryClientProvider>

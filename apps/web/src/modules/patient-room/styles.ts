@@ -439,19 +439,102 @@ export const ShowMoreLink = styled('button')(({ theme }) => ({
   color: theme.palette.primary.main,
 }));
 
+export const CarouselShell = styled('div')<{
+  $fadeStart?: boolean;
+  $fadeEnd?: boolean;
+}>(({ theme, $fadeStart, $fadeEnd }) => ({
+  position: 'relative',
+
+  '&::before, &::after': {
+    content: '""',
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    width: 56,
+    zIndex: 1,
+    pointerEvents: 'none',
+    opacity: 0,
+    transition: 'opacity 0.2s ease',
+  },
+
+  '&::before': {
+    left: 0,
+    opacity: $fadeStart ? 1 : 0,
+    background: `linear-gradient(90deg, ${theme.palette.background.default} 0%, transparent 100%)`,
+  },
+
+  '&::after': {
+    right: 0,
+    opacity: $fadeEnd ? 1 : 0,
+    background: `linear-gradient(270deg, ${theme.palette.background.default} 0%, transparent 100%)`,
+  },
+}));
+
 export const CarouselTrack = styled('div')(({ theme }) => ({
   display: 'flex',
   gap: theme.spacing(2),
   overflowX: 'auto',
-  paddingBottom: theme.spacing(0.5),
   scrollSnapType: 'x mandatory',
+  scrollBehavior: 'smooth',
+  scrollPaddingInline: 8,
   WebkitOverflowScrolling: 'touch',
+  scrollbarWidth: 'none',
+  msOverflowStyle: 'none',
+  // Soft overscroll hint for touch/trackpad.
+  overscrollBehaviorX: 'contain',
 
+  '&::-webkit-scrollbar': {
+    display: 'none',
+  },
+
+  // ~2.6 cards visible so the next one peeks — classic carousel affordance.
   '& > article': {
-    flex: '0 0 min(318px, 85vw)',
+    flex: '0 0 min(300px, calc((100% - 32px) / 2.6))',
     scrollSnapAlign: 'start',
+    scrollSnapStop: 'normal',
   },
 }));
+
+export const CarouselNavButton = styled('button')<{ $side: 'prev' | 'next' }>(
+  ({ theme, $side }) => ({
+    position: 'absolute',
+    top: '50%',
+    [$side === 'prev' ? 'left' : 'right']: 8,
+    zIndex: 2,
+    transform: 'translateY(-50%)',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 40,
+    height: 40,
+    padding: 0,
+    border: `1px solid ${theme.palette.divider}`,
+    borderRadius: 999,
+    backgroundColor: theme.palette.background.paper,
+    color: theme.palette.text.primary,
+    cursor: 'pointer',
+    boxShadow:
+      theme.palette.mode === 'dark'
+        ? '0 6px 20px rgba(0, 0, 0, 0.4)'
+        : '0 6px 20px rgba(15, 40, 55, 0.16)',
+    transition: 'opacity 0.15s ease, background-color 0.15s ease, transform 0.15s ease',
+
+    '&:hover:not(:disabled)': {
+      backgroundColor: theme.palette.action.hover,
+      transform: 'translateY(-50%) scale(1.04)',
+    },
+
+    '&:disabled': {
+      opacity: 0,
+      pointerEvents: 'none',
+    },
+
+    // Touch devices rely on swipe + peek; keep arrows from tablet up.
+    [theme.breakpoints.down('sm')]: {
+      display: 'none',
+    },
+  }),
+);
 
 export const WidgetCard = styled(CardSurface)(({ theme }) => ({
   display: 'flex',
@@ -494,6 +577,10 @@ export const WidgetAction = styled(Button)(({ theme }) => ({
   borderRadius: 8,
   fontWeight: 600,
   textTransform: 'none',
+
+  '&.MuiButton-fullWidth': {
+    alignSelf: 'stretch',
+  },
 }));
 
 export const CalendarShell = styled(WidgetCard)(({ theme }) => ({
@@ -608,24 +695,59 @@ export const CalendarLegend = styled('div')(({ theme }) => ({
   color: theme.palette.text.secondary,
 }));
 
-export const LegendItem = styled('span')(({ theme }) => ({
+export const LegendItem = styled('span')({
   display: 'inline-flex',
   alignItems: 'center',
   gap: 6,
+  lineHeight: 1.2,
+});
 
-  '&::before': {
-    content: '""',
-    width: 8,
-    height: 8,
-    borderRadius: 999,
-    backgroundColor: theme.palette.primary.main,
-  },
+export const LegendDot = styled('span')(({ theme }) => ({
+  width: 8,
+  height: 8,
+  borderRadius: 999,
+  flexShrink: 0,
+  backgroundColor: theme.palette.primary.main,
 }));
 
 export const PromoDoctorRow = styled('div')(({ theme }) => ({
   display: 'flex',
   gap: theme.spacing(1.5),
   alignItems: 'flex-start',
+}));
+
+export const PromoDoctorInfo = styled('div')(({ theme }) => ({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: theme.spacing(0.25),
+  minWidth: 0,
+}));
+
+export const PromoSpecialty = styled('span')(({ theme }) => ({
+  fontFamily: theme.typography.fontFamily,
+  fontSize: 13,
+  lineHeight: '20px',
+  fontWeight: 600,
+  color: theme.palette.primary.main,
+}));
+
+export const PromoClinic = styled('span')(({ theme }) => ({
+  fontFamily: theme.typography.fontFamily,
+  fontSize: 13,
+  lineHeight: '20px',
+  color: theme.palette.text.secondary,
+}));
+
+export const PromoRating = styled('span')(({ theme }) => ({
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: 4,
+  marginTop: theme.spacing(0.25),
+  fontFamily: theme.typography.fontFamily,
+  fontSize: 13,
+  lineHeight: '18px',
+  fontWeight: 600,
+  color: theme.palette.text.secondary,
 }));
 
 export const PromoAvatar = styled('img')({
@@ -660,8 +782,8 @@ export const SpecialtyGrid = styled('div')(({ theme }) => ({
 export const SpecialtyTile = styled('button')(({ theme }) => ({
   display: 'flex',
   flexDirection: 'column',
-  alignItems: 'flex-start',
-  justifyContent: 'space-between',
+  alignItems: 'center',
+  justifyContent: 'center',
   gap: theme.spacing(1.5),
   minHeight: 118,
   padding: theme.spacing(2),
@@ -669,7 +791,7 @@ export const SpecialtyTile = styled('button')(({ theme }) => ({
   border: `1px solid ${theme.palette.divider}`,
   backgroundColor: theme.palette.background.paper,
   cursor: 'pointer',
-  textAlign: 'left',
+  textAlign: 'center',
   boxShadow:
     theme.palette.mode === 'light'
       ? '0 1px 2px rgba(22, 62, 82, 0.06)'
@@ -842,7 +964,7 @@ export const DayModalMonthsRow = styled('div')(({ theme }) => ({
 
   [theme.breakpoints.up('md')]: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'stretch',
   },
 }));
 
@@ -852,6 +974,7 @@ export const DayModalMonthCard = styled('div')(({ theme }) => ({
   gap: theme.spacing(1.25),
   flex: 1,
   minWidth: 0,
+  height: '100%',
   padding: theme.spacing(1.5),
   borderRadius: 16,
   border: `1px solid ${theme.palette.divider}`,
