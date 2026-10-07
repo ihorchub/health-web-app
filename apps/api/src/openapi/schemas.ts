@@ -564,6 +564,7 @@ export const DoctorDashboardResponse = Type.Object({
   nextVisit: NullableObj(DoctorDashboardVisit),
   pendingPatients: Type.Array(DoctorDashboardVisit),
   pastVisitsMonth: Type.Array(DoctorDashboardVisit),
+  cancellationsLast7Days: Type.Array(DoctorDashboardVisit),
   freeWindowsToday: Type.Array(Type.String()),
   weekStrip: Type.Array(DoctorDashboardWeekStripDay),
 });

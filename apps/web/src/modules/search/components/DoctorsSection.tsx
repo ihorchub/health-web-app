@@ -4,7 +4,7 @@ import {
   IconHeartFilled,
   IconStarFilled,
 } from '@tabler/icons-react';
-import { Button } from '@mui/material';
+import { Button, Tooltip } from '@mui/material';
 import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -28,6 +28,7 @@ import {
   FormatBadge,
   FoundText,
   HeartButton,
+  HeartTooltipTarget,
   HintText,
   LinkishButton,
   LeftColumn,
@@ -159,21 +160,39 @@ export const DoctorCard = ({
             <DoctorName>
               {doctor.firstName} {doctor.lastName}
             </DoctorName>
-            <HeartButton
-              type="button"
-              $active={doctor.isFavourite && !isGuest}
-              aria-label={doctor.isFavourite ? t('card.unfavorite') : t('card.favorite')}
-              onClick={(event) => {
-                event.stopPropagation();
-                onFavourite(doctor);
-              }}
-            >
-              {doctor.isFavourite && !isGuest ? (
-                <IconHeartFilled size={20} />
-              ) : (
-                <IconHeart size={20} />
-              )}
-            </HeartButton>
+            {isGuest ? (
+              <Tooltip title={t('card.favoriteGuestHint')}>
+                <HeartTooltipTarget
+                  onClick={(event) => {
+                    event.stopPropagation();
+                  }}
+                >
+                  <HeartButton
+                    type="button"
+                    disabled
+                    aria-label={t('card.favoriteGuestHint')}
+                  >
+                    <IconHeart size={20} />
+                  </HeartButton>
+                </HeartTooltipTarget>
+              </Tooltip>
+            ) : (
+              <HeartButton
+                type="button"
+                $active={doctor.isFavourite}
+                aria-label={doctor.isFavourite ? t('card.unfavorite') : t('card.favorite')}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onFavourite(doctor);
+                }}
+              >
+                {doctor.isFavourite ? (
+                  <IconHeartFilled size={20} />
+                ) : (
+                  <IconHeart size={20} />
+                )}
+              </HeartButton>
+            )}
           </NameRow>
           <SpecialtyText>{t(`specialties.${doctor.specialty}`)}</SpecialtyText>
           {place ? <ClinicText>{place}</ClinicText> : null}
@@ -199,11 +218,11 @@ export const DoctorCard = ({
           <span>{t('card.visitType')}</span>
           {(doctor.supportedFormats === 'offline' ||
             doctor.supportedFormats === 'both') && (
-            <FormatBadge>{t('card.offline')}</FormatBadge>
+            <FormatBadge $tone="offline">{t('card.offline')}</FormatBadge>
           )}
           {(doctor.supportedFormats === 'online' ||
             doctor.supportedFormats === 'both') && (
-            <FormatBadge>{t('card.online')}</FormatBadge>
+            <FormatBadge $tone="online">{t('card.online')}</FormatBadge>
           )}
         </MetaRow>
         <MetaRow>
@@ -345,11 +364,7 @@ export const DoctorsSection = ({
   };
 
   const handleFavourite = (doctor: DoctorSearchCard) => {
-    if (role === AppRole.GUEST) {
-      goLogin(doctorProfilePath(doctor.id));
-      return;
-    }
-    if (role !== AppRole.PATIENT) {
+    if (role === AppRole.GUEST || role !== AppRole.PATIENT) {
       return;
     }
     if (doctor.isFavourite) {

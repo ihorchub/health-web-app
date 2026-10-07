@@ -11,7 +11,7 @@ import { PatientCabinetPage } from '@/modules/patient-room';
 import { ProfilePage } from '@/modules/profile';
 import { WorkingHoursPage } from '@/modules/working-hours';
 import { SearchPage } from '@/modules/search';
-import { LegalPlaceholderPage } from '@/modules/shared/legal/LegalPlaceholderPage';
+import { LegalDocumentPage } from '@/modules/shared/legal/LegalDocumentPage';
 import { DevCheckRoute } from '@/routes/DevCheckRoute';
 import { AppRoute } from '@/utils/routeUtils/routes';
 
@@ -54,11 +54,11 @@ export const router = createBrowserRouter([
       },
       {
         path: AppRoute.PRIVACY,
-        element: <LegalPlaceholderPage titleKey="footer.privacy" />,
+        element: <LegalDocumentPage document="privacy" />,
       },
       {
         path: AppRoute.TERMS,
-        element: <LegalPlaceholderPage titleKey="footer.terms" />,
+        element: <LegalDocumentPage document="terms" />,
       },
       {
         path: AppRoute.APPOINTMENTS,

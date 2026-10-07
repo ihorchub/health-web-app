@@ -1,4 +1,4 @@
-import { Checkbox, Slider } from '@mui/material';
+import { Checkbox } from '@mui/material';
 import { IconStarFilled } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
 
@@ -6,13 +6,16 @@ import type { AvailabilityFilter, VisitFormat } from '@/api/doctors';
 import type { ReferenceCity, ReferenceClinic, ReferenceSpecialty } from '@/api/reference';
 import {
   CheckRow,
+  FilterChecks,
   FilterField,
   FilterGroup,
   FilterGroupTitle,
   FilterMenuItem,
+  FiltersBody,
   FiltersHeader,
   PlaceholderOption,
   PriceLabels,
+  PriceSlider,
   RatingOption,
   RatingOptionLabel,
   RatingOptions,
@@ -60,7 +63,7 @@ export const FilterPanel = ({
   const { t } = useTranslation('search');
 
   const body = (
-    <>
+    <FiltersBody>
       {showHeader ? (
         <FiltersHeader>
           <SectionTitle>{t('filters.title')}</SectionTitle>
@@ -102,7 +105,9 @@ export const FilterPanel = ({
             </FilterMenuItem>
           ))}
         </FilterField>
+      </FilterGroup>
 
+      <FilterGroup>
         <FilterGroupTitle>{t('filters.clinic')}</FilterGroupTitle>
         <FilterField
           select
@@ -135,7 +140,9 @@ export const FilterPanel = ({
             </FilterMenuItem>
           ))}
         </FilterField>
+      </FilterGroup>
 
+      <FilterGroup>
         <FilterGroupTitle>{t('filters.specialty')}</FilterGroupTitle>
         <FilterField
           select
@@ -173,46 +180,50 @@ export const FilterPanel = ({
 
       <FilterGroup>
         <FilterGroupTitle>{t('filters.format')}</FilterGroupTitle>
-        {(
-          [
-            ['offline', 'filters.formatOffline'],
-            ['online', 'filters.formatOnline'],
-            ['both', 'filters.formatBoth'],
-          ] as const
-        ).map(([value, labelKey]) => (
-          <CheckRow key={value}>
-            <Checkbox
-              size="small"
-              checked={filters.format === value}
-              onChange={(_, checked) => {
-                onChange({ format: checked ? value : undefined });
-              }}
-            />
-            {t(labelKey)}
-          </CheckRow>
-        ))}
+        <FilterChecks>
+          {(
+            [
+              ['offline', 'filters.formatOffline'],
+              ['online', 'filters.formatOnline'],
+              ['both', 'filters.formatBoth'],
+            ] as const
+          ).map(([value, labelKey]) => (
+            <CheckRow key={value}>
+              <Checkbox
+                size="small"
+                checked={filters.format === value}
+                onChange={(_, checked) => {
+                  onChange({ format: checked ? value : undefined });
+                }}
+              />
+              {t(labelKey)}
+            </CheckRow>
+          ))}
+        </FilterChecks>
       </FilterGroup>
 
       <FilterGroup>
         <FilterGroupTitle>{t('filters.availability')}</FilterGroupTitle>
-        {(
-          [
-            ['today', 'filters.today'],
-            ['tomorrow', 'filters.tomorrow'],
-            ['this_week', 'filters.thisWeek'],
-          ] as const
-        ).map(([value, labelKey]) => (
-          <CheckRow key={value}>
-            <Checkbox
-              size="small"
-              checked={filters.availability === value}
-              onChange={(_, checked) => {
-                onChange({ availability: checked ? value : undefined });
-              }}
-            />
-            {t(labelKey)}
-          </CheckRow>
-        ))}
+        <FilterChecks>
+          {(
+            [
+              ['today', 'filters.today'],
+              ['tomorrow', 'filters.tomorrow'],
+              ['this_week', 'filters.thisWeek'],
+            ] as const
+          ).map(([value, labelKey]) => (
+            <CheckRow key={value}>
+              <Checkbox
+                size="small"
+                checked={filters.availability === value}
+                onChange={(_, checked) => {
+                  onChange({ availability: checked ? value : undefined });
+                }}
+              />
+              {t(labelKey)}
+            </CheckRow>
+          ))}
+        </FilterChecks>
       </FilterGroup>
 
       <FilterGroup>
@@ -221,8 +232,6 @@ export const FilterPanel = ({
           {(
             [
               { value: 4.5, filled: 5 },
-              { value: 4, filled: 4 },
-              { value: 3, filled: 3 },
             ] as const
           ).map(({ value, filled }) => {
             const active = filters.minRating === value;
@@ -254,7 +263,7 @@ export const FilterPanel = ({
 
       <FilterGroup>
         <FilterGroupTitle>{t('filters.price')}</FilterGroupTitle>
-        <Slider
+        <PriceSlider
           value={[filters.priceMin, filters.priceMax]}
           min={0}
           max={5000}
@@ -270,7 +279,7 @@ export const FilterPanel = ({
           <span>{t('filters.priceTo', { value: filters.priceMax })}</span>
         </PriceLabels>
       </FilterGroup>
-    </>
+    </FiltersBody>
   );
 
   if (embedded) {

@@ -23,6 +23,10 @@ export const useDoctorDayDashboard = (date = todayDoctorDayYmd()) => {
   const freeWindows = mapFreeWindowsFromSlots(data?.freeWindowsToday ?? []);
   const freeSlotIsos = [...(data?.freeWindowsToday ?? [])].sort();
   const pastVisitsMonth = (data?.pastVisitsMonth ?? []).map(mapDashboardVisit);
+  const cancellationsLast7Days = (data?.cancellationsLast7Days ?? []).map((visit) => ({
+    ...mapDashboardVisit(visit),
+    cancelledBy: 'doctor' as const,
+  }));
   const metrics = data?.metrics
     ? mapMetrics(data.metrics)
     : {
@@ -43,6 +47,7 @@ export const useDoctorDayDashboard = (date = todayDoctorDayYmd()) => {
     freeWindows,
     freeSlotIsos,
     pastVisitsMonth,
+    cancellationsLast7Days,
     metrics,
     weekDays,
     completeVisit: (id: string) => completeMutation.mutateAsync({ id }),

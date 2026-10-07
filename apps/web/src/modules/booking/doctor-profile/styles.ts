@@ -105,7 +105,22 @@ export const IconRoundButton = styled('button')<{ $active?: boolean }>(({ theme,
   '&:hover': {
     backgroundColor: theme.palette.action.hover,
   },
+
+  '&:disabled': {
+    cursor: 'not-allowed',
+    opacity: 0.45,
+    color: theme.palette.text.disabled,
+
+    '&:hover': {
+      backgroundColor: theme.palette.background.paper,
+    },
+  },
 }));
+
+export const FavouriteTooltipTarget = styled('span')({
+  display: 'inline-flex',
+  flexShrink: 0,
+});
 
 export const DialogBody = styled('div')(({ theme }) => ({
   display: 'flex',

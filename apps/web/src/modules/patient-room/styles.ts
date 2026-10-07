@@ -439,6 +439,14 @@ export const ShowMoreLink = styled('button')(({ theme }) => ({
   color: theme.palette.primary.main,
 }));
 
+export const ShowMoreButton = styled(Button)(({ theme }) => ({
+  width: '100%',
+  minHeight: 48,
+  marginTop: theme.spacing(1),
+  borderColor: theme.palette.divider,
+  color: theme.palette.text.primary,
+}));
+
 export const CarouselShell = styled('div')<{
   $fadeStart?: boolean;
   $fadeEnd?: boolean;
@@ -1637,4 +1645,113 @@ export const VisitDetailDoctorLink = styled('button')(({ theme }) => ({
   lineHeight: '20px',
   fontWeight: 600,
   color: theme.palette.primary.main,
+}));
+
+export const ReviewsListDialogRoot = styled(SheetDialog)(({ theme }) => ({
+  '& .MuiDialog-paper': {
+    maxWidth: 560,
+    width: '100%',
+    borderRadius: 20,
+    padding: 0,
+    overflow: 'hidden',
+    boxShadow:
+      theme.palette.mode === 'light'
+        ? '0 1px 2px rgba(22, 62, 82, 0.06), 0 24px 64px rgba(22, 62, 82, 0.2)'
+        : 'none',
+
+    [theme.breakpoints.down('sm')]: {
+      borderRadius: 0,
+      margin: 0,
+      maxHeight: '100dvh',
+      height: 'auto',
+    },
+  },
+}));
+
+export const ReviewsListBody = styled('div')(({ theme }) => ({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: theme.spacing(2.5),
+  maxHeight: 'min(70dvh, 560px)',
+  overflowY: 'auto',
+  padding: theme.spacing(2, 3.5, 3),
+}));
+
+export const ReviewsListSection = styled('div')(({ theme }) => ({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: theme.spacing(1),
+}));
+
+export const ReviewsListSectionTitle = styled('div')(({ theme }) => ({
+  fontFamily: theme.typography.fontFamily,
+  fontSize: 13,
+  lineHeight: '18px',
+  fontWeight: 700,
+  letterSpacing: '0.04em',
+  textTransform: 'uppercase',
+  color: theme.palette.text.secondary,
+}));
+
+export const ReviewsListItem = styled('div')(({ theme }) => ({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: theme.spacing(1),
+  padding: theme.spacing(1.5),
+  borderRadius: 14,
+  border: `1px solid ${theme.palette.divider}`,
+  backgroundColor: theme.palette.background.paper,
+}));
+
+export const ReviewsListItemTop = styled('div')(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'flex-start',
+  gap: theme.spacing(1.5),
+}));
+
+export const ReviewsListItemCopy = styled('div')({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 2,
+  minWidth: 0,
+  flex: 1,
+});
+
+export const ReviewsListItemDoctor = styled('div')(({ theme }) => ({
+  fontFamily: theme.typography.fontFamily,
+  fontSize: 15,
+  lineHeight: '20px',
+  fontWeight: 700,
+  color: theme.palette.text.primary,
+}));
+
+export const ReviewsListItemMeta = styled('div')(({ theme }) => ({
+  fontFamily: theme.typography.fontFamily,
+  fontSize: 13,
+  lineHeight: '18px',
+  color: theme.palette.text.secondary,
+}));
+
+export const ReviewsListStars = styled('div')(({ theme }) => ({
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: 2,
+  color: theme.palette.primary.main,
+}));
+
+export const ReviewsListText = styled('p')(({ theme }) => ({
+  margin: 0,
+  fontFamily: theme.typography.fontFamily,
+  fontSize: 14,
+  lineHeight: '20px',
+  color: theme.palette.text.primary,
+}));
+
+export const ReviewsListEmpty = styled('div')(({ theme }) => ({
+  padding: theme.spacing(3, 1),
+  textAlign: 'center',
+  fontFamily: theme.typography.fontFamily,
+  fontSize: 14,
+  lineHeight: '20px',
+  color: theme.palette.text.secondary,
 }));

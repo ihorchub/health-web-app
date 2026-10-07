@@ -1,4 +1,4 @@
-import { Button } from '@mui/material';
+import { Button, Tooltip } from '@mui/material';
 import { IconHeart, IconHeartFilled, IconStarFilled, IconX } from '@tabler/icons-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -41,6 +41,7 @@ import {
   FactCell,
   FactsRow,
   FactValue,
+  FavouriteTooltipTarget,
   FieldLabel,
   HeaderText,
   IconRoundButton,
@@ -247,11 +248,7 @@ export const DoctorProfilePopup = () => {
   };
 
   const handleFavourite = () => {
-    if (role === AppRole.GUEST || !isSession) {
-      goLogin();
-      return;
-    }
-    if (!isPatient || !doctor) {
+    if (role === AppRole.GUEST || !isSession || !isPatient || !doctor) {
       return;
     }
     if (doctor.isFavourite) {
@@ -428,18 +425,32 @@ export const DoctorProfilePopup = () => {
                         {tSearch(`specialties.${doctor.specialty}`)}
                       </SpecialtyText>
                     </NameBlock>
-                    <IconRoundButton
-                      type="button"
-                      $active={Boolean(doctor.isFavourite && isPatient)}
-                      aria-label={doctor.isFavourite ? t('unfavorite') : t('favorite')}
-                      onClick={handleFavourite}
-                    >
-                      {doctor.isFavourite && isPatient ? (
-                        <IconHeartFilled size={20} />
-                      ) : (
-                        <IconHeart size={20} />
-                      )}
-                    </IconRoundButton>
+                    {role === AppRole.GUEST || !isSession ? (
+                      <Tooltip title={t('favoriteGuestHint')}>
+                        <FavouriteTooltipTarget>
+                          <IconRoundButton
+                            type="button"
+                            disabled
+                            aria-label={t('favoriteGuestHint')}
+                          >
+                            <IconHeart size={20} />
+                          </IconRoundButton>
+                        </FavouriteTooltipTarget>
+                      </Tooltip>
+                    ) : (
+                      <IconRoundButton
+                        type="button"
+                        $active={Boolean(doctor.isFavourite && isPatient)}
+                        aria-label={doctor.isFavourite ? t('unfavorite') : t('favorite')}
+                        onClick={handleFavourite}
+                      >
+                        {doctor.isFavourite && isPatient ? (
+                          <IconHeartFilled size={20} />
+                        ) : (
+                          <IconHeart size={20} />
+                        )}
+                      </IconRoundButton>
+                    )}
                   </NameRow>
                   <ClinicBlock>
                     <FieldLabel>{t('clinic')}</FieldLabel>

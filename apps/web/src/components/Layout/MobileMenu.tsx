@@ -159,7 +159,7 @@ export const MobileMenu = ({ onNavigate }: MobileMenuProps) => {
       }
       setPreviewRole(AppRole.GUEST);
       onNavigate?.();
-      void navigate(AppRoute.LOGIN);
+      void navigate(AppRoute.HOME);
     } catch (error) {
       toast.error(mapError(error));
     }

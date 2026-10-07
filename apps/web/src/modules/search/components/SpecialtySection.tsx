@@ -13,6 +13,7 @@ import {
   IconDroplet,
   IconUserHeart,
 } from '@tabler/icons-react';
+import { useMediaQuery, useTheme } from '@mui/material';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -66,7 +67,10 @@ export const SpecialtySection = ({
   onSelect,
 }: SpecialtySectionProps) => {
   const { t } = useTranslation('search');
-  const visible = expanded ? specialties : specialties.slice(0, 3);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const collapsedCount = isMobile ? 2 : 3;
+  const visible = expanded ? specialties : specialties.slice(0, collapsedCount);
 
   return (
     <Wrap>

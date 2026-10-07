@@ -1,4 +1,5 @@
-import { Button, Drawer, MenuItem, TextField } from '@mui/material';
+import { Button, Drawer, MenuItem, Slider, TextField } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import { styled } from '@/theme/styled';
 
 export const Page = styled('section')(({ theme }) => ({
@@ -380,8 +381,14 @@ export const SectionTitle = styled('h2')(({ theme }) => ({
 
 export const SpecialtyGrid = styled('div')(({ theme }) => ({
   display: 'grid',
-  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-  gap: theme.spacing(2),
+  gridTemplateColumns: '1fr',
+  gap: theme.spacing(1.5),
+  width: '100%',
+
+  [theme.breakpoints.up('sm')]: {
+    gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+    gap: theme.spacing(2),
+  },
 
   [theme.breakpoints.up('lg')]: {
     gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
@@ -395,8 +402,9 @@ export const SpecialtyCard = styled('button')<{ $active?: boolean }>(
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: theme.spacing(1.5),
+    minWidth: 0,
     minHeight: 118,
+    gap: theme.spacing(1.5),
     padding: theme.spacing(2),
     borderRadius: 16,
     border: `1px solid ${$active ? theme.palette.primary.main : theme.palette.divider}`,
@@ -487,12 +495,19 @@ export const ShowMoreRow = styled('div')(({ theme }) => ({
   },
 }));
 
+export const FiltersBody = styled('div')(({ theme }) => ({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: theme.spacing(1.5),
+  width: '100%',
+}));
+
 export const Sidebar = styled('aside')<{ $heightPx?: number }>(({ theme, $heightPx }) => ({
   display: 'none',
   width: '100%',
   minWidth: 0,
   flexDirection: 'column',
-  gap: 12,
+  gap: 0,
   padding: 16,
   borderRadius: 16,
   backgroundColor: theme.palette.background.paper,
@@ -511,7 +526,8 @@ export const Sidebar = styled('aside')<{ $heightPx?: number }>(({ theme, $height
       ? {
           height: $heightPx,
           maxHeight: $heightPx,
-          overflow: 'hidden',
+          overflowX: 'hidden',
+          overflowY: 'auto',
         }
       : null),
   },
@@ -583,6 +599,7 @@ export const CheckRow = styled('label')(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
   gap: 6,
+  minHeight: 24,
   cursor: 'pointer',
   fontFamily: theme.typography.fontFamily,
   fontSize: 14,
@@ -590,9 +607,16 @@ export const CheckRow = styled('label')(({ theme }) => ({
   color: theme.palette.text.primary,
 
   '& .MuiCheckbox-root': {
-    padding: 4,
+    padding: 0,
   },
 }));
+
+export const FilterChecks = styled('div')({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 2,
+  width: '100%',
+});
 
 export const RatingOptions = styled('div')(({ theme }) => ({
   display: 'flex',
@@ -650,6 +674,46 @@ export const RatingOptionLabel = styled('span')(({ theme }) => ({
   color: theme.palette.text.primary,
 }));
 
+export const PriceSlider = styled(Slider)(({ theme }) => ({
+  color: theme.palette.primary.main,
+  height: 4,
+  paddingBlock: 12,
+  // Half-thumb inset so circles stay inside the filter card
+  marginInline: 8,
+  width: 'calc(100% - 16px)',
+  boxSizing: 'border-box',
+
+  '& .MuiSlider-rail': {
+    height: 4,
+    opacity: 1,
+    borderRadius: 999,
+    backgroundColor: alpha(theme.palette.text.primary, 0.12),
+  },
+
+  '& .MuiSlider-track': {
+    height: 4,
+    border: 'none',
+    borderRadius: 999,
+    backgroundColor: theme.palette.primary.main,
+  },
+
+  '& .MuiSlider-thumb': {
+    width: 16,
+    height: 16,
+    backgroundColor: theme.palette.background.paper,
+    border: `2px solid ${theme.palette.primary.main}`,
+    boxShadow: `0 1px 3px ${alpha(theme.palette.text.primary, 0.2)}`,
+
+    '&:hover, &.Mui-focusVisible': {
+      boxShadow: `0 0 0 6px ${alpha(theme.palette.primary.main, 0.18)}`,
+    },
+
+    '&.Mui-active': {
+      boxShadow: `0 0 0 8px ${alpha(theme.palette.primary.main, 0.24)}`,
+    },
+  },
+}));
+
 export const PriceLabels = styled('div')(({ theme }) => ({
   display: 'flex',
   justifyContent: 'space-between',
@@ -657,6 +721,7 @@ export const PriceLabels = styled('div')(({ theme }) => ({
   fontSize: 12,
   lineHeight: '16px',
   color: theme.palette.text.secondary,
+  paddingInline: 8,
 }));
 
 export const DoctorsHeader = styled('div')(({ theme }) => ({
@@ -784,7 +849,19 @@ export const HeartButton = styled('button')<{ $active?: boolean }>(({ theme, $ac
   cursor: 'pointer',
   color: $active ? theme.palette.primary.main : theme.palette.text.secondary,
   flexShrink: 0,
+
+  '&:disabled': {
+    cursor: 'not-allowed',
+    opacity: 0.45,
+    color: theme.palette.text.disabled,
+  },
 }));
+
+/** Wrapper so MUI Tooltip works on a disabled heart button. */
+export const HeartTooltipTarget = styled('span')({
+  display: 'inline-flex',
+  flexShrink: 0,
+});
 
 export const SpecialtyText = styled('div')(({ theme }) => ({
   fontFamily: theme.typography.fontFamily,
@@ -837,19 +914,27 @@ export const MetaRow = styled('div')(({ theme }) => ({
   color: theme.palette.text.secondary,
 }));
 
-export const FormatBadge = styled('span')(({ theme }) => ({
-  display: 'inline-flex',
-  alignItems: 'center',
-  height: 24,
-  paddingInline: 8,
-  borderRadius: 8,
-  backgroundColor:
-    theme.palette.mode === 'light'
-      ? 'rgba(46, 177, 145, 0.12)'
-      : 'rgba(62, 196, 163, 0.16)',
-  color: theme.palette.primary.main,
-  fontWeight: 600,
-}));
+export const FormatBadge = styled('span')<{ $tone: 'offline' | 'online' }>(
+  ({ theme, $tone }) => {
+    const isOnline = $tone === 'online';
+    // Offline: soft gray (readable on dark). Online: teal accent.
+    const accent = isOnline ? theme.palette.primary.main : theme.palette.text.secondary;
+
+    return {
+      display: 'inline-flex',
+      alignItems: 'center',
+      height: 24,
+      paddingInline: 8,
+      borderRadius: 8,
+      border: `1px solid ${alpha(accent, theme.palette.mode === 'light' ? 0.4 : 0.65)}`,
+      backgroundColor: alpha(accent, theme.palette.mode === 'light' ? 0.12 : 0.2),
+      color: accent,
+      fontWeight: 600,
+      fontSize: 12,
+      lineHeight: '16px',
+    };
+  },
+);
 
 export const PriceRow = styled('div')(({ theme }) => ({
   display: 'flex',

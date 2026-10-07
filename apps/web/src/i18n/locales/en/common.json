@@ -35,5 +35,9 @@
     "terms": "Terms of Use",
     "copyright": "© {{year}} Medicly"
   },
-  "legalPlaceholder": "Legal copy will be added later."
+  "legal": {
+    "loading": "Loading…",
+    "error": "Could not load this document. Please try again later."
+  }
 }
+

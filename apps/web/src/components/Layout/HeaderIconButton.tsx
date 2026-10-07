@@ -7,7 +7,6 @@ const ButtonRoot = styled('button')<{ $size?: 'sm' | 'md' }>(
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    position: 'relative',
     flexShrink: 0,
     width: $size === 'sm' ? 32 : 40,
     height: $size === 'sm' ? 32 : 40,
@@ -24,14 +23,25 @@ const ButtonRoot = styled('button')<{ $size?: 'sm' | 'md' }>(
   }),
 );
 
+/** Anchor for the unread pip — sized to the icon, not the button. */
+const IconWrap = styled('span')({
+  position: 'relative',
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  lineHeight: 0,
+});
+
 const UnreadDot = styled('span')(({ theme }) => ({
   position: 'absolute',
-  top: 8,
-  right: 8,
+  top: 0,
+  right: 0,
   width: 8,
   height: 8,
   borderRadius: 999,
   backgroundColor: theme.palette.error.main,
+  transform: 'translate(35%, -35%)',
+  pointerEvents: 'none',
 }));
 
 interface HeaderIconButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -57,8 +67,10 @@ export const HeaderIconButton = ({
 
   return (
     <Root type="button" $size={size} {...rest}>
-      {children}
-      {showUnread ? <UnreadDot /> : null}
+      <IconWrap>
+        {children}
+        {showUnread ? <UnreadDot aria-hidden /> : null}
+      </IconWrap>
     </Root>
   );
 };

@@ -10,7 +10,13 @@ import type {
   WeekDaySummary,
 } from '@/modules/doctor-day/types';
 import {
+  FreeEmptyNote,
+  FreeHint,
+  FreeList,
   FreeRow,
+  FreeRowDot,
+  FreeRowMeta,
+  FreeRowTime,
   FreeShowMore,
   QuickLink,
   WeekDay,
@@ -34,11 +40,30 @@ interface DoctorDaySidebarProps {
   nextVisit: DoctorDayVisit | null;
   weekDays: WeekDaySummary[];
   freeWindows: FreeWindowSlot[];
-  onOpenSchedule: () => void;
+  onSelectDay: (ymd: string) => void;
   onOpenVisit: () => void;
 }
 
-const FREE_WINDOWS_PREVIEW = 5;
+const FREE_WINDOWS_PREVIEW = 3;
+
+const ukSlotsKey = (base: string, count: number) => {
+  const mod10 = count % 10;
+  const mod100 = count % 100;
+  if (mod10 === 1 && mod100 !== 11) {
+    return `${base}_one`;
+  }
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) {
+    return `${base}_few`;
+  }
+  return `${base}_many`;
+};
+
+const slotsCountKey = (base: string, count: number, language: string) => {
+  if (language === 'en') {
+    return count === 1 ? `${base}_one` : `${base}_other`;
+  }
+  return ukSlotsKey(base, count);
+};
 
 const weekDots = (day: WeekDaySummary) => {
   const dots: Array<'visit' | 'cancelled' | 'free'> = [];
@@ -61,7 +86,7 @@ export const DoctorDaySidebar = ({
   nextVisit,
   weekDays,
   freeWindows,
-  onOpenSchedule,
+  onSelectDay,
   onOpenVisit,
 }: DoctorDaySidebarProps) => {
   const { t, i18n } = useTranslation('doctorDay');
@@ -71,19 +96,35 @@ export const DoctorDaySidebar = ({
     ? freeWindows
     : freeWindows.slice(0, FREE_WINDOWS_PREVIEW);
   const hasMoreFree = freeWindows.length > FREE_WINDOWS_PREVIEW;
+  const freeSlotsTotal = freeWindows.reduce((sum, window) => sum + window.slotsCount, 0);
+  const selectedDay = weekDays.find((day) => day.isSelected)?.ymd ?? weekDays[0]?.ymd;
 
   return (
     <>
       <WidgetCard>
         <WidgetHead>
           <WidgetTitle>{t('sidebar.weekTitle')}</WidgetTitle>
-          <WidgetLink type="button" onClick={onOpenSchedule}>
+          <WidgetLink
+            type="button"
+            onClick={() => {
+              if (selectedDay) {
+                onSelectDay(selectedDay);
+              }
+            }}
+          >
             {t('sidebar.weekView')}
           </WidgetLink>
         </WidgetHead>
         <WeekDays>
           {weekDays.map((day) => (
-            <WeekDay key={day.ymd} type="button" $active={day.isSelected}>
+            <WeekDay
+              key={day.ymd}
+              type="button"
+              $active={day.isSelected}
+              onClick={() => {
+                onSelectDay(day.ymd);
+              }}
+            >
               <WeekDayLabel $active={day.isSelected}>{day.weekdayShort}</WeekDayLabel>
               <WeekDayNumber $active={day.isSelected}>{day.dayNumber}</WeekDayNumber>
               <WeekDots>
@@ -135,36 +176,49 @@ export const DoctorDaySidebar = ({
       <WidgetCard>
         <WidgetHead>
           <WidgetTitle>{t('sidebar.freeTitle')}</WidgetTitle>
-          <WidgetLink
-            type="button"
-            onClick={() => {
-              void navigate(AppRoute.DOCTOR_HOURS);
-            }}
-          >
-            {t('sidebar.scheduleLink')}
-          </WidgetLink>
-        </WidgetHead>
-        {freePreview.map((window) => (
-          <FreeRow key={window.id}>
-            <span>
-              {t('sidebar.freeRow', {
-                start: window.start,
-                end: window.end,
-                count: window.slotsCount,
+          {freeWindows.length > 0 ? (
+            <WidgetMeta>
+              {t(slotsCountKey('sidebar.freeMeta', freeSlotsTotal, i18n.language), {
+                count: freeSlotsTotal,
               })}
-            </span>
-          </FreeRow>
-        ))}
-        {hasMoreFree ? (
-          <FreeShowMore
-            type="button"
-            onClick={() => {
-              setFreeExpanded((open) => !open);
-            }}
-          >
-            {freeExpanded ? t('sidebar.freeShowLess') : t('sidebar.freeShowMore')}
-          </FreeShowMore>
-        ) : null}
+            </WidgetMeta>
+          ) : null}
+        </WidgetHead>
+        <FreeHint>{t('sidebar.freeHint')}</FreeHint>
+        {freeWindows.length === 0 ? (
+          <FreeEmptyNote>{t('sidebar.freeEmpty')}</FreeEmptyNote>
+        ) : (
+          <>
+            <FreeList>
+              {freePreview.map((window) => (
+                <FreeRow key={window.id}>
+                  <FreeRowTime>
+                    <FreeRowDot aria-hidden />
+                    {t('sidebar.freeRowTime', {
+                      start: window.start,
+                      end: window.end,
+                    })}
+                  </FreeRowTime>
+                  <FreeRowMeta>
+                    {t(slotsCountKey('sidebar.freeSlotsCount', window.slotsCount, i18n.language), {
+                      count: window.slotsCount,
+                    })}
+                  </FreeRowMeta>
+                </FreeRow>
+              ))}
+            </FreeList>
+            {hasMoreFree ? (
+              <FreeShowMore
+                type="button"
+                onClick={() => {
+                  setFreeExpanded((open) => !open);
+                }}
+              >
+                {freeExpanded ? t('sidebar.freeShowLess') : t('sidebar.freeShowMore')}
+              </FreeShowMore>
+            ) : null}
+          </>
+        )}
       </WidgetCard>
 
       <WidgetCard>

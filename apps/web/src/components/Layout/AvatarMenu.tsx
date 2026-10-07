@@ -114,7 +114,7 @@ export const AvatarMenu = () => {
         await logoutMutation.mutateAsync();
       }
       setPreviewRole(AppRole.GUEST);
-      void navigate(AppRoute.LOGIN);
+      void navigate(AppRoute.HOME);
     } catch (error) {
       toast.error(mapError(error));
     }

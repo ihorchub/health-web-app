@@ -93,7 +93,15 @@ i18n.on('languageChanged', (lng) => {
 document.documentElement.lang = i18n.language;
 
 export const setAppLanguage = async (language: AppLanguage) => {
-  await i18n.changeLanguage(language);
+  const next = language === AppLanguage.EN ? AppLanguage.EN : AppLanguage.UK;
+  if (i18n.language === next) {
+    return;
+  }
+
+  // Persist first, then full reload so every screen, formatter, and
+  // Accept-Language query refetch starts clean with the new locale.
+  window.localStorage.setItem(LANGUAGE_STORAGE_KEY, next);
+  window.location.reload();
 };
 
 export default i18n;

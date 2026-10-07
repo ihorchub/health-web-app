@@ -1,4 +1,6 @@
 import { Button } from '@mui/material';
+import { alpha } from '@mui/material/styles';
+
 import { styled } from '@/theme/styled';
 
 export const Page = styled('section')(({ theme }) => ({
@@ -174,6 +176,15 @@ export const NextVisitCard = styled('div')(({ theme }) => ({
       ? '0 1px 2px rgba(22, 62, 82, 0.06), 0 8px 24px rgba(22, 62, 82, 0.06)'
       : 'none',
   cursor: 'pointer',
+  transition: theme.transitions.create(['background-color', 'box-shadow', 'transform'], {
+    duration: theme.transitions.duration.shorter,
+  }),
+
+  '&:hover': {
+    backgroundColor: theme.palette.action.hover,
+    boxShadow: `0 4px 16px ${alpha(theme.palette.text.primary, theme.palette.mode === 'light' ? 0.1 : 0.3)}`,
+    transform: 'translateY(-1px)',
+  },
 
   [theme.breakpoints.up('sm')]: {
     padding: theme.spacing(2.75, 3),
@@ -265,11 +276,24 @@ export const OutlineButton = styled(Button)(({ theme }) => ({
   borderRadius: 8,
   fontWeight: 600,
   textTransform: 'none',
+  transition: theme.transitions.create(['background-color', 'border-color', 'box-shadow'], {
+    duration: theme.transitions.duration.shorter,
+  }),
+
+  '&:hover': {
+    backgroundColor: alpha(theme.palette.primary.main, theme.palette.mode === 'light' ? 0.08 : 0.16),
+    borderColor: theme.palette.primary.main,
+  },
 }));
 
 export const DangerOutlineButton = styled(OutlineButton)(({ theme }) => ({
   borderColor: theme.palette.error.main,
   color: theme.palette.error.main,
+
+  '&:hover': {
+    backgroundColor: alpha(theme.palette.error.main, theme.palette.mode === 'light' ? 0.08 : 0.16),
+    borderColor: theme.palette.error.main,
+  },
 }));
 
 export const HeroActions = styled('div')(({ theme }) => ({
@@ -364,11 +388,28 @@ export const FilterTab = styled('button')<{ $active?: boolean }>(({ theme, $acti
   padding: theme.spacing(1, 1.25),
   borderRadius: 12,
   border: `1px solid ${$active ? theme.palette.primary.main : theme.palette.divider}`,
-  backgroundColor: theme.palette.background.paper,
+  backgroundColor: $active
+    ? alpha(theme.palette.primary.main, theme.palette.mode === 'light' ? 0.06 : 0.12)
+    : theme.palette.background.paper,
   cursor: 'pointer',
   textAlign: 'left',
   boxShadow:
     theme.palette.mode === 'light' ? '0 1px 3px rgba(22, 62, 82, 0.04)' : 'none',
+  transition: theme.transitions.create(
+    ['background-color', 'border-color', 'box-shadow', 'transform'],
+    { duration: theme.transitions.duration.shorter },
+  ),
+
+  '&:hover': {
+    backgroundColor: $active
+      ? alpha(theme.palette.primary.main, theme.palette.mode === 'light' ? 0.1 : 0.18)
+      : theme.palette.action.hover,
+    borderColor: $active
+      ? theme.palette.primary.main
+      : alpha(theme.palette.primary.main, 0.45),
+    boxShadow: `0 2px 8px ${alpha(theme.palette.text.primary, theme.palette.mode === 'light' ? 0.08 : 0.28)}`,
+    transform: 'translateY(-1px)',
+  },
 
   [theme.breakpoints.up('sm')]: {
     gap: 10,
@@ -502,6 +543,23 @@ export const VisitRow = styled('div')<{
         ? '0 1px 2px rgba(22, 62, 82, 0.06), 0 8px 24px rgba(22, 62, 82, 0.06)'
         : 'none',
   cursor: 'pointer',
+  transition: theme.transitions.create(
+    ['background-color', 'border-color', 'box-shadow', 'transform'],
+    { duration: theme.transitions.duration.shorter },
+  ),
+
+  '&:hover': {
+    backgroundColor:
+      $variant === 'pending' || $variant === 'reserved'
+        ? alpha(theme.palette.primary.main, theme.palette.mode === 'light' ? 0.06 : 0.12)
+        : theme.palette.action.hover,
+    borderColor:
+      $variant === 'pending' || $variant === 'reserved'
+        ? alpha(theme.palette.primary.main, 0.35)
+        : alpha(theme.palette.primary.main, 0.35),
+    boxShadow: `0 4px 14px ${alpha(theme.palette.text.primary, theme.palette.mode === 'light' ? 0.1 : 0.3)}`,
+    transform: 'translateY(-1px)',
+  },
 
   [theme.breakpoints.up('md')]: {
     flexDirection: 'row',
@@ -718,6 +776,15 @@ export const WidgetLink = styled('button')(({ theme }) => ({
   fontSize: 13,
   fontWeight: 600,
   color: theme.palette.primary.main,
+  transition: theme.transitions.create(['color', 'opacity'], {
+    duration: theme.transitions.duration.shorter,
+  }),
+
+  '&:hover': {
+    color: theme.palette.primary.dark,
+    textDecoration: 'underline',
+    textUnderlineOffset: 2,
+  },
 }));
 
 export const WeekDays = styled('div')(({ theme }) => ({
@@ -737,8 +804,30 @@ export const WeekDay = styled('button')<{ $active?: boolean }>(({ theme, $active
   borderRadius: 12,
   border: $active ? `1.5px solid ${theme.palette.primary.main}` : '1.5px solid transparent',
   cursor: 'pointer',
-  backgroundColor: theme.palette.background.default,
+  backgroundColor: $active
+    ? alpha(theme.palette.primary.main, theme.palette.mode === 'light' ? 0.08 : 0.14)
+    : theme.palette.background.default,
   color: theme.palette.text.primary,
+  transition: theme.transitions.create(
+    ['background-color', 'border-color', 'box-shadow', 'transform'],
+    { duration: theme.transitions.duration.shorter },
+  ),
+
+  '&:hover': {
+    backgroundColor: $active
+      ? alpha(theme.palette.primary.main, theme.palette.mode === 'light' ? 0.14 : 0.22)
+      : theme.palette.action.hover,
+    borderColor: $active
+      ? theme.palette.primary.main
+      : alpha(theme.palette.primary.main, theme.palette.mode === 'light' ? 0.45 : 0.55),
+    boxShadow: `0 2px 8px ${alpha(theme.palette.text.primary, theme.palette.mode === 'light' ? 0.08 : 0.28)}`,
+    transform: 'translateY(-1px)',
+  },
+
+  '&:active': {
+    transform: 'translateY(0)',
+    boxShadow: 'none',
+  },
 }));
 
 export const WeekDayLabel = styled('span')<{ $active?: boolean }>(({ theme, $active }) => ({
@@ -832,13 +921,44 @@ export const PendingList = styled('div')(({ theme }) => ({
   width: '100%',
 }));
 
+export const FreeHint = styled('p')(({ theme }) => ({
+  margin: 0,
+  fontFamily: theme.typography.fontFamily,
+  fontSize: 12,
+  lineHeight: '16px',
+  fontWeight: 500,
+  color: theme.palette.text.secondary,
+}));
+
+export const FreeList = styled('div')(({ theme }) => ({
+  display: 'flex',
+  flexDirection: 'column',
+  borderRadius: 12,
+  border: `1px solid ${theme.palette.divider}`,
+  backgroundColor: theme.palette.background.default,
+  overflow: 'hidden',
+  cursor: 'default',
+  userSelect: 'none',
+}));
+
 export const FreeRow = styled('div')(({ theme }) => ({
   display: 'flex',
   justifyContent: 'space-between',
   alignItems: 'center',
+  gap: theme.spacing(1.5),
   padding: theme.spacing(1.25, 1.5),
-  borderRadius: 12,
-  backgroundColor: theme.palette.background.default,
+  boxSizing: 'border-box',
+  borderBottom: `1px solid ${theme.palette.divider}`,
+
+  '&:last-child': {
+    borderBottom: 'none',
+  },
+}));
+
+export const FreeRowTime = styled('span')(({ theme }) => ({
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: theme.spacing(1),
   fontFamily: theme.typography.fontFamily,
   fontSize: 14,
   lineHeight: '20px',
@@ -846,16 +966,54 @@ export const FreeRow = styled('div')(({ theme }) => ({
   color: theme.palette.text.primary,
 }));
 
+export const FreeRowDot = styled('span')(({ theme }) => ({
+  width: 6,
+  height: 6,
+  borderRadius: '50%',
+  flexShrink: 0,
+  backgroundColor: alpha(theme.palette.text.secondary, 0.55),
+}));
+
+export const FreeRowMeta = styled('span')(({ theme }) => ({
+  fontFamily: theme.typography.fontFamily,
+  fontSize: 12,
+  lineHeight: '16px',
+  fontWeight: 500,
+  color: theme.palette.text.secondary,
+  flexShrink: 0,
+}));
+
+export const FreeEmptyNote = styled('p')(({ theme }) => ({
+  margin: 0,
+  padding: theme.spacing(1.25, 1.5),
+  borderRadius: 12,
+  border: `1px dashed ${theme.palette.divider}`,
+  backgroundColor: 'transparent',
+  fontFamily: theme.typography.fontFamily,
+  fontSize: 13,
+  lineHeight: '18px',
+  color: theme.palette.text.secondary,
+}));
+
 export const FreeShowMore = styled('button')(({ theme }) => ({
   border: 'none',
   background: 'none',
-  padding: theme.spacing(0.5, 0),
+  padding: theme.spacing(0.25, 0),
   cursor: 'pointer',
   alignSelf: 'flex-start',
   fontFamily: theme.typography.fontFamily,
-  fontSize: 13,
+  fontSize: 12,
   fontWeight: 600,
-  color: theme.palette.primary.main,
+  color: theme.palette.text.secondary,
+  textDecoration: 'underline',
+  textUnderlineOffset: 2,
+  transition: theme.transitions.create(['color'], {
+    duration: theme.transitions.duration.shorter,
+  }),
+
+  '&:hover': {
+    color: theme.palette.primary.main,
+  },
 }));
 
 export const PendingRow = styled('div')(({ theme }) => ({
@@ -894,7 +1052,7 @@ export const QuickLink = styled('button')(({ theme }) => ({
   gap: theme.spacing(1.5),
   width: '100%',
   padding: theme.spacing(1.25, 1.5),
-  border: 'none',
+  border: `1px solid transparent`,
   borderRadius: 12,
   backgroundColor: theme.palette.background.default,
   cursor: 'pointer',
@@ -904,6 +1062,17 @@ export const QuickLink = styled('button')(({ theme }) => ({
   fontWeight: 600,
   color: theme.palette.text.primary,
   textAlign: 'left',
+  transition: theme.transitions.create(
+    ['background-color', 'border-color', 'box-shadow', 'transform'],
+    { duration: theme.transitions.duration.shorter },
+  ),
+
+  '&:hover': {
+    backgroundColor: theme.palette.action.hover,
+    borderColor: alpha(theme.palette.primary.main, 0.35),
+    boxShadow: `0 2px 8px ${alpha(theme.palette.text.primary, theme.palette.mode === 'light' ? 0.08 : 0.28)}`,
+    transform: 'translateY(-1px)',
+  },
 }));
 
 export const EmptyBlock = styled('div')(({ theme }) => ({
@@ -913,10 +1082,44 @@ export const EmptyBlock = styled('div')(({ theme }) => ({
   textAlign: 'center',
 }));
 
+export const VisitsEmptyState = styled('div')(({ theme }) => ({
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: theme.spacing(2),
+  minHeight: 280,
+  padding: theme.spacing(5, 3),
+  borderRadius: 16,
+  border: `1px dashed ${theme.palette.divider}`,
+  backgroundColor: theme.palette.background.paper,
+  textAlign: 'center',
+}));
+
+export const VisitsEmptyTitle = styled('div')(({ theme }) => ({
+  margin: 0,
+  fontFamily: theme.typography.fontFamily,
+  fontSize: 20,
+  lineHeight: '28px',
+  fontWeight: 700,
+  color: theme.palette.text.primary,
+}));
+
+export const VisitsEmptyBody = styled('p')(({ theme }) => ({
+  margin: 0,
+  maxWidth: 360,
+  fontFamily: theme.typography.fontFamily,
+  fontSize: 15,
+  lineHeight: '22px',
+  fontWeight: 500,
+  color: theme.palette.text.secondary,
+}));
+
 export const ShowMore = styled('button')(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
+  gap: theme.spacing(0.75),
   width: '100%',
   minHeight: 44,
   marginTop: theme.spacing(0.5),
@@ -929,6 +1132,17 @@ export const ShowMore = styled('button')(({ theme }) => ({
   lineHeight: '20px',
   fontWeight: 600,
   color: theme.palette.primary.main,
+  transition: theme.transitions.create(
+    ['background-color', 'border-color', 'box-shadow', 'transform'],
+    { duration: theme.transitions.duration.shorter },
+  ),
+
+  '&:hover': {
+    backgroundColor: alpha(theme.palette.primary.main, theme.palette.mode === 'light' ? 0.08 : 0.14),
+    borderColor: theme.palette.primary.main,
+    boxShadow: `0 2px 8px ${alpha(theme.palette.text.primary, theme.palette.mode === 'light' ? 0.08 : 0.28)}`,
+    transform: 'translateY(-1px)',
+  },
 }));
 
 export const SlotPicker = styled('div')(({ theme }) => ({
@@ -949,6 +1163,17 @@ export const SlotChip = styled('button')<{ $active?: boolean }>(({ theme, $activ
   fontSize: 13,
   lineHeight: '16px',
   fontWeight: 600,
+  transition: theme.transitions.create(['background-color', 'border-color', 'color'], {
+    duration: theme.transitions.duration.shorter,
+  }),
+
+  '&:hover': {
+    backgroundColor: $active
+      ? theme.palette.primary.dark
+      : alpha(theme.palette.primary.main, theme.palette.mode === 'light' ? 0.08 : 0.16),
+    borderColor: theme.palette.primary.main,
+    color: $active ? theme.palette.primary.contrastText : theme.palette.primary.main,
+  },
 }));
 
 export const ModalPaper = styled('div')(({ theme }) => ({
@@ -1010,6 +1235,14 @@ export const ModalCloseButton = styled('button')(({ theme }) => ({
   backgroundColor: theme.palette.action.selected,
   color: theme.palette.text.secondary,
   padding: 0,
+  transition: theme.transitions.create(['background-color', 'color'], {
+    duration: theme.transitions.duration.shorter,
+  }),
+
+  '&:hover': {
+    backgroundColor: theme.palette.action.hover,
+    color: theme.palette.text.primary,
+  },
 }));
 
 export const ModalOverline = styled('span')(({ theme }) => ({
@@ -1300,6 +1533,65 @@ export const SoftStatusPill = styled('span')<{
   };
 });
 
+export const DayInfoSection = styled('div')(({ theme }) => ({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: theme.spacing(1),
+  marginTop: theme.spacing(1),
+}));
+
+export const DayInfoSectionTitle = styled('div')(({ theme }) => ({
+  fontFamily: theme.typography.fontFamily,
+  fontSize: 12,
+  lineHeight: '16px',
+  fontWeight: 700,
+  letterSpacing: '0.04em',
+  textTransform: 'uppercase',
+  color: theme.palette.text.secondary,
+}));
+
+export const DayInfoWindowRow = styled('div')(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: theme.spacing(1.5),
+  width: '100%',
+  padding: theme.spacing(1.25, 1.5),
+  borderRadius: 12,
+  border: `1px solid ${theme.palette.divider}`,
+  backgroundColor: theme.palette.background.default,
+  boxSizing: 'border-box',
+}));
+
+export const DayInfoWindowTime = styled('span')(({ theme }) => ({
+  fontFamily: theme.typography.fontFamily,
+  fontSize: 15,
+  lineHeight: '22px',
+  fontWeight: 700,
+  color: theme.palette.text.primary,
+}));
+
+export const DayInfoWindowMeta = styled('span')(({ theme }) => ({
+  fontFamily: theme.typography.fontFamily,
+  fontSize: 13,
+  lineHeight: '18px',
+  fontWeight: 500,
+  color: theme.palette.text.secondary,
+  flexShrink: 0,
+}));
+
+export const DayInfoNote = styled('p')(({ theme }) => ({
+  margin: 0,
+  padding: theme.spacing(1.5),
+  borderRadius: 12,
+  backgroundColor: theme.palette.background.default,
+  border: `1px solid ${theme.palette.divider}`,
+  fontFamily: theme.typography.fontFamily,
+  fontSize: 14,
+  lineHeight: '20px',
+  color: theme.palette.text.secondary,
+}));
+
 export const ScheduleSlotRow = styled('button')<{
   $variant?: 'booked' | 'pending' | 'cancelled' | 'free';
 }>(({ theme, $variant = 'booked' }) => {
@@ -1334,11 +1626,26 @@ export const ScheduleSlotRow = styled('button')<{
     width: '100%',
     padding: theme.spacing(1.5, 1.75),
     borderRadius: 12,
-    cursor: 'pointer',
+    cursor: $variant === 'free' ? 'default' : 'pointer',
     textAlign: 'left',
     font: 'inherit',
     boxSizing: 'border-box',
+    transition: theme.transitions.create(
+      ['background-color', 'border-color', 'box-shadow', 'transform'],
+      { duration: theme.transitions.duration.shorter },
+    ),
     ...variants[$variant],
+
+    ...($variant !== 'free'
+      ? {
+          '&:hover': {
+            backgroundColor: theme.palette.action.hover,
+            borderColor: alpha(theme.palette.primary.main, 0.45),
+            boxShadow: `0 2px 8px ${alpha(theme.palette.text.primary, theme.palette.mode === 'light' ? 0.08 : 0.28)}`,
+            transform: 'translateY(-1px)',
+          },
+        }
+      : {}),
 
     [theme.breakpoints.up('sm')]: {
       flexWrap: 'nowrap',
@@ -1540,30 +1847,32 @@ export const VisitCardContact = styled('p')(({ theme }) => ({
 export const VisitCardActions = styled('div')(({ theme }) => ({
   display: 'flex',
   flexDirection: 'column',
-  gap: 10,
+  gap: theme.spacing(1.25),
   width: '100%',
   paddingInline: theme.spacing(2),
   paddingBottom: theme.spacing(2.5),
   boxSizing: 'border-box',
 
   '& > .MuiButton-root': {
+    flex: '1 1 auto',
     width: '100%',
+    minHeight: 48,
+    height: 48,
+    borderRadius: 12,
+    boxSizing: 'border-box',
+    textTransform: 'none',
+    fontWeight: 600,
   },
 
   [theme.breakpoints.up('sm')]: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
+    alignItems: 'stretch',
     paddingInline: theme.spacing(3.5),
     paddingBottom: theme.spacing(3),
 
-    '& > .MuiButton-root:nth-of-type(1), & > .MuiButton-root:nth-of-type(2)': {
+    '& > .MuiButton-root': {
+      width: 'auto',
       flex: '1 1 0',
-      width: 'auto',
-    },
-
-    '& > .MuiButton-root:nth-of-type(3)': {
-      flex: '0 0 auto',
-      width: 'auto',
     },
   },
 }));
