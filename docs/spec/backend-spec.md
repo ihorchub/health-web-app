@@ -885,7 +885,7 @@ Day nav UI only — no API change.
 ### Contract
 
 - In: GET schedule; PATCH zone-appropriate fields; POST bulk-cancel confirm payload
-- Out: 3-month schedule with Zone A/B metadata, frozen flags, `basePrice`, `promoPrice`, `visitDurationMinutes`, `supportedFormats`, working hours template, vacation days
+- Out: 3-month schedule with Zone A/B metadata, frozen flags, default `basePrice` / `promoPrice` / `visitDurationMinutes` / `supportedFormats` / weekly template, `vacationDates[]`, and `zoneBOverrides[]` (range plans)
 - Errors: `SCHEDULE_FORBIDDEN`, `SCHEDULE_ZONE_FROZEN`, `SCHEDULE_VALIDATION_FAILED`, `BULK_CANCEL_INVALID_SCOPE`
 - Auth: doctor, self only
 
@@ -897,15 +897,17 @@ Day nav UI only — no API change.
 
 | Method | Path | Auth | Notes |
 |---|---|---|---|
-| `GET` | `/api/v1/doctors/me/schedule` | doctor | Full 3-month view + zone boundaries |
-| `PATCH` | `/api/v1/doctors/me/schedule` | doctor | Zone B: hours, lunch, duration, vacation, format, `basePriceEffectiveFrom`, `promoPrice`, `promoValidUntil` (optional date) |
+| `GET` | `/api/v1/doctors/me/schedule` | doctor | Full 3-month view + zone boundaries + `zoneBOverrides` |
+| `PATCH` | `/api/v1/doctors/me/schedule` | doctor | Defaults and/or one Zone B range override; optional promo fields |
 | `POST` | `/api/v1/doctors/me/schedule/bulk-cancel` | doctor | `{ scope, from?, to?, confirm: true }` |
 
 **Bulk-cancel scopes:** `whole_day`, `rest_of_day`, `rest_of_week`, `custom_range` — all dates within Zone A only.
 
 **Zone A:** reject PATCH that changes hours, duration, or base price. Allow bulk-cancel + vacation mark when day empty.
 
-**Price:** base frozen in Zone A; new base applies from `first day after Zone A`. **Promo:** optional `promo_price` + `promo_valid_until` (inclusive, Kyiv date); effective display = promo when active else base (`tech-stack.md`).
+**Zone B range override (`zoneBOverride`):** `{ from, to, supportedFormats?, visitDurationMinutes?, workStart?, workEnd?, lunchStart?, lunchEnd?, basePriceUah?, dayOff? }`. Dates must lie inside Zone B. Upsert replaces any overlapping previous override for those dates. `dayOff: true` expands into `vacationDates`; `dayOff: false` clears vacation on that range. Defaults (`weeklyTemplate`, global format/duration/base price) apply only where no override covers the day.
+
+**Price:** base frozen in Zone A; range `basePriceUah` in Zone B is planning for those days. **Promo:** optional `promo_price` + `promo_valid_until` (inclusive, Kyiv date); effective display = promo when active else effective base for the day (`tech-stack.md`).
 
 ### Invariants
 

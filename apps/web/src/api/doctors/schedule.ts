@@ -22,6 +22,19 @@ export type WeeklyTemplate = {
   sunday: WeeklyDayTemplate;
 };
 
+export type ZoneBOverride = {
+  from: string;
+  to: string;
+  supportedFormats?: Array<'offline' | 'online'>;
+  visitDurationMinutes?: number;
+  workStart?: string;
+  workEnd?: string;
+  lunchStart?: string;
+  lunchEnd?: string;
+  basePriceUah?: number;
+  dayOff?: boolean;
+};
+
 export interface DoctorScheduleResponse {
   doctorUserId: string;
   basePriceUah: number;
@@ -30,6 +43,7 @@ export interface DoctorScheduleResponse {
   supportedFormats: Array<'offline' | 'online'>;
   weeklyTemplate: WeeklyTemplate;
   vacationDates: string[];
+  zoneBOverrides: ZoneBOverride[];
   visibleInSearch: boolean;
   visitDurationMinutes: number;
   specialty?: string;
@@ -53,6 +67,7 @@ export type PatchDoctorScheduleBody = {
   basePriceEffectiveFrom?: string;
   promoPriceUah?: number | null;
   promoValidUntil?: string | null;
+  zoneBOverride?: ZoneBOverride;
 };
 
 export type BulkCancelScope = 'whole_day' | 'rest_of_day' | 'rest_of_week' | 'custom_range';

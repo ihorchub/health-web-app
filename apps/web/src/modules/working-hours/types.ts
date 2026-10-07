@@ -19,6 +19,18 @@ export interface ZoneBFormState extends ZoneAParams {
   customDuration?: number;
 }
 
+/** Read-only snapshot of a Zone B range plan. */
+export type ZoneBSavedInfo = ZoneAParams;
+
+/** One saved Zone B override shown in the plans section below the zone panels. */
+export type ZoneBPlannedRange = {
+  from: string;
+  to: string;
+  label: string;
+  plan: ZoneBSavedInfo;
+  dayOff: boolean;
+};
+
 export interface WorkingHoursSettings {
   zoneA: ZoneAParams;
   zoneB: ZoneBFormState;
@@ -26,4 +38,5 @@ export interface WorkingHoursSettings {
   zoneAEndYmd: string;
   zoneBStartYmd: string;
   appointmentDays: string[];
+  vacationDates: string[];
 }

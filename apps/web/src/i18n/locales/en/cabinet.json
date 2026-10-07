@@ -36,6 +36,8 @@
     "count": "{{count}} records",
     "leaveReview": "Leave a review",
     "yourReview": "Your review",
+    "showMore": "Show more",
+    "showLess": "Show less",
     "emptyTitle": "No past visits yet",
     "emptyBody": "Completed appointments will appear here."
   },
@@ -86,6 +88,13 @@
     "howTitle": "How to book",
     "howBody": "Find a doctor → choose a time → confirm. All online in a few minutes.",
     "toSearch": "To search ›"
+  },
+  "reviewsList": {
+    "title": "Reviews list",
+    "pendingTitle": "Awaiting your rating · {{count}}",
+    "leftTitle": "Your reviews · {{count}}",
+    "rating": "Rating {{rating}} of 5",
+    "empty": "No reviews or visits awaiting a rating yet."
   },
   "reviewModal": {
     "eyebrow": "Visit review",

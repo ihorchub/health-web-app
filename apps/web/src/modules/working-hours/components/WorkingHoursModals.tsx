@@ -4,8 +4,7 @@ import {
   IconInfoCircle,
   IconX,
 } from '@tabler/icons-react';
-import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import { styled } from '@/theme/styled';
 
 import { SheetDialog } from '@/components/Dialog/SheetDialog';
@@ -13,8 +12,8 @@ import type { ZoneBFormState } from '@/modules/working-hours/types';
 import {
   DangerModalButton,
   DateRangeField,
-  DayChip,
   DayChips,
+  DayInfoChip,
   DaysBlock,
   FromPill,
   GhostModalButton,
@@ -22,6 +21,7 @@ import {
   MintDot,
   ModalActions,
   ModalBody,
+  ModalBodyStrong,
   ModalCloseButton,
   ModalHeaderRow,
   ModalPaper,
@@ -39,7 +39,13 @@ import {
   Callout,
 } from '@/modules/working-hours/styles';
 
-export type WorkingHoursModalKind = 'bulk' | 'vacationA' | 'vacationB' | 'saveB' | null;
+export type WorkingHoursModalKind =
+  | 'bulk'
+  | 'vacationA'
+  | 'vacationB'
+  | 'vacationRemove'
+  | 'saveB'
+  | null;
 
 interface WorkingHoursModalsProps {
   kind: WorkingHoursModalKind;
@@ -49,6 +55,9 @@ interface WorkingHoursModalsProps {
   bulkCount: number;
   emptiedDays: string[];
   vacationBRangeLabel: string;
+  zoneBSaveRangeLabel: string;
+  zoneBPriceFromLabel: string;
+  zoneBWorkingDaysLabel: string;
   zoneBForm: ZoneBFormState;
   formatLabel: string;
   onClose: () => void;
@@ -79,15 +88,18 @@ export const WorkingHoursModals = ({
   bulkCount,
   emptiedDays,
   vacationBRangeLabel,
+  zoneBSaveRangeLabel,
+  zoneBPriceFromLabel,
+  zoneBWorkingDaysLabel,
   zoneBForm,
   formatLabel,
   onClose,
   onConfirm,
 }: WorkingHoursModalsProps) => {
   const { t } = useTranslation('workingHours');
-  const [selectedDay, setSelectedDay] = useState(0);
   const open = kind !== null;
-  const maxWidth = kind === 'saveB' ? 520 : kind === 'vacationA' ? 480 : 500;
+  const maxWidth =
+    kind === 'saveB' ? 520 : kind === 'vacationA' || kind === 'vacationRemove' ? 480 : 500;
 
   return (
     <ModalShell open={open} onClose={onClose} $maxWidth={maxWidth}>
@@ -135,17 +147,8 @@ export const WorkingHoursModals = ({
             <DaysBlock>
               <OverlineLabel>{t('modals.vacationADaysLabel')}</OverlineLabel>
               <DayChips>
-                {emptiedDays.map((day, index) => (
-                  <DayChip
-                    key={day}
-                    type="button"
-                    $active={selectedDay === index}
-                    onClick={() => {
-                      setSelectedDay(index);
-                    }}
-                  >
-                    {day}
-                  </DayChip>
+                {emptiedDays.map((day) => (
+                  <DayInfoChip key={day}>{day}</DayInfoChip>
                 ))}
               </DayChips>
             </DaysBlock>
@@ -161,6 +164,40 @@ export const WorkingHoursModals = ({
               </OutlineModalButton>
               <PrimaryModalButton variant="contained" color="primary" onClick={onConfirm}>
                 {t('modals.vacationAConfirm')}
+              </PrimaryModalButton>
+            </ModalActions>
+          </>
+        ) : null}
+
+        {kind === 'vacationRemove' ? (
+          <>
+            <ModalHeaderRow>
+              <ModalTitle>{t('modals.vacationRemoveTitle')}</ModalTitle>
+              <ModalCloseButton type="button" aria-label="close" onClick={onClose}>
+                <IconX size={16} />
+              </ModalCloseButton>
+            </ModalHeaderRow>
+            <ModalBody>{t('modals.vacationRemoveBody')}</ModalBody>
+            <DaysBlock>
+              <OverlineLabel>{t('modals.vacationRemoveDaysLabel')}</OverlineLabel>
+              <DayChips>
+                {emptiedDays.map((day) => (
+                  <DayInfoChip key={day}>{day}</DayInfoChip>
+                ))}
+              </DayChips>
+            </DaysBlock>
+            <Callout $tone="mint">
+              <InfoIconBubble $tone="mint">
+                <IconAlertCircle size={12} color="currentColor" />
+              </InfoIconBubble>
+              <span>{t('modals.vacationRemoveNote')}</span>
+            </Callout>
+            <ModalActions>
+              <OutlineModalButton variant="outlined" onClick={onClose}>
+                {t('modals.cancel')}
+              </OutlineModalButton>
+              <PrimaryModalButton variant="contained" color="primary" onClick={onConfirm}>
+                {t('modals.vacationRemoveConfirm')}
               </PrimaryModalButton>
             </ModalActions>
           </>
@@ -201,8 +238,21 @@ export const WorkingHoursModals = ({
                 <IconX size={18} />
               </ModalCloseButton>
             </ModalHeaderRow>
-            <ModalBody>{t('modals.saveBBody', { date: zoneBStartLabel })}</ModalBody>
+            <ModalBody>
+              <Trans
+                t={t}
+                i18nKey="modals.saveBBody"
+                values={{
+                  range: zoneBSaveRangeLabel || t('modals.saveBRangeFallback'),
+                }}
+                components={{ bold: <ModalBodyStrong /> }}
+              />
+            </ModalBody>
             <SummaryList>
+              <SummaryListRow>
+                <SummaryListLabel>{t('modals.saveBWorkingDays')}</SummaryListLabel>
+                <SummaryListValue>{zoneBWorkingDaysLabel}</SummaryListValue>
+              </SummaryListRow>
               <SummaryListRow>
                 <SummaryListLabel>{t('modals.saveBHours')}</SummaryListLabel>
                 <SummaryListValue>
@@ -231,18 +281,18 @@ export const WorkingHoursModals = ({
                 <SummaryListValue>
                   {t('modals.saveBPriceValue', {
                     price: zoneBForm.priceUah,
-                    date: zoneBShortLabel,
+                    date: zoneBPriceFromLabel || zoneBShortLabel,
                   })}
                 </SummaryListValue>
               </SummaryListRow>
             </SummaryList>
             <WarnCallout $tone="warn">
               <InfoIconBubble $tone="pink">
-                <IconInfoCircle size={16} />
+                <IconInfoCircle size={14} />
               </InfoIconBubble>
               <span>{t('modals.saveBNote')}</span>
             </WarnCallout>
-            <ModalActions>
+            <ModalActions $spread>
               <GhostModalButton onClick={onClose}>{t('modals.back')}</GhostModalButton>
               <PrimaryModalButton variant="contained" color="primary" onClick={onConfirm}>
                 {t('modals.saveBConfirm')}

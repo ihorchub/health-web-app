@@ -29,10 +29,20 @@ import { formatTime } from '@/modules/patient-room/utils/formatCabinetDate';
 
 interface DoctorVisitRowProps {
   visit: DoctorDayVisit;
+  showDate?: boolean;
   onComplete?: () => void;
   onCancel?: () => void;
   onOpen?: () => void;
 }
+
+const formatShortDateTime = (iso: string, locale: string) =>
+  new Intl.DateTimeFormat(locale === 'uk' ? 'uk-UA' : 'en-GB', {
+    day: 'numeric',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: 'Europe/Kyiv',
+  }).format(new Date(iso));
 
 const rowVariant = (visit: DoctorDayVisit) => {
   if (visit.status === 'cancelled') {
@@ -53,6 +63,7 @@ const statusTone = (visit: DoctorDayVisit): 'accent' | 'muted' | 'error' => {
 
 export const DoctorVisitRow = ({
   visit,
+  showDate = false,
   onComplete,
   onCancel,
   onOpen,
@@ -62,6 +73,9 @@ export const DoctorVisitRow = ({
     visit.status === 'completed' ||
     visit.status === 'cancelled' ||
     visit.status === 'rescheduled';
+  const timeLabel = showDate
+    ? formatShortDateTime(visit.startsAt, i18n.language)
+    : formatTime(visit.startsAt, i18n.language);
 
   return (
     <VisitRow
@@ -76,7 +90,7 @@ export const DoctorVisitRow = ({
         }
       }}
     >
-      <RowTime $muted={mutedTime}>{formatTime(visit.startsAt, i18n.language)}</RowTime>
+      <RowTime $muted={mutedTime}>{timeLabel}</RowTime>
 
       <RowMain>
         <RowTitleLine>

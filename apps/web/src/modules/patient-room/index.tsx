@@ -1,3 +1,4 @@
+import { IconChevronDown, IconChevronUp } from '@tabler/icons-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -20,6 +21,7 @@ import { CabinetStatePanel } from '@/modules/patient-room/components/CabinetStat
 import { DoctorCarouselSection } from '@/modules/patient-room/components/DoctorCarouselSection';
 import { PendingDecisionBanner } from '@/modules/patient-room/components/PendingDecisionBanner';
 import { ReschedulePendingDialog } from '@/modules/patient-room/components/ReschedulePendingDialog';
+import { MyReviewsDialog } from '@/modules/patient-room/components/MyReviewsDialog';
 import { NextVisitHero } from '@/modules/patient-room/components/NextVisitHero';
 import { VisitDetailDialog } from '@/modules/patient-room/components/VisitDetailDialog';
 import { WriteReviewDialog } from '@/modules/patient-room/components/WriteReviewDialog';
@@ -41,6 +43,7 @@ import {
   SectionHead,
   SectionMeta,
   SectionTitle,
+  ShowMoreButton,
   ShowMoreLink,
   SideColumn,
 } from '@/modules/patient-room/styles';
@@ -58,6 +61,7 @@ import { Popups } from '@/utils/popupUtils/popupTypes';
 import { AppRoute, doctorProfilePath } from '@/utils/routeUtils/routes';
 
 const UPCOMING_PREVIEW = 2;
+const PAST_PREVIEW = 2;
 
 const isUpcomingGroup = (status: CabinetAppointment['status']) =>
   status === 'upcoming' || status === 'reschedule_pending';
@@ -93,6 +97,8 @@ export const PatientCabinetPage = () => {
     null,
   );
   const [showAllUpcoming, setShowAllUpcoming] = useState(false);
+  const [showAllPast, setShowAllPast] = useState(false);
+  const [reviewsListOpen, setReviewsListOpen] = useState(false);
 
   const favouriteIds = useMemo(
     () => new Set(favourites.map((doctor) => doctor.id)),
@@ -116,7 +122,14 @@ export const PatientCabinetPage = () => {
     [appointments],
   );
   const pendingVisits = upcoming.filter((item) => item.status === 'reschedule_pending');
-  const past = appointments.filter((item) => !isUpcomingGroup(item.status));
+  const past = useMemo(
+    () =>
+      [...appointments.filter((item) => !isUpcomingGroup(item.status))].sort((a, b) =>
+        b.startsAt.localeCompare(a.startsAt),
+      ),
+    [appointments],
+  );
+  const listPast = showAllPast ? past : past.slice(0, PAST_PREVIEW);
   const nextVisit = upcoming[0] ?? null;
   const restUpcoming = upcoming.slice(1);
   const listUpcoming = showAllUpcoming
@@ -412,19 +425,40 @@ export const PatientCabinetPage = () => {
                 </SectionHead>
 
                 {past.length > 0 ? (
-                  past.map((item) => (
-                    <AppointmentRow
-                      key={item.id}
-                      appointment={item}
-                      variant="past"
-                      onOpen={() => {
-                        setDetailVisit(item);
-                      }}
-                      onLeaveReview={() => {
-                        setReviewVisitId(item.id);
-                      }}
-                    />
-                  ))
+                  <>
+                    {listPast.map((item) => (
+                      <AppointmentRow
+                        key={item.id}
+                        appointment={item}
+                        variant="past"
+                        onOpen={() => {
+                          setDetailVisit(item);
+                        }}
+                        onLeaveReview={() => {
+                          setReviewVisitId(item.id);
+                        }}
+                      />
+                    ))}
+                    {past.length > PAST_PREVIEW ? (
+                      <ShowMoreButton
+                        type="button"
+                        variant="outlined"
+                        color="inherit"
+                        endIcon={
+                          showAllPast ? (
+                            <IconChevronUp size={18} />
+                          ) : (
+                            <IconChevronDown size={18} />
+                          )
+                        }
+                        onClick={() => {
+                          setShowAllPast((value) => !value);
+                        }}
+                      >
+                        {showAllPast ? t('past.showLess') : t('past.showMore')}
+                      </ShowMoreButton>
+                    ) : null}
+                  </>
                 ) : (
                   <EmptyBlock>
                     <EmptyTitle>{t('past.emptyTitle')}</EmptyTitle>
@@ -482,7 +516,7 @@ export const PatientCabinetPage = () => {
               onBookPromo={sidebarBookPromo}
               onOpenDay={sidebarOpenDay}
               onViewReviews={() => {
-                pastSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                setReviewsListOpen(true);
               }}
             />
           </SideColumn>
@@ -509,6 +543,18 @@ export const PatientCabinetPage = () => {
         onAccept={handleAcceptProposal}
         onPickAnother={handlePickAnother}
         onCancelVisit={handleCancelVisit}
+      />
+
+      <MyReviewsDialog
+        open={reviewsListOpen}
+        appointments={appointments}
+        onClose={() => {
+          setReviewsListOpen(false);
+        }}
+        onLeaveReview={(visit) => {
+          setReviewsListOpen(false);
+          setReviewVisitId(visit.id);
+        }}
       />
 
       <VisitDetailDialog

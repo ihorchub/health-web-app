@@ -8,6 +8,7 @@ import {
   defaultWeeklyTemplate,
   doctorSchedules,
   type WeeklyTemplate,
+  type ZoneBOverride,
 } from "../db/schema/doctor-schedule.js";
 import { doctorProfiles } from "../db/schema/index.js";
 import {
@@ -84,6 +85,7 @@ export async function getDoctorScheduleForUser(doctorUserId: string, now: Date =
     supportedFormats: schedule.supportedFormats,
     weeklyTemplate: schedule.weeklyTemplate as WeeklyTemplate,
     vacationDates: schedule.vacationDates ?? [],
+    zoneBOverrides: (schedule.zoneBOverrides ?? []) as ZoneBOverride[],
     visibleInSearch: schedule.visibleInSearch,
     visitDurationMinutes: profile?.visitDurationMinutes ?? 30,
     specialty: profile?.specialty,
@@ -99,8 +101,25 @@ export async function getDoctorScheduleForUser(doctorUserId: string, now: Date =
   };
 }
 
+const listIsoInclusive = (from: CalendarDate, to: CalendarDate): string[] => {
+  const out: string[] = [];
+  let cursor = from;
+  while (compareCalendarDates(cursor, to) <= 0) {
+    out.push(formatCalendarDate(cursor));
+    cursor = addCalendarDays(cursor, 1);
+  }
+  return out;
+};
+
+const rangesOverlap = (a: ZoneBOverride, b: ZoneBOverride) => a.from <= b.to && b.from <= a.to;
+
+const upsertZoneBOverride = (existing: ZoneBOverride[], next: ZoneBOverride): ZoneBOverride[] =>
+  [...existing.filter((item) => !rangesOverlap(item, next)), next].sort((a, b) =>
+    a.from.localeCompare(b.from),
+  );
+
 export type PatchScheduleInput = {
-  /** Zone B planning — updates the stored weekly template (single template MVP). */
+  /** Zone B planning — updates the stored weekly template (defaults for days without override). */
   zoneBWeeklyTemplate?: WeeklyTemplate;
   zoneBVisitDurationMinutes?: number;
   vacationDates?: string[];
@@ -109,6 +128,8 @@ export type PatchScheduleInput = {
   basePriceEffectiveFrom?: string;
   promoPriceUah?: number | null;
   promoValidUntil?: string | null;
+  /** Apply plan to one inclusive Zone B date range only. */
+  zoneBOverride?: ZoneBOverride;
   /** Rejected when set — use zoneB* fields for hours/duration. */
   weeklyTemplate?: WeeklyTemplate;
   visitDurationMinutes?: number;
@@ -186,6 +207,75 @@ export async function patchDoctorSchedule(
       .update(doctorProfiles)
       .set({ visitDurationMinutes: body.zoneBVisitDurationMinutes })
       .where(eq(doctorProfiles.userId, doctorUserId));
+  }
+
+  if (body.zoneBOverride) {
+    const bounds = getZoneBBounds(now);
+    const from = parseCalendarDate(body.zoneBOverride.from);
+    const to = parseCalendarDate(body.zoneBOverride.to);
+    if (compareCalendarDates(from, to) > 0) {
+      throw new ApiError("SCHEDULE_VALIDATION_FAILED", 400, { zoneBOverride: "INVALID_RANGE" });
+    }
+    if (
+      compareCalendarDates(from, bounds.zoneBStartDate) < 0 ||
+      compareCalendarDates(to, bounds.zoneBEndDate) > 0
+    ) {
+      throw new ApiError("SCHEDULE_VALIDATION_FAILED", 400, { zoneBOverride: "OUTSIDE_ZONE_B" });
+    }
+    if (
+      body.zoneBOverride.visitDurationMinutes != null &&
+      ![20, 30, 45].includes(body.zoneBOverride.visitDurationMinutes)
+    ) {
+      throw new ApiError("SCHEDULE_VALIDATION_FAILED", 400, { visitDurationMinutes: "INVALID" });
+    }
+
+    const [current] = await getDb()
+      .select({
+        zoneBOverrides: doctorSchedules.zoneBOverrides,
+        vacationDates: doctorSchedules.vacationDates,
+      })
+      .from(doctorSchedules)
+      .where(eq(doctorSchedules.doctorUserId, doctorUserId))
+      .limit(1);
+
+    const nextOverride: ZoneBOverride = {
+      from: formatCalendarDate(from),
+      to: formatCalendarDate(to),
+      ...(body.zoneBOverride.supportedFormats
+        ? { supportedFormats: body.zoneBOverride.supportedFormats }
+        : {}),
+      ...(body.zoneBOverride.visitDurationMinutes != null
+        ? { visitDurationMinutes: body.zoneBOverride.visitDurationMinutes }
+        : {}),
+      ...(body.zoneBOverride.workStart ? { workStart: body.zoneBOverride.workStart } : {}),
+      ...(body.zoneBOverride.workEnd ? { workEnd: body.zoneBOverride.workEnd } : {}),
+      ...(body.zoneBOverride.lunchStart ? { lunchStart: body.zoneBOverride.lunchStart } : {}),
+      ...(body.zoneBOverride.lunchEnd ? { lunchEnd: body.zoneBOverride.lunchEnd } : {}),
+      ...(body.zoneBOverride.basePriceUah != null
+        ? { basePriceUah: body.zoneBOverride.basePriceUah }
+        : {}),
+      ...(body.zoneBOverride.dayOff != null ? { dayOff: body.zoneBOverride.dayOff } : {}),
+    };
+
+    patch.zoneBOverrides = upsertZoneBOverride(
+      (current?.zoneBOverrides ?? []) as ZoneBOverride[],
+      nextOverride,
+    );
+
+    const rangeDates = listIsoInclusive(from, to);
+    const vacationSet = new Set(current?.vacationDates ?? []);
+    if (body.zoneBOverride.dayOff === true) {
+      for (const iso of rangeDates) {
+        vacationSet.add(iso);
+      }
+    } else if (body.zoneBOverride.dayOff === false) {
+      for (const iso of rangeDates) {
+        vacationSet.delete(iso);
+      }
+    }
+    if (body.zoneBOverride.dayOff != null) {
+      patch.vacationDates = [...vacationSet].sort();
+    }
   }
 
   if (Object.keys(patch).length > 0) {

@@ -1,4 +1,4 @@
-import { Button } from '@mui/material';
+import { Button, CircularProgress } from '@mui/material';
 import { styled } from '@/theme/styled';
 
 import { IconX } from '@tabler/icons-react';
@@ -6,10 +6,16 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { SheetDialog } from '@/components/Dialog/SheetDialog';
-import type { DoctorDayVisit } from '@/modules/doctor-day/types';
-import { DEMO_DOCTOR_DAY } from '@/modules/doctor-day/utils/mapDashboard';
+import { StateMascot } from '@/components/StateMascot/StateMascot';
+import type { DoctorDayVisit, FreeWindowSlot } from '@/modules/doctor-day/types';
+import { mapFreeWindowsFromSlots } from '@/modules/doctor-day/utils/mapDashboard';
 import {
-  DangerOutlineButton,
+  DayInfoNote,
+  DayInfoSection,
+  DayInfoSectionTitle,
+  DayInfoWindowMeta,
+  DayInfoWindowRow,
+  DayInfoWindowTime,
   MetaChip,
   ModalCloseButton,
   ModalHeaderRow,
@@ -25,6 +31,9 @@ import {
   ScheduleSlotRow,
   ScheduleSlotTime,
   SoftStatusPill,
+  VisitsEmptyBody,
+  VisitsEmptyState,
+  VisitsEmptyTitle,
   VisitCardActions,
   VisitCardBody,
   VisitCardContact,
@@ -40,6 +49,9 @@ import {
   VisitCardTimeCol,
 } from '@/modules/doctor-day/styles';
 import { formatTime } from '@/modules/patient-room/utils/formatCabinetDate';
+
+const LIKA_EMPTY = '/brand/lika-poses/lika4.png';
+const VISIT_MINUTES = 30;
 
 const ScheduleDialog = styled(SheetDialog)(({ theme }) => ({
   '& .MuiDialog-paper': {
@@ -195,15 +207,16 @@ export const VisitCardDialog = ({
             >
               {t('nextVisit.complete')}
             </Button>
-            <DangerOutlineButton
+            <Button
               variant="outlined"
+              color="error"
               onClick={() => {
                 onCancel?.();
                 onClose();
               }}
             >
               {t('nextVisit.cancel')}
-            </DangerOutlineButton>
+            </Button>
           </VisitCardActions>
         ) : null}
       </VisitCardShell>
@@ -213,15 +226,18 @@ export const VisitCardDialog = ({
 
 interface DayScheduleDialogProps {
   open: boolean;
+  dateYmd: string | null;
+  isLoading?: boolean;
   onClose: () => void;
   visits: DoctorDayVisit[];
-  /** Individual free slot start times (ISO) for today. */
   freeSlotIsos: string[];
   onOpenVisit: (visit: DoctorDayVisit) => void;
 }
 
 export const DayScheduleDialog = ({
   open,
+  dateYmd,
+  isLoading = false,
   onClose,
   visits,
   freeSlotIsos,
@@ -233,18 +249,28 @@ export const DayScheduleDialog = ({
     () => [...visits].sort((a, b) => a.startsAt.localeCompare(b.startsAt)),
     [visits],
   );
+  const freeWindows: FreeWindowSlot[] = useMemo(
+    () => mapFreeWindowsFromSlots(freeSlotIsos, VISIT_MINUTES),
+    [freeSlotIsos],
+  );
+  const isEmpty = !isLoading && orderedVisits.length === 0 && freeWindows.length === 0;
 
   return (
     <ScheduleDialog open={open} onClose={onClose} fullWidth>
       <ModalPaper>
         <ModalHeaderRow>
           <ModalTitleBlock>
-            <ModalTitle>{formatDayHeading(DEMO_DOCTOR_DAY, i18n.language)}</ModalTitle>
+            <ModalOverline>{t('modals.dayScheduleTitle')}</ModalOverline>
+            <ModalTitle>
+              {dateYmd ? formatDayHeading(dateYmd, i18n.language) : t('modals.dayScheduleTitle')}
+            </ModalTitle>
             <ModalSubtitle>
-              {t('modals.dayScheduleMeta', {
-                visits: orderedVisits.length,
-                free: freeSlotIsos.length,
-              })}
+              {isLoading
+                ? t('list.loading')
+                : t('modals.dayScheduleMeta', {
+                    visits: orderedVisits.length,
+                    free: freeSlotIsos.length,
+                  })}
             </ModalSubtitle>
           </ModalTitleBlock>
           <ModalCloseButton type="button" aria-label={t('modals.close')} onClick={onClose}>
@@ -252,59 +278,98 @@ export const DayScheduleDialog = ({
           </ModalCloseButton>
         </ModalHeaderRow>
 
-        {orderedVisits.map((visit) => {
-          const variant = scheduleVariant(visit.status);
-          const meta =
-            visit.status === 'cancelled' && visit.cancelledBy
-              ? visit.cancelledBy === 'patient'
-                ? t('list.cancelledByPatient')
-                : t('list.cancelledByDoctor')
-              : [t(`format.${visit.format}`), visit.reason].filter(Boolean).join(' · ');
+        {isLoading ? (
+          <VisitsEmptyState>
+            <CircularProgress size={28} />
+            <VisitsEmptyBody>{t('list.loading')}</VisitsEmptyBody>
+          </VisitsEmptyState>
+        ) : null}
 
-          return (
-            <ScheduleSlotRow
-              key={visit.id}
-              type="button"
-              $variant={variant}
-              onClick={() => {
-                onClose();
-                onOpenVisit(visit);
-              }}
-            >
-              <ScheduleSlotTime
-                $tone={variant === 'cancelled' ? 'strike' : 'default'}
-              >
-                {formatTime(visit.startsAt, i18n.language)}
-              </ScheduleSlotTime>
-              <ScheduleSlotMain>
-                <ScheduleSlotName $muted={variant === 'cancelled'}>
-                  {visit.patientName}
-                </ScheduleSlotName>
-                <ScheduleSlotMeta
-                  $tone={variant === 'cancelled' ? 'error' : 'default'}
-                >
-                  {meta}
-                </ScheduleSlotMeta>
-              </ScheduleSlotMain>
-              <SoftStatusPill $tone={softTone(visit.status)}>
-                {t(`status.${visit.status}`)}
-              </SoftStatusPill>
-              <ScheduleChevron>›</ScheduleChevron>
-            </ScheduleSlotRow>
-          );
-        })}
+        {!isLoading && isEmpty ? (
+          <VisitsEmptyState>
+            <StateMascot src={LIKA_EMPTY} size={80} />
+            <VisitsEmptyTitle>{t('empty.title')}</VisitsEmptyTitle>
+            <VisitsEmptyBody>{t('empty.body')}</VisitsEmptyBody>
+          </VisitsEmptyState>
+        ) : null}
 
-        {freeSlotIsos.map((iso) => (
-          <ScheduleSlotRow key={iso} type="button" $variant="free" disabled>
-            <ScheduleSlotTime $tone="accent">{formatTime(iso, i18n.language)}</ScheduleSlotTime>
-            <ScheduleSlotMain>
-              <ScheduleSlotName $muted>
-                {t('modals.freeSlotTitle', { minutes: 30 })}
-              </ScheduleSlotName>
-            </ScheduleSlotMain>
-            <ScheduleChevron>+</ScheduleChevron>
-          </ScheduleSlotRow>
-        ))}
+        {!isLoading && !isEmpty ? (
+          <>
+            <DayInfoSection>
+              <DayInfoSectionTitle>{t('modals.dayVisitsSection')}</DayInfoSectionTitle>
+              {orderedVisits.length > 0 ? (
+                orderedVisits.map((visit) => {
+                  const variant = scheduleVariant(visit.status);
+                  const meta =
+                    visit.status === 'cancelled' && visit.cancelledBy
+                      ? visit.cancelledBy === 'patient'
+                        ? t('list.cancelledByPatient')
+                        : t('list.cancelledByDoctor')
+                      : [t(`format.${visit.format}`), visit.reason]
+                          .filter(Boolean)
+                          .join(' · ');
+
+                  return (
+                    <ScheduleSlotRow
+                      key={visit.id}
+                      type="button"
+                      $variant={variant}
+                      onClick={() => {
+                        onClose();
+                        onOpenVisit(visit);
+                      }}
+                    >
+                      <ScheduleSlotTime
+                        $tone={variant === 'cancelled' ? 'strike' : 'default'}
+                      >
+                        {formatTime(visit.startsAt, i18n.language)}
+                      </ScheduleSlotTime>
+                      <ScheduleSlotMain>
+                        <ScheduleSlotName $muted={variant === 'cancelled'}>
+                          {visit.patientName}
+                        </ScheduleSlotName>
+                        <ScheduleSlotMeta
+                          $tone={variant === 'cancelled' ? 'error' : 'default'}
+                        >
+                          {meta}
+                        </ScheduleSlotMeta>
+                      </ScheduleSlotMain>
+                      <SoftStatusPill $tone={softTone(visit.status)}>
+                        {t(`status.${visit.status}`)}
+                      </SoftStatusPill>
+                      <ScheduleChevron>›</ScheduleChevron>
+                    </ScheduleSlotRow>
+                  );
+                })
+              ) : (
+                <DayInfoNote>{t('modals.dayNoVisits')}</DayInfoNote>
+              )}
+            </DayInfoSection>
+
+            {freeWindows.length > 0 ? (
+              <DayInfoSection>
+                <DayInfoSectionTitle>{t('modals.dayFreeSection')}</DayInfoSectionTitle>
+                {freeWindows.map((window) => (
+                  <DayInfoWindowRow key={window.id}>
+                    <DayInfoWindowTime>
+                      {t('modals.dayFreeWindow', {
+                        start: window.start,
+                        end: window.end,
+                      })}
+                    </DayInfoWindowTime>
+                    <DayInfoWindowMeta>
+                      {t('modals.dayFreeWindowMeta', {
+                        count: window.slotsCount,
+                        minutes: VISIT_MINUTES,
+                      })}
+                    </DayInfoWindowMeta>
+                  </DayInfoWindowRow>
+                ))}
+                <DayInfoNote>{t('modals.dayFreeHint')}</DayInfoNote>
+              </DayInfoSection>
+            ) : null}
+          </>
+        ) : null}
       </ModalPaper>
     </ScheduleDialog>
   );

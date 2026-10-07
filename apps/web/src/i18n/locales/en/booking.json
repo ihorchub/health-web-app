@@ -24,6 +24,7 @@
   "reviews_other": "{{count}} reviews",
   "favorite": "Add to favourites",
   "unfavorite": "Remove from favourites",
+  "favoriteGuestHint": "Log in or sign up to save this doctor",
   "favoriteSoon": "Favourites will appear soon",
   "patientOnly": "Booking is available to patients only",
   "loading": "Loading profile…",

@@ -1,10 +1,8 @@
 import { Type } from "@sinclair/typebox";
 import type { FastifyPluginAsync } from "fastify";
 
+import { getPrivacyDocument, getTermsDocument } from "../content/legal/index.js";
 import { LegalDocumentResponse } from "../openapi/schemas.js";
-
-const STUB_BODY =
-  "Legal copy is Open (client content). This placeholder confirms the API route works.";
 
 export const legalRoutes: FastifyPluginAsync = async (app) => {
   app.get(
@@ -18,12 +16,8 @@ export const legalRoutes: FastifyPluginAsync = async (app) => {
       },
     },
     async (request) => {
-      const lang = (request.query as { lang?: string }).lang ?? "en";
-      return {
-        lang,
-        title: lang === "uk" ? "Політика конфіденційності" : "Privacy Policy",
-        body: STUB_BODY,
-      };
+      const lang = (request.query as { lang?: string }).lang;
+      return getPrivacyDocument(lang);
     },
   );
 
@@ -38,12 +32,8 @@ export const legalRoutes: FastifyPluginAsync = async (app) => {
       },
     },
     async (request) => {
-      const lang = (request.query as { lang?: string }).lang ?? "en";
-      return {
-        lang,
-        title: lang === "uk" ? "Умови використання" : "Terms of Use",
-        body: STUB_BODY,
-      };
+      const lang = (request.query as { lang?: string }).lang;
+      return getTermsDocument(lang);
     },
   );
 };

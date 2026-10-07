@@ -36,6 +36,8 @@ export interface DoctorDashboardResponse {
   nextVisit: DoctorDashboardVisit | null;
   pendingPatients: DoctorDashboardVisit[];
   pastVisitsMonth: DoctorDashboardVisit[];
+  /** Doctor-cancelled visits in the last 7 days (matches metrics.cancellationsLast7Days). */
+  cancellationsLast7Days: DoctorDashboardVisit[];
   /** Free slot start times (ISO) for the requested day. */
   freeWindowsToday: string[];
   /** Mon–Sun status counts for the week containing `date`. */

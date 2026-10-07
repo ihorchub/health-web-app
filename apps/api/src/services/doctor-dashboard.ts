@@ -1,4 +1,4 @@
-import { and, eq, gte, inArray, lt, sql } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, lt } from "drizzle-orm";
 
 import { getDb } from "../db/client.js";
 import { appointments } from "../db/schema/appointments.js";
@@ -51,6 +51,8 @@ export type DoctorDashboardResult = {
   pendingPatients: DoctorDashboardVisit[];
   /** Completed visits from month start (Kyiv) — SCR-08 “past visits” tab. */
   pastVisitsMonth: DoctorDashboardVisit[];
+  /** Cancelled-by-doctor visits in the last 7 days (Kyiv) — SCR-08 cancellations tab. */
+  cancellationsLast7Days: DoctorDashboardVisit[];
   freeWindowsToday: string[];
   /** Mon–Sun strip for the week containing `date` (Kyiv). Dot counts for SCR-08 sidebar. */
   weekStrip: DoctorWeekStripDay[];
@@ -142,9 +144,20 @@ export async function getDoctorDashboard(input: {
 
   const sevenDaysAgo = addCalendarDays(zoneBounds.zoneAStartDate, -7);
   const sevenStart = zonedTimeToUtc(sevenDaysAgo.year, sevenDaysAgo.month, sevenDaysAgo.day, 0, 0, 0);
-  const [cancelAgg] = await db
-    .select({ value: sql<number>`count(*)::int` })
+  const cancellationRows = await db
+    .select({
+      id: appointments.id,
+      startAt: appointments.startAt,
+      format: appointments.format,
+      reason: appointments.reason,
+      status: appointments.status,
+      proposedStartAt: appointments.proposedStartAt,
+      firstName: patientProfiles.firstName,
+      lastName: patientProfiles.lastName,
+      photoUrl: patientProfiles.photoUrl,
+    })
     .from(appointments)
+    .innerJoin(patientProfiles, eq(patientProfiles.userId, appointments.patientId))
     .where(
       and(
         eq(appointments.doctorId, input.doctorId),
@@ -152,7 +165,9 @@ export async function getDoctorDashboard(input: {
         eq(appointments.cancelledBy, "doctor"),
         gte(appointments.startAt, sevenStart),
       ),
-    );
+    )
+    .orderBy(desc(appointments.startAt));
+  const cancellationsLast7Days = cancellationRows.map(toVisit);
 
   const doctor = await loadDoctorForBooking(input.doctorId);
   let freeWindowsToday: string[] = [];
@@ -276,13 +291,14 @@ export async function getDoctorDashboard(input: {
       visitsToday: activeVisits.length,
       pendingCount: 0,
       freeSlotsToday: freeWindowsToday.length,
-      cancellationsLast7Days: Number(cancelAgg?.value ?? 0),
+      cancellationsLast7Days: cancellationsLast7Days.length,
       pastVisitsThisMonth: pastVisitsMonth.length,
     },
     visits,
     nextVisit,
     pendingPatients: [],
     pastVisitsMonth,
+    cancellationsLast7Days,
     freeWindowsToday,
     weekStrip,
   };

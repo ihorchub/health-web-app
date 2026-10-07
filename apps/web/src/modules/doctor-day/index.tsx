@@ -2,6 +2,8 @@ import { useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
+import { useGetDoctorMeDashboard } from '@/api/doctors';
+import { StateMascot } from '@/components/StateMascot/StateMascot';
 import { useAppRole } from '@/hooks/useAppRole';
 import {
   DayScheduleDialog,
@@ -30,12 +32,19 @@ import {
   SectionTitle,
   ShowMore,
   SideColumn,
+  VisitsEmptyBody,
+  VisitsEmptyState,
+  VisitsEmptyTitle,
 } from '@/modules/doctor-day/styles';
 import type { DoctorDayTab, DoctorDayVisit } from '@/modules/doctor-day/types';
-import { DEMO_DOCTOR_DAY } from '@/modules/doctor-day/utils/mapDashboard';
+import {
+  DEMO_DOCTOR_DAY,
+  mapDashboardVisit,
+} from '@/modules/doctor-day/utils/mapDashboard';
 import { formatCabinetHeaderDate } from '@/modules/patient-room/utils/formatCabinetDate';
 
 const DEMO_TODAY = new Date(`${DEMO_DOCTOR_DAY}T12:00:00+03:00`);
+const LIKA_EMPTY = '/brand/lika-poses/lika4.png';
 
 const greetingKey = (hour: number) => {
   if (hour < 12) {
@@ -53,21 +62,34 @@ export const DoctorDayPage = () => {
   const [tab, setTab] = useState<DoctorDayTab>('visits');
   const [visibleCount, setVisibleCount] = useState(8);
   const [detailVisit, setDetailVisit] = useState<DoctorDayVisit | null>(null);
-  const [scheduleOpen, setScheduleOpen] = useState(false);
+  const [scheduleDayYmd, setScheduleDayYmd] = useState<string | null>(null);
   const listRef = useRef<HTMLElement | null>(null);
 
   const {
     visits,
     nextVisit: heroVisit,
     freeWindows,
-    freeSlotIsos,
     pastVisitsMonth,
+    cancellationsLast7Days,
     metrics,
     weekDays,
     isLoading,
     completeVisit,
     cancelVisit,
   } = useDoctorDayDashboard(DEMO_DOCTOR_DAY);
+
+  const scheduleDayQuery = useGetDoctorMeDashboard(
+    { date: scheduleDayYmd ?? DEMO_DOCTOR_DAY },
+    { enabled: Boolean(scheduleDayYmd) },
+  );
+  const scheduleDayVisits = useMemo(
+    () => (scheduleDayQuery.data?.visits ?? []).map(mapDashboardVisit),
+    [scheduleDayQuery.data?.visits],
+  );
+  const scheduleDayFreeSlots = useMemo(
+    () => [...(scheduleDayQuery.data?.freeWindowsToday ?? [])].sort(),
+    [scheduleDayQuery.data?.freeWindowsToday],
+  );
 
   const doctorName = me?.firstName ?? 'Оксано';
   const headerDate = formatCabinetHeaderDate(DEMO_TODAY, i18n.language);
@@ -80,6 +102,11 @@ export const DoctorDayPage = () => {
   const sortedPastMonth = useMemo(
     () => [...pastVisitsMonth].sort((a, b) => b.startsAt.localeCompare(a.startsAt)),
     [pastVisitsMonth],
+  );
+
+  const sortedCancellations = useMemo(
+    () => [...cancellationsLast7Days].sort((a, b) => b.startsAt.localeCompare(a.startsAt)),
+    [cancellationsLast7Days],
   );
 
   const isPastVisit = (visit: DoctorDayVisit) =>
@@ -102,13 +129,13 @@ export const DoctorDayPage = () => {
       return sortedPastMonth;
     }
     if (tab === 'cancellations') {
-      return sortedVisits.filter((visit) => visit.status === 'cancelled');
+      return sortedCancellations;
     }
     if (tab === 'free') {
       return [];
     }
     return activeDayVisits;
-  }, [activeDayVisits, sortedPastMonth, sortedVisits, tab]);
+  }, [activeDayVisits, sortedCancellations, sortedPastMonth, tab]);
 
   const tabCounts: Record<DoctorDayTab, number> = {
     visits: metrics.visitsToday,
@@ -120,19 +147,28 @@ export const DoctorDayPage = () => {
   const shown = filteredVisits.slice(0, visibleCount);
 
   const listTitle =
-    tab === 'past' ? t('tabs.past') : tab === 'cancellations' ? t('tabs.cancellations') : t('list.visitsTitle');
+    tab === 'past'
+      ? t('tabs.past')
+      : tab === 'cancellations'
+        ? t('tabs.cancellations')
+        : t('list.visitsTitle');
 
   const listMeta = isLoading
     ? t('list.loading')
     : tab === 'past'
-      ? t('list.pastMonthMeta', {
+      ? t('list.pastMonthMetaShown', {
           total: filteredVisits.length,
           shown: shown.length,
         })
-      : t('list.visitsMeta', {
-          total: filteredVisits.length,
-          shown: shown.length,
-        });
+      : tab === 'cancellations'
+        ? t('list.cancellationsMeta', {
+            total: filteredVisits.length,
+            shown: shown.length,
+          })
+        : t('list.visitsMeta', {
+            total: filteredVisits.length,
+            shown: shown.length,
+          });
 
   const markCompleted = async (id: string) => {
     try {
@@ -209,6 +245,7 @@ export const DoctorDayPage = () => {
                     <DoctorVisitRow
                       key={visit.id}
                       visit={visit}
+                      showDate={tab === 'past' || tab === 'cancellations'}
                       onOpen={() => {
                         setDetailVisit(visit);
                       }}
@@ -250,10 +287,11 @@ export const DoctorDayPage = () => {
                   ) : null}
                 </>
               ) : (
-                <EmptyBlock>
-                  <strong>{t('empty.title')}</strong>
-                  <p>{t('empty.body')}</p>
-                </EmptyBlock>
+                <VisitsEmptyState>
+                  <StateMascot src={LIKA_EMPTY} size={96} />
+                  <VisitsEmptyTitle>{t('empty.title')}</VisitsEmptyTitle>
+                  <VisitsEmptyBody>{t('empty.body')}</VisitsEmptyBody>
+                </VisitsEmptyState>
               )}
 
               {filteredVisits.length > visibleCount ? (
@@ -274,8 +312,8 @@ export const DoctorDayPage = () => {
               nextVisit={heroVisit ?? null}
               weekDays={weekDays}
               freeWindows={freeWindows}
-              onOpenSchedule={() => {
-                setScheduleOpen(true);
+              onSelectDay={(ymd) => {
+                setScheduleDayYmd(ymd);
               }}
               onOpenVisit={() => {
                 if (heroVisit) {
@@ -306,12 +344,14 @@ export const DoctorDayPage = () => {
       />
 
       <DayScheduleDialog
-        open={scheduleOpen}
+        open={Boolean(scheduleDayYmd)}
+        dateYmd={scheduleDayYmd}
+        isLoading={scheduleDayQuery.isLoading || scheduleDayQuery.isFetching}
         onClose={() => {
-          setScheduleOpen(false);
+          setScheduleDayYmd(null);
         }}
-        visits={sortedVisits}
-        freeSlotIsos={freeSlotIsos}
+        visits={scheduleDayVisits}
+        freeSlotIsos={scheduleDayFreeSlots}
         onOpenVisit={(visit) => {
           setDetailVisit(visit);
         }}

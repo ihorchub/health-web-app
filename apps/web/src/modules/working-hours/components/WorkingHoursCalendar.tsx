@@ -11,9 +11,11 @@ import {
   DayGrid,
   LegendDot,
   LegendItem,
+  LegendPlanned,
+  LegendRegularOff,
   LegendRow,
   LegendToday,
-  LegendWeekend,
+  LegendVacation,
   MonthBlock,
   MonthLabel,
   MonthsGrid,
@@ -43,15 +45,22 @@ interface WorkingHoursCalendarProps {
   zoneAStartYmd: string;
   zoneAEndYmd: string;
   zoneBStartYmd: string;
+  zoneBEndYmd: string;
   appointmentDays: Set<string>;
+  /** One-off exceptions (and Zone A vacation) — delicate accent marker. */
+  vacationDays: Set<string>;
+  /** Regular weekly days off in Zone B from working-days rule. */
+  regularOffDays: Set<string>;
+  plannedDays: Set<string>;
   selection: CalendarSelection;
+  exceptionPickMode?: boolean;
   onDaySelect: (ymd: string, zone: 'a' | 'b') => void;
 }
 
 const WEEKDAY_KEYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as const;
 
 const isInRange = (ymd: string, start: string | null, end: string | null) => {
-  if (!start || !end) {
+  if (!start || !end || start === end) {
     return false;
   }
   const from = start < end ? start : end;
@@ -65,8 +74,13 @@ export const WorkingHoursCalendar = ({
   zoneAStartYmd,
   zoneAEndYmd,
   zoneBStartYmd,
+  zoneBEndYmd,
   appointmentDays,
+  vacationDays,
+  regularOffDays,
+  plannedDays,
   selection,
+  exceptionPickMode = false,
   onDaySelect,
 }: WorkingHoursCalendarProps) => {
   const { t, i18n } = useTranslation('workingHours');
@@ -85,6 +99,15 @@ export const WorkingHoursCalendar = ({
     return new Set([startYmd, endYmd]);
   }, [selection]);
 
+  const zoneARange = t('zoneARange', {
+    start: formatDisplayDate(zoneAStartYmd, i18n.language),
+    end: formatDisplayDate(zoneAEndYmd, i18n.language),
+  });
+  const zoneBRange = t('zoneARange', {
+    start: formatDisplayDate(zoneBStartYmd, i18n.language),
+    end: formatDisplayDate(zoneBEndYmd, i18n.language),
+  });
+
   return (
     <Card>
       <CardHeader>
@@ -99,34 +122,36 @@ export const WorkingHoursCalendar = ({
             {t('legendAppointments')}
           </LegendItem>
           <LegendItem>
-            <LegendWeekend />
-            {t('legendWeekend')}
+            <LegendRegularOff />
+            {t('legendRegularOff')}
+          </LegendItem>
+          <LegendItem>
+            <LegendVacation />
+            {t('legendException')}
+          </LegendItem>
+          <LegendItem>
+            <LegendPlanned />
+            {t('legendPlanned')}
           </LegendItem>
         </LegendRow>
       </CardHeader>
 
       <ZoneStripStack>
         <ZoneStrip $tone="a">
-          <IconInfoCircle size={18} color={theme.palette.mode === 'light' ? '#4A3836' : '#C9A39E'} />
+          <IconInfoCircle
+            size={18}
+            color={theme.palette.mode === 'light' ? '#4A3836' : '#C9A39E'}
+          />
           <ZoneStripCopy>
             <ZoneStripTitle $tone="a">{t('zoneAStrip')}</ZoneStripTitle>
-            <ZoneStripMeta>
-              {t('zoneARange', {
-                start: formatDisplayDate(zoneAStartYmd, i18n.language),
-                end: formatDisplayDate(zoneAEndYmd, i18n.language),
-              })}
-            </ZoneStripMeta>
+            <ZoneStripMeta $tone="a">{zoneARange}</ZoneStripMeta>
           </ZoneStripCopy>
         </ZoneStrip>
         <ZoneStrip $tone="b">
           <IconInfoCircle size={18} color={theme.palette.primary.dark} />
           <ZoneStripCopy>
             <ZoneStripTitle $tone="b">{t('zoneBStrip')}</ZoneStripTitle>
-            <ZoneStripMeta>
-              {t('zoneBFrom', {
-                date: formatDisplayDate(zoneBStartYmd, i18n.language),
-              })}
-            </ZoneStripMeta>
+            <ZoneStripMeta $tone="b">{zoneBRange}</ZoneStripMeta>
           </ZoneStripCopy>
         </ZoneStrip>
       </ZoneStripStack>
@@ -148,6 +173,9 @@ export const WorkingHoursCalendar = ({
                 const selectable = !past && (zone === 'a' || zone === 'b');
                 const selected = endpoints.has(cell.ymd);
                 const inRange = isInRange(cell.ymd, selection.startYmd, selection.endYmd);
+                const isException = vacationDays.has(cell.ymd);
+                const isRegularOff = regularOffDays.has(cell.ymd) && !isException;
+                const isPlanned = plannedDays.has(cell.ymd) && !isException;
 
                 return (
                   <DayCell
@@ -157,9 +185,12 @@ export const WorkingHoursCalendar = ({
                     $zone={zone}
                     $today={cell.ymd === todayYmd}
                     $weekend={isWeekendYmd(cell.ymd)}
-                    $marked={appointmentDays.has(cell.ymd)}
+                    $marked={appointmentDays.has(cell.ymd) && !isException}
+                    $vacation={isException}
+                    $regularOff={isRegularOff}
+                    $planned={isPlanned}
                     $past={past}
-                    $selected={selected}
+                    $selected={selected || (exceptionPickMode && zone === 'b' && selected)}
                     $inRange={inRange}
                     $selectable={selectable}
                     aria-label={cell.ymd}

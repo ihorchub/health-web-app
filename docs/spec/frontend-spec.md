@@ -910,7 +910,7 @@ None beyond action availability by status:
 | Zone | Range | Bookings exist? | What the doctor may do |
 |---|---|---|---|
 | Zone A | Rolling bookable window | Yes | Cancel visits with confirm; mark vacation only after a day has no bookings |
-| Zone B | After Zone A, up to 3 months | No | Edit hours, duration, vacation, supported format, and price |
+| Zone B | After Zone A, up to 3 months | No | Select a date range, then edit hours / duration / format / price / vacation for **that range only** |
 
 In Zone A:
 
@@ -922,7 +922,9 @@ In Zone A:
 In Zone B:
 
 - There are no bookings
-- The doctor plans the future empty schedule
+- The doctor **must select** days on the calendar before saving Zone B plan changes
+- Save applies only to the selected range; other Zone B days stay as default or earlier overrides
+- Calendar shows overrides / vacation distinctly from the default template
 
 ### Default template
 

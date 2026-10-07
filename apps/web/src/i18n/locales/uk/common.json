@@ -31,9 +31,13 @@
     "accountMenu": "Меню акаунта"
   },
   "footer": {
-    "privacy": "Privacy Policy",
-    "terms": "Terms of Use",
+    "privacy": "Політика конфіденційності",
+    "terms": "Умови використання",
     "copyright": "© {{year}} Medicly"
   },
-  "legalPlaceholder": "Текст політики з’явиться пізніше."
+  "legal": {
+    "loading": "Завантаження…",
+    "error": "Не вдалося завантажити документ. Спробуйте пізніше."
+  }
 }
+

@@ -490,6 +490,20 @@ export const DoctorScheduleFrozenInZoneA = Type.Object({
 });
 export type DoctorScheduleFrozenInZoneA = Static<typeof DoctorScheduleFrozenInZoneA>;
 
+export const ZoneBOverride = Type.Object({
+  from: Type.String(),
+  to: Type.String(),
+  supportedFormats: Type.Optional(Type.Array(VisitFormat)),
+  visitDurationMinutes: Type.Optional(Type.Number()),
+  workStart: Type.Optional(Type.String()),
+  workEnd: Type.Optional(Type.String()),
+  lunchStart: Type.Optional(Type.String()),
+  lunchEnd: Type.Optional(Type.String()),
+  basePriceUah: Type.Optional(Type.Number()),
+  dayOff: Type.Optional(Type.Boolean()),
+});
+export type ZoneBOverride = Static<typeof ZoneBOverride>;
+
 export const DoctorScheduleResponse = Type.Object({
   doctorUserId: Type.String(),
   basePriceUah: Type.Number(),
@@ -498,6 +512,7 @@ export const DoctorScheduleResponse = Type.Object({
   supportedFormats: Type.Array(VisitFormat),
   weeklyTemplate: WeeklyTemplate,
   vacationDates: Type.Array(Type.String()),
+  zoneBOverrides: Type.Array(ZoneBOverride),
   visibleInSearch: Type.Boolean(),
   visitDurationMinutes: Type.Number(),
   specialty: Type.Optional(Type.String()),
@@ -514,7 +529,7 @@ export const BulkCancelResponse = Type.Object({
 });
 export type BulkCancelResponse = Static<typeof BulkCancelResponse>;
 
-/** PATCH /doctors/me/schedule body (Zone B + prices). */
+/** PATCH /doctors/me/schedule body (Zone B defaults + optional range override). */
 export const PatchDoctorScheduleBody = Type.Object({
   zoneBWeeklyTemplate: Type.Optional(WeeklyTemplate),
   zoneBVisitDurationMinutes: Type.Optional(Type.Number()),
@@ -524,6 +539,7 @@ export const PatchDoctorScheduleBody = Type.Object({
   basePriceEffectiveFrom: Type.Optional(Type.String()),
   promoPriceUah: Type.Optional(NullableNumber),
   promoValidUntil: Type.Optional(NullableString),
+  zoneBOverride: Type.Optional(ZoneBOverride),
 });
 export type PatchDoctorScheduleBody = Static<typeof PatchDoctorScheduleBody>;
 
@@ -564,6 +580,7 @@ export const DoctorDashboardResponse = Type.Object({
   nextVisit: NullableObj(DoctorDashboardVisit),
   pendingPatients: Type.Array(DoctorDashboardVisit),
   pastVisitsMonth: Type.Array(DoctorDashboardVisit),
+  cancellationsLast7Days: Type.Array(DoctorDashboardVisit),
   freeWindowsToday: Type.Array(Type.String()),
   weekStrip: Type.Array(DoctorDashboardWeekStripDay),
 });
