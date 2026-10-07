@@ -1,36 +1,131 @@
-import { CircularProgress, Switch, TextField, useTheme } from '@mui/material';
-import { IconInfoCircle } from '@tabler/icons-react';
+import { CircularProgress } from '@mui/material';
+import { IconPlus, IconX } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
 
+import { ZoneDateField } from '@/modules/working-hours/components/ZoneDateField';
 import {
-  Callout,
+  ConstructorDaysBody,
+  ConstructorDaysHead,
+  ConstructorExceptBody,
+  ConstructorExceptHead,
+  ConstructorSplit,
   DurationCustomField,
   DurationCustomHint,
   DurationCustomLabel,
   DurationCustomRow,
-  FieldFull,
-  FieldGrid,
+  DurationSegmentButton,
+  DurationSegmentRow,
+  ExceptionBadge,
+  FormSection,
+  FormSectionFirst,
+  FormatPriceRow,
+  HoursRow,
+  PeriodDash,
+  PeriodFieldsRow,
+  PrimaryOutlineButton,
   PrimarySaveButton,
+  ReasonHint,
   SectionLabel,
   SegmentButton,
   SegmentRow,
-  SwitchRow,
+  WeekdayChip,
+  WeekdayChipRow,
   ZoneBadge,
   ZoneHead,
+  ZoneHeadRow,
+  ZoneIntro,
   ZonePanel,
+  ZoneTextField,
   ZoneTitle,
 } from '@/modules/working-hours/styles';
-import type { SupportedFormat, VisitDurationMinutes, ZoneBFormState } from '@/modules/working-hours/types';
-import { formatDisplayDate } from '@/modules/working-hours/utils/calendarGrid';
+import type {
+  SupportedFormat,
+  VisitDurationMinutes,
+  ZoneBFormState,
+} from '@/modules/working-hours/types';
+import {
+  formatDisplayDate,
+  WEEKDAY_KEYS,
+  type WorkingDaysSelection,
+} from '@/modules/working-hours/utils/calendarGrid';
+import { styled } from '@/theme/styled';
+
+const ExceptionList = styled('ul')(({ theme }) => ({
+  margin: 0,
+  padding: 0,
+  listStyle: 'none',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: theme.spacing(0.75),
+}));
+
+const ExceptionRow = styled('li')(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  gap: theme.spacing(0.75),
+  minHeight: 32,
+  padding: theme.spacing(0.5, 0.75),
+  borderRadius: 8,
+  border: `1px solid ${theme.palette.divider}`,
+  backgroundColor: theme.palette.background.paper,
+  boxSizing: 'border-box',
+  fontSize: 13,
+  lineHeight: '18px',
+  color: theme.palette.text.primary,
+}));
+
+const ExceptionRemove = styled('button')(({ theme }) => ({
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  width: 24,
+  height: 24,
+  marginLeft: 'auto',
+  border: 'none',
+  borderRadius: 6,
+  background: 'none',
+  cursor: 'pointer',
+  color: theme.palette.text.secondary,
+  flexShrink: 0,
+
+  '&:hover': {
+    backgroundColor: theme.palette.action.hover,
+    color: theme.palette.text.primary,
+  },
+}));
+
+const SplitBlock = styled('div')(({ theme }) => ({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: theme.spacing(0.75),
+  minWidth: 0,
+}));
+
+interface ZoneBExceptionItem {
+  ymd: string;
+  label: string;
+}
 
 interface ZoneBPanelProps {
   form: ZoneBFormState;
   locale: string;
-  zoneBStartYmd: string;
+  periodStartYmd: string;
+  periodEndYmd: string;
+  minYmd: string;
+  maxYmd: string;
   isSaving: boolean;
+  workingDays: WorkingDaysSelection;
+  exceptions: ZoneBExceptionItem[];
+  exceptionPickMode: boolean;
   onChange: (patch: Partial<ZoneBFormState>) => void;
+  onPeriodStartPick: (ymd: string) => void;
+  onPeriodEndPick: (ymd: string) => void;
+  onWorkingDayToggle: (key: keyof WorkingDaysSelection) => void;
+  onStartExceptionPick: () => void;
+  onCancelExceptionPick: () => void;
+  onChangeExceptionDate: (fromYmd: string, toYmd: string) => void;
+  onRemoveException: (ymd: string) => void;
   onSaveClick: () => void;
-  onVacationToggleOn: () => void;
 }
 
 const DURATIONS: VisitDurationMinutes[] = [20, 30, 45];
@@ -38,15 +133,25 @@ const DURATIONS: VisitDurationMinutes[] = [20, 30, 45];
 export const ZoneBPanel = ({
   form,
   locale,
-  zoneBStartYmd,
+  periodStartYmd,
+  periodEndYmd,
+  minYmd,
+  maxYmd,
   isSaving,
+  workingDays,
+  exceptions,
+  exceptionPickMode,
   onChange,
+  onPeriodStartPick,
+  onPeriodEndPick,
+  onWorkingDayToggle,
+  onStartExceptionPick,
+  onCancelExceptionPick,
+  onChangeExceptionDate,
+  onRemoveException,
   onSaveClick,
-  onVacationToggleOn,
 }: ZoneBPanelProps) => {
   const { t } = useTranslation('workingHours');
-  const theme = useTheme();
-  const zoneBStart = zoneBStartYmd;
 
   const formatOptions: { value: SupportedFormat; label: string }[] = [
     { value: 'offline', label: t('zoneB.formatOffline') },
@@ -55,53 +160,80 @@ export const ZoneBPanel = ({
   ];
 
   return (
-    <ZonePanel>
+    <ZonePanel $tone="b">
       <ZoneHead>
-        <ZoneBadge $tone="b">{t('zoneB.badge')}</ZoneBadge>
-        <ZoneTitle>{t('zoneB.title')}</ZoneTitle>
+        <ZoneHeadRow>
+          <ZoneBadge $tone="b">{t('zoneB.badge')}</ZoneBadge>
+        </ZoneHeadRow>
+        <ZoneTitle $tone="b">{t('zoneB.title')}</ZoneTitle>
+        <ZoneIntro>{t('zoneB.intro')}</ZoneIntro>
       </ZoneHead>
 
-      <Callout $tone="b">
-        <IconInfoCircle size={18} color={theme.palette.primary.dark} />
-        <span>
-          {t('zoneB.callout', { date: formatDisplayDate(zoneBStart, locale) })}
-        </span>
-      </Callout>
+      <FormSectionFirst>
+        <SectionLabel>{t('zoneB.periodTitle')}</SectionLabel>
+        <PeriodFieldsRow>
+          <ZoneDateField
+            label={formatDisplayDate(periodStartYmd, locale)}
+            valueYmd={periodStartYmd}
+            minYmd={minYmd}
+            maxYmd={periodEndYmd < maxYmd ? periodEndYmd : maxYmd}
+            onPick={onPeriodStartPick}
+          />
+          <PeriodDash>—</PeriodDash>
+          <ZoneDateField
+            label={formatDisplayDate(periodEndYmd, locale)}
+            valueYmd={periodEndYmd}
+            minYmd={periodStartYmd > minYmd ? periodStartYmd : minYmd}
+            maxYmd={maxYmd}
+            onPick={onPeriodEndPick}
+          />
+        </PeriodFieldsRow>
+      </FormSectionFirst>
 
-      <FieldGrid>
-        <TextField
-          label={t('zoneB.start')}
-          value={form.workStart}
-          onChange={(event) => {
-            onChange({ workStart: event.target.value });
-          }}
-        />
-        <TextField
-          label={t('zoneB.end')}
-          value={form.workEnd}
-          onChange={(event) => {
-            onChange({ workEnd: event.target.value });
-          }}
-        />
-        <FieldFull>
-          <TextField
-            fullWidth
-            label={t('zoneB.lunch')}
-            value={`${form.lunchStart}–${form.lunchEnd}`}
+      <FormSection>
+        <SectionLabel>{t('zoneB.hoursTitle')}</SectionLabel>
+        <HoursRow>
+          <ZoneTextField
+            size="small"
+            label={t('zoneB.start')}
+            value={form.workStart}
             onChange={(event) => {
-              const [start, end] = event.target.value.split('–').map((part) => part.trim());
-              onChange({
-                lunchStart: start || form.lunchStart,
-                lunchEnd: end || form.lunchEnd,
-              });
+              onChange({ workStart: event.target.value });
             }}
           />
-        </FieldFull>
-        <FieldFull>
-          <SectionLabel>{t('zoneB.duration')}</SectionLabel>
-          <SegmentRow>
+          <ZoneTextField
+            size="small"
+            label={t('zoneB.end')}
+            value={form.workEnd}
+            onChange={(event) => {
+              onChange({ workEnd: event.target.value });
+            }}
+          />
+          <ZoneTextField
+            size="small"
+            label={t('zoneB.lunchStart')}
+            value={form.lunchStart}
+            onChange={(event) => {
+              onChange({ lunchStart: event.target.value });
+            }}
+          />
+          <ZoneTextField
+            size="small"
+            label={t('zoneB.lunchEnd')}
+            value={form.lunchEnd}
+            onChange={(event) => {
+              onChange({ lunchEnd: event.target.value });
+            }}
+          />
+        </HoursRow>
+      </FormSection>
+
+      <FormSection>
+        <SectionLabel>{t('zoneB.duration')}</SectionLabel>
+        <DurationCustomRow>
+          <DurationSegmentRow>
             {DURATIONS.map((minutes) => (
-              <SegmentButton
+              <DurationSegmentButton
                 key={minutes}
                 type="button"
                 $active={form.durationMinutes === minutes && !form.customDuration}
@@ -110,78 +242,141 @@ export const ZoneBPanel = ({
                 }}
               >
                 {minutes}
-              </SegmentButton>
+              </DurationSegmentButton>
             ))}
-          </SegmentRow>
-          <DurationCustomRow>
-            <DurationCustomLabel>{t('zoneB.durationCustom')}</DurationCustomLabel>
-            <DurationCustomField
+          </DurationSegmentRow>
+          <DurationCustomLabel>{t('zoneB.durationCustom')}</DurationCustomLabel>
+          <DurationCustomField
+            size="small"
+            type="number"
+            placeholder="—"
+            slotProps={{
+              input: {
+                endAdornment: (
+                  <DurationCustomHint>{t('zoneB.durationUnit')}</DurationCustomHint>
+                ),
+              },
+            }}
+            value={form.customDuration ?? ''}
+            onChange={(event) => {
+              const value = event.target.value;
+              onChange({
+                customDuration: value ? Number(value) : undefined,
+              });
+            }}
+          />
+        </DurationCustomRow>
+      </FormSection>
+
+      <FormSection>
+        <ConstructorSplit>
+          <ConstructorDaysHead>
+            <SectionLabel>{t('zoneB.workingDaysTitle')}</SectionLabel>
+          </ConstructorDaysHead>
+
+          <ConstructorExceptHead>
+            <SectionLabel>{t('zoneB.exceptionsTitle')}</SectionLabel>
+            {exceptionPickMode ? (
+              <PrimaryOutlineButton onClick={onCancelExceptionPick}>
+                {t('zoneB.exceptionsPickCancel')}
+              </PrimaryOutlineButton>
+            ) : (
+              <PrimaryOutlineButton
+                startIcon={<IconPlus size={14} />}
+                onClick={onStartExceptionPick}
+              >
+                {t('zoneB.exceptionsAdd')}
+              </PrimaryOutlineButton>
+            )}
+          </ConstructorExceptHead>
+
+          <ConstructorDaysBody>
+            <WeekdayChipRow>
+              {WEEKDAY_KEYS.map((key) => (
+                <WeekdayChip
+                  key={key}
+                  type="button"
+                  $active={workingDays[key]}
+                  onClick={() => {
+                    onWorkingDayToggle(key);
+                  }}
+                >
+                  {t(`zoneB.weekday.${key}`)}
+                </WeekdayChip>
+              ))}
+            </WeekdayChipRow>
+          </ConstructorDaysBody>
+
+          <ConstructorExceptBody>
+            {exceptionPickMode ? (
+              <ReasonHint>{t('zoneB.exceptionsPickHint')}</ReasonHint>
+            ) : null}
+            {exceptions.length > 0 ? (
+              <ExceptionList>
+                {exceptions.map((item) => (
+                  <ExceptionRow key={item.ymd}>
+                    <ZoneDateField
+                      label={item.label}
+                      valueYmd={item.ymd}
+                      minYmd={minYmd}
+                      maxYmd={maxYmd}
+                      iconStart
+                      compact
+                      onPick={(ymd) => {
+                        onChangeExceptionDate(item.ymd, ymd);
+                      }}
+                    />
+                    <ExceptionBadge>{t('zoneB.exceptionKindDayOff')}</ExceptionBadge>
+                    <ExceptionRemove
+                      type="button"
+                      aria-label={t('zoneB.exceptionRemove')}
+                      onClick={() => {
+                        onRemoveException(item.ymd);
+                      }}
+                    >
+                      <IconX size={14} />
+                    </ExceptionRemove>
+                  </ExceptionRow>
+                ))}
+              </ExceptionList>
+            ) : null}
+          </ConstructorExceptBody>
+        </ConstructorSplit>
+      </FormSection>
+
+      <FormSection>
+        <FormatPriceRow>
+          <SplitBlock>
+            <SectionLabel>{t('zoneB.format')}</SectionLabel>
+            <SegmentRow>
+              {formatOptions.map((option) => (
+                <SegmentButton
+                  key={option.value}
+                  type="button"
+                  $active={form.format === option.value}
+                  onClick={() => {
+                    onChange({ format: option.value });
+                  }}
+                >
+                  {option.label}
+                </SegmentButton>
+              ))}
+            </SegmentRow>
+          </SplitBlock>
+          <SplitBlock>
+            <SectionLabel>{t('zoneB.price')}</SectionLabel>
+            <ZoneTextField
               size="small"
-              type="number"
-              placeholder="—"
-              slotProps={{
-                input: {
-                  endAdornment: (
-                    <DurationCustomHint>{t('zoneB.durationUnit')}</DurationCustomHint>
-                  ),
-                },
-              }}
-              value={form.customDuration ?? ''}
+              fullWidth
+              value={t('zoneB.priceValue', { price: form.priceUah })}
               onChange={(event) => {
-                const value = event.target.value;
-                onChange({
-                  customDuration: value ? Number(value) : undefined,
-                });
+                const digits = event.target.value.replace(/\D/g, '');
+                onChange({ priceUah: Number(digits) || 0 });
               }}
             />
-            <DurationCustomHint>{t('zoneB.durationCustomHint')}</DurationCustomHint>
-          </DurationCustomRow>
-        </FieldFull>
-      </FieldGrid>
-
-      <div>
-        <SectionLabel>{t('zoneB.format')}</SectionLabel>
-        <SegmentRow>
-          {formatOptions.map((option) => (
-            <SegmentButton
-              key={option.value}
-              type="button"
-              $active={form.format === option.value}
-              onClick={() => {
-                onChange({ format: option.value });
-              }}
-            >
-              {option.label}
-            </SegmentButton>
-          ))}
-        </SegmentRow>
-      </div>
-
-      <div>
-        <SectionLabel>{t('zoneB.price')}</SectionLabel>
-        <TextField
-          fullWidth
-          value={t('zoneB.priceValue', { price: form.priceUah })}
-          onChange={(event) => {
-            const digits = event.target.value.replace(/\D/g, '');
-            onChange({ priceUah: Number(digits) || 0 });
-          }}
-          helperText={t('zoneB.priceHint')}
-        />
-      </div>
-
-      <SwitchRow>
-        <span>{t('zoneB.vacationToggle')}</span>
-        <Switch
-          checked={form.vacationDayOff}
-          onChange={(_, checked) => {
-            onChange({ vacationDayOff: checked });
-            if (checked) {
-              onVacationToggleOn();
-            }
-          }}
-        />
-      </SwitchRow>
+          </SplitBlock>
+        </FormatPriceRow>
+      </FormSection>
 
       <PrimarySaveButton
         variant="contained"

@@ -869,7 +869,7 @@ The doctor’s working hours, duration, days off, and vacation are what patients
 | Zone | Bookings? | What the doctor may do |
 |---|---|---|
 | **Zone A** — rolling bookable window (same as patient bookable window) | Yes — this is the only place appointments exist | Hours, duration, and **base price** are **frozen**. Doctor may **cancel** visits (one visit, **all visits in a day at once**, rest of day, rest of week, or a **custom date range**). After a day has **no** bookings left, they may mark **vacation**. |
-| **Zone B** — after Zone A, up to **3 months** | **None.** Max booking horizon is Zone A. | Doctor may change **base price**, **promo price** (SCR-09), mark **vacation**, and change **working hours** / duration. No bulk-cancel needed — no appointments. |
+| **Zone B** — after Zone A, up to **3 months** | **None.** Max booking horizon is Zone A. | Doctor **plans by date range** (selected days/weeks on the calendar): **hours**, **duration**, **format** (online / offline / both), **price**, and **vacation** for that range only. Other Zone B days keep their previous plan. Default weekly template applies where no range override exists. No bulk-cancel needed — no appointments. |
 
 There is no “shorten hours after Zone A and silently drop visits” path. Bookings only exist inside Zone A (**R-13**).
 
@@ -891,8 +891,13 @@ Hours/duration stay frozen for the remaining Zone A days that still have (or cou
 
 **Confirmed**
 
-- Doctor can change working hours, duration, vacation, **base price**, and **promo price** (SCR-09).
+- Doctor plans the empty calendar **per selected range** (one day, a week, or custom span inside Zone B).
+- For the selected range they may set: working hours / lunch, visit duration, supported format, price, and/or vacation (day off).
+- Saving applies **only to that range**. Days outside the selection stay unchanged.
+- A **default weekly template** (and default format / duration / base price) fills any Zone B day that has no range override yet.
+- Overlapping a previous override on the same dates **replaces** the plan for those dates.
 - No existing patient bookings to protect in this zone.
+- Optional **promo price** (display) remains a profile-level display tool on SCR-09 when used; range **base** price overrides apply when those days later enter Zone A.
 
 ### Out of scope for schedule changes
 
@@ -1887,9 +1892,9 @@ This is what patients book against. The doctor sets days, hours, lunch, duration
 
 - Doctor sees **3 months** of schedule.
 - **Zone A — rolling bookable window:** bookings can exist. Hours, duration, and **base price** are **frozen**. Doctor may **cancel** visits (with confirm) and mark **vacation** only on days that then have **no** bookings.
-- **Zone B — after Zone A, up to 3 months:** **no** bookings. Doctor may change hours, duration, vacation, and price. **Earliest base-price edit day is first day after Zone A** (see Price below).
+- **Zone B — after Zone A, up to 3 months:** **no** bookings. Doctor selects a date range on the calendar, then sets hours / duration / format / price / vacation for **that range only**. Unselected Zone B days keep the default template or an earlier override. **Earliest base-price edit day is first day after Zone A** (see Price below).
 
-Exact calendar chrome (month grid vs list) is later. The two zones must be obvious.
+Exact calendar chrome (month grid vs list) is later. The two zones must be obvious. Range selection in Zone B is required before saving Zone B plan changes.
 
 **Default template (Confirmed, R-12 / SCR-01) — until they edit Zone B**
 

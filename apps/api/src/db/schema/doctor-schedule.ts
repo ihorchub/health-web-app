@@ -30,6 +30,20 @@ export const defaultWeeklyTemplate: WeeklyTemplate = {
   sunday: { works: false },
 };
 
+/** Zone B plan for an inclusive date range — only set fields override the default template. */
+export type ZoneBOverride = {
+  from: string;
+  to: string;
+  supportedFormats?: Array<"offline" | "online">;
+  visitDurationMinutes?: number;
+  workStart?: string;
+  workEnd?: string;
+  lunchStart?: string;
+  lunchEnd?: string;
+  basePriceUah?: number;
+  dayOff?: boolean;
+};
+
 export const doctorSchedules = pgTable("doctor_schedules", {
   doctorUserId: text("doctor_user_id")
     .primaryKey()
@@ -41,5 +55,7 @@ export const doctorSchedules = pgTable("doctor_schedules", {
   weeklyTemplate: jsonb("weekly_template").$type<WeeklyTemplate>().notNull(),
   /** ISO calendar dates (YYYY-MM-DD) marked as vacation / day off. */
   vacationDates: text("vacation_dates").array().notNull().default([]),
+  /** Inclusive range plans inside Zone B (format / hours / price / day off). */
+  zoneBOverrides: jsonb("zone_b_overrides").$type<ZoneBOverride[]>().notNull().default([]),
   visibleInSearch: boolean("visible_in_search").notNull().default(true),
 });

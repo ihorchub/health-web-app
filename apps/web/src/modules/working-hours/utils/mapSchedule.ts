@@ -1,12 +1,22 @@
-import type { DoctorScheduleResponse, WeeklyDayTemplate } from '@/api/doctors/schedule';
+import type {
+  DoctorScheduleResponse,
+  WeeklyDayTemplate,
+  WeeklyTemplate,
+  ZoneBOverride,
+} from '@/api/doctors/schedule';
 import type {
   SupportedFormat,
   VisitDurationMinutes,
   WorkingHoursSettings,
   ZoneAParams,
   ZoneBFormState,
+  ZoneBSavedInfo,
 } from '@/modules/working-hours/types';
-import { todayDoctorDayYmd } from '@/modules/doctor-day/utils/mapDashboard';
+import {
+  DEFAULT_WORKING_DAYS,
+  WEEKDAY_KEYS,
+  type WorkingDaysSelection,
+} from '@/modules/working-hours/utils/calendarGrid';
 
 const WEEKDAYS = [
   'monday',
@@ -95,34 +105,175 @@ export const mapScheduleToWorkingHours = (
     zoneAEndYmd: schedule.zoneAEnd,
     zoneBStartYmd: schedule.zoneBStart,
     appointmentDays: [],
+    vacationDates: schedule.vacationDates ?? [],
   };
 };
 
-export const zoneBFormToPatch = (zoneB: ZoneBFormState, schedule: DoctorScheduleResponse) => {
-  const day: WeeklyDayTemplate = {
-    works: true,
-    start: zoneB.workStart,
-    end: zoneB.workEnd,
-    lunchStart: zoneB.lunchStart,
-    lunchEnd: zoneB.lunchEnd,
-  };
-
-  const weeklyTemplate = { ...schedule.weeklyTemplate };
-  for (const key of WEEKDAYS) {
-    const existing = weeklyTemplate[key];
-    if (existing?.works) {
-      weeklyTemplate[key] = { ...day };
-    }
+export const workingDaysFromTemplate = (
+  template: DoctorScheduleResponse['weeklyTemplate'],
+): WorkingDaysSelection => {
+  const next = { ...DEFAULT_WORKING_DAYS };
+  for (const key of WEEKDAY_KEYS) {
+    next[key] = Boolean(template[key]?.works);
   }
+  return next;
+};
+
+/** Build Zone B weekly template from form hours + which days the doctor works. */
+export const buildZoneBWeeklyTemplate = (
+  form: ZoneBFormState,
+  workingDays: WorkingDaysSelection,
+): WeeklyTemplate => {
+  const day = (works: boolean): WeeklyDayTemplate =>
+    works
+      ? {
+          works: true,
+          start: form.workStart,
+          end: form.workEnd,
+          lunchStart: form.lunchStart,
+          lunchEnd: form.lunchEnd,
+        }
+      : { works: false };
 
   return {
-    zoneBWeeklyTemplate: weeklyTemplate,
-    zoneBVisitDurationMinutes: zoneB.durationMinutes,
-    supportedFormats: uiFormatToApi(zoneB.format),
-    basePriceUah: zoneB.priceUah,
-    vacationDates: zoneB.vacationDayOff
-      ? [...new Set([...schedule.vacationDates, todayDoctorDayYmd()])]
-      : schedule.vacationDates,
+    monday: day(workingDays.monday),
+    tuesday: day(workingDays.tuesday),
+    wednesday: day(workingDays.wednesday),
+    thursday: day(workingDays.thursday),
+    friday: day(workingDays.friday),
+    saturday: day(workingDays.saturday),
+    sunday: day(workingDays.sunday),
+  };
+};
+
+/** Base Zone B constructor save (no range override required). */
+export const zoneBFormToBasePatch = (
+  form: ZoneBFormState,
+  workingDays: WorkingDaysSelection,
+  zoneBStartYmd: string,
+) => {
+  const duration =
+    form.customDuration === 20 || form.customDuration === 30 || form.customDuration === 45
+      ? form.customDuration
+      : form.durationMinutes;
+
+  return {
+    zoneBWeeklyTemplate: buildZoneBWeeklyTemplate(form, workingDays),
+    zoneBVisitDurationMinutes: duration,
+    supportedFormats: uiFormatToApi(form.format),
+    basePriceUah: form.priceUah,
+    basePriceEffectiveFrom: zoneBStartYmd,
+  };
+};
+
+const addDaysYmd = (ymd: string, days: number) => {
+  const [y, m, d] = ymd.split('-').map(Number);
+  const date = new Date(y!, m! - 1, d! + days);
+  const yy = date.getFullYear();
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const dd = String(date.getDate()).padStart(2, '0');
+  return `${yy}-${mm}-${dd}`;
+};
+
+export const listYmdsInInclusiveRange = (from: string, to: string): string[] => {
+  const start = from <= to ? from : to;
+  const end = from <= to ? to : from;
+  const days: string[] = [];
+  let cursor = start;
+  while (cursor <= end) {
+    days.push(cursor);
+    cursor = addDaysYmd(cursor, 1);
+  }
+  return days;
+};
+
+/** All Zone B calendar days covered by any range override. */
+export const buildPlannedOverrideDays = (overrides: ZoneBOverride[]): Set<string> => {
+  const set = new Set<string>();
+  for (const override of overrides) {
+    for (const ymd of listYmdsInInclusiveRange(override.from, override.to)) {
+      set.add(ymd);
+    }
+  }
+  return set;
+};
+
+export const findOverrideForDay = (
+  overrides: ZoneBOverride[],
+  ymd: string,
+): ZoneBOverride | null =>
+  overrides.find((override) => ymd >= override.from && ymd <= override.to) ?? null;
+
+/** Override that fully covers every selected day, or null if none / mixed. */
+export const findOverrideForSelection = (
+  overrides: ZoneBOverride[],
+  selectedDays: string[],
+): ZoneBOverride | null => {
+  if (selectedDays.length === 0) {
+    return null;
+  }
+  const first = findOverrideForDay(overrides, selectedDays[0]!);
+  if (!first) {
+    return null;
+  }
+  if (selectedDays.every((ymd) => ymd >= first.from && ymd <= first.to)) {
+    return first;
+  }
+  return null;
+};
+
+export const overrideToSavedInfo = (
+  override: ZoneBOverride,
+  defaults: ZoneAParams,
+): ZoneBSavedInfo => ({
+  workStart: override.workStart ?? defaults.workStart,
+  workEnd: override.workEnd ?? defaults.workEnd,
+  lunchStart: override.lunchStart ?? defaults.lunchStart,
+  lunchEnd: override.lunchEnd ?? defaults.lunchEnd,
+  format: override.supportedFormats
+    ? formatsToUi(override.supportedFormats)
+    : defaults.format,
+  durationMinutes: override.visitDurationMinutes
+    ? asDuration(override.visitDurationMinutes)
+    : defaults.durationMinutes,
+  priceUah: override.basePriceUah ?? defaults.priceUah,
+});
+
+export const overrideToFormPatch = (
+  override: ZoneBOverride,
+  defaults: ZoneBFormState,
+): Partial<ZoneBFormState> => ({
+  ...overrideToSavedInfo(override, defaults),
+  vacationDayOff: override.dayOff === true,
+  customDuration: undefined,
+});
+
+/** Build PATCH body that applies Zone B form values only to the selected inclusive range. */
+export const zoneBFormToRangePatch = (
+  zoneB: ZoneBFormState,
+  range: { from: string; to: string },
+) => {
+  const duration =
+    zoneB.customDuration === 20 ||
+    zoneB.customDuration === 30 ||
+    zoneB.customDuration === 45
+      ? zoneB.customDuration
+      : zoneB.durationMinutes;
+
+  return {
+    zoneBOverride: {
+      from: range.from,
+      to: range.to,
+      supportedFormats: uiFormatToApi(zoneB.format),
+      visitDurationMinutes: duration,
+      workStart: zoneB.workStart,
+      workEnd: zoneB.workEnd,
+      lunchStart: zoneB.lunchStart,
+      lunchEnd: zoneB.lunchEnd,
+      basePriceUah: zoneB.priceUah,
+      // Only set dayOff when marking vacation; omit false so plain saves do not clear vacation.
+      ...(zoneB.vacationDayOff ? { dayOff: true as const } : {}),
+    },
   };
 };
 

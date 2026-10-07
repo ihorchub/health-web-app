@@ -1,4 +1,3 @@
-import { IconChevronDown, IconChevronUp } from '@tabler/icons-react';
 import { useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -45,7 +44,6 @@ import {
 import { formatCabinetHeaderDate } from '@/modules/patient-room/utils/formatCabinetDate';
 
 const DEMO_TODAY = new Date(`${DEMO_DOCTOR_DAY}T12:00:00+03:00`);
-const PAST_MONTH_PREVIEW = 2;
 const LIKA_EMPTY = '/brand/lika-poses/lika4.png';
 
 const greetingKey = (hour: number) => {
@@ -63,7 +61,6 @@ export const DoctorDayPage = () => {
   const { me } = useAppRole();
   const [tab, setTab] = useState<DoctorDayTab>('visits');
   const [visibleCount, setVisibleCount] = useState(8);
-  const [showAllPastMonth, setShowAllPastMonth] = useState(false);
   const [detailVisit, setDetailVisit] = useState<DoctorDayVisit | null>(null);
   const [scheduleDayYmd, setScheduleDayYmd] = useState<string | null>(null);
   const listRef = useRef<HTMLElement | null>(null);
@@ -148,9 +145,6 @@ export const DoctorDayPage = () => {
   };
 
   const shown = filteredVisits.slice(0, visibleCount);
-  const listPastMonth = showAllPastMonth
-    ? sortedPastMonth
-    : sortedPastMonth.slice(0, PAST_MONTH_PREVIEW);
 
   const listTitle =
     tab === 'past'
@@ -311,55 +305,6 @@ export const DoctorDayPage = () => {
                 </ShowMore>
               ) : null}
             </section>
-
-            {tab === 'visits' ? (
-              <section>
-                <SectionHead>
-                  <SectionTitle>{t('list.pastMonthTitle')}</SectionTitle>
-                  <SectionMeta>
-                    {t('list.pastMonthMeta', { total: sortedPastMonth.length })}
-                  </SectionMeta>
-                </SectionHead>
-                {sortedPastMonth.length > 0 ? (
-                  <>
-                    {listPastMonth.map((visit) => (
-                      <DoctorVisitRow
-                        key={visit.id}
-                        visit={visit}
-                        showDate
-                        onOpen={() => {
-                          setDetailVisit(visit);
-                        }}
-                      />
-                    ))}
-                    {sortedPastMonth.length > PAST_MONTH_PREVIEW ? (
-                      <ShowMore
-                        type="button"
-                        onClick={() => {
-                          setShowAllPastMonth((value) => !value);
-                        }}
-                      >
-                        {showAllPastMonth ? (
-                          <>
-                            {t('list.showLess')} <IconChevronUp size={18} />
-                          </>
-                        ) : (
-                          <>
-                            {t('list.showMore')} <IconChevronDown size={18} />
-                          </>
-                        )}
-                      </ShowMore>
-                    ) : null}
-                  </>
-                ) : (
-                  <VisitsEmptyState>
-                    <StateMascot src={LIKA_EMPTY} size={80} />
-                    <VisitsEmptyTitle>{t('empty.pastMonthTitle')}</VisitsEmptyTitle>
-                    <VisitsEmptyBody>{t('empty.pastMonthBody')}</VisitsEmptyBody>
-                  </VisitsEmptyState>
-                )}
-              </section>
-            ) : null}
           </MainColumn>
 
           <SideColumn>
