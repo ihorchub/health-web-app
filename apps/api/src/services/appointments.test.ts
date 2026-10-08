@@ -188,15 +188,25 @@ describe("markCompleted", () => {
     await cleanupTestData(createdUserIds.splice(0));
   });
 
-  it("lets the owning doctor mark an Upcoming appointment Completed", async () => {
+  it("lets the owning doctor mark an Upcoming appointment Completed at or after start", async () => {
     const { doctorId, patientId } = await setupDoctorAndPatient();
     createdUserIds.push(doctorId, patientId);
     const booked = await bookAppointment({ doctorId, patientId, startAt: FREE_SLOT, format: "offline", now: NOW });
 
-    const completed = await markCompleted({ appointmentId: booked.id, doctorId, now: NOW });
+    const completed = await markCompleted({ appointmentId: booked.id, doctorId, now: FREE_SLOT });
 
     expect(completed.status).toBe("Completed");
     expect(completed.completedAt).not.toBeNull();
+  });
+
+  it("rejects complete before visit start with APPOINTMENT_TOO_EARLY_TO_COMPLETE", async () => {
+    const { doctorId, patientId } = await setupDoctorAndPatient();
+    createdUserIds.push(doctorId, patientId);
+    const booked = await bookAppointment({ doctorId, patientId, startAt: FREE_SLOT, format: "offline", now: NOW });
+
+    await expect(
+      markCompleted({ appointmentId: booked.id, doctorId, now: NOW }),
+    ).rejects.toMatchObject({ code: "APPOINTMENT_TOO_EARLY_TO_COMPLETE" });
   });
 
   it("rejects a different doctor with APPOINTMENT_FORBIDDEN", async () => {
@@ -206,7 +216,7 @@ describe("markCompleted", () => {
     const booked = await bookAppointment({ doctorId, patientId, startAt: FREE_SLOT, format: "offline", now: NOW });
 
     await expect(
-      markCompleted({ appointmentId: booked.id, doctorId: otherDoctorId, now: NOW }),
+      markCompleted({ appointmentId: booked.id, doctorId: otherDoctorId, now: FREE_SLOT }),
     ).rejects.toMatchObject({ code: "APPOINTMENT_FORBIDDEN" });
   });
 });

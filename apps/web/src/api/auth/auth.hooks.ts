@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
 
 import {
   getAuthMe,
@@ -25,6 +25,12 @@ export const authQueryKeys = {
   me: ['auth', 'me'] as const,
 };
 
+/** Drop all cached user data when the session changes (login / logout / signup). */
+const resetSessionQueryCache = async (queryClient: QueryClient) => {
+  await queryClient.cancelQueries();
+  queryClient.clear();
+};
+
 export const useGetAuthMe = () => {
   return useQuery({
     queryKey: authQueryKeys.me,
@@ -39,6 +45,7 @@ export const usePostAuthLogin = () => {
   return useMutation({
     mutationFn: (data: LoginBody) => postAuthLogin(data),
     onSuccess: async () => {
+      await resetSessionQueryCache(queryClient);
       await queryClient.invalidateQueries({ queryKey: authQueryKeys.me });
     },
   });
@@ -50,8 +57,8 @@ export const usePostAuthLogout = () => {
   return useMutation({
     mutationFn: postAuthLogout,
     onSuccess: async () => {
+      await resetSessionQueryCache(queryClient);
       queryClient.setQueryData(authQueryKeys.me, null);
-      await queryClient.invalidateQueries({ queryKey: authQueryKeys.me });
     },
   });
 };
@@ -92,6 +99,7 @@ export const usePostAuthRegisterComplete = () => {
   return useMutation({
     mutationFn: (data: RegisterCompleteBody) => postAuthRegisterComplete(data),
     onSuccess: async () => {
+      await resetSessionQueryCache(queryClient);
       await queryClient.invalidateQueries({ queryKey: authQueryKeys.me });
     },
   });

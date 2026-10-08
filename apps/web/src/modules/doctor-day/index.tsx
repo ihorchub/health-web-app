@@ -2,6 +2,7 @@ import { useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
+import { getApiErrorCode } from '@/api/errors';
 import { useGetDoctorMeDashboard } from '@/api/doctors';
 import { StateMascot } from '@/components/StateMascot/StateMascot';
 import { useAppRole } from '@/hooks/useAppRole';
@@ -174,7 +175,11 @@ export const DoctorDayPage = () => {
     try {
       await completeVisit(id);
       toast.success(t('rowActions.completeSuccess'));
-    } catch {
+    } catch (error) {
+      if (getApiErrorCode(error) === 'APPOINTMENT_TOO_EARLY_TO_COMPLETE') {
+        toast.error(t('rowActions.completeBeforeStart'));
+        return;
+      }
       toast.error(t('rowActions.completeError'));
     }
   };

@@ -337,7 +337,7 @@ export const ConsentRow = styled('div')(({ theme }) => ({
 }));
 
 export const ConsentLabel = styled(FormControlLabel)(({ theme }) => ({
-  alignItems: 'flex-start',
+  alignItems: 'center',
   marginLeft: 0,
   marginRight: 0,
   gap: theme.spacing(1.5),
@@ -351,7 +351,6 @@ export const ConsentLabel = styled(FormControlLabel)(({ theme }) => ({
 
 export const ConsentCheckbox = styled(Checkbox)({
   padding: 0,
-  marginTop: 1,
 });
 
 export const InlineLink = styled(RouterLink)({

@@ -166,13 +166,18 @@ export type MarkCompletedInput = {
 };
 
 export async function markCompleted(input: MarkCompletedInput): Promise<AppointmentRecord> {
+  const now = input.now ?? new Date();
   const appointment = await getAppointmentById(input.appointmentId);
   if (appointment.doctorId !== input.doctorId) throw new ApiError("APPOINTMENT_FORBIDDEN", 403);
   if (appointment.status !== "Upcoming") throw new ApiError("APPOINTMENT_INVALID_TRANSITION", 409);
+  // Manual complete only from visit start (cancel remains available before start).
+  if (now.getTime() < appointment.startAt.getTime()) {
+    throw new ApiError("APPOINTMENT_TOO_EARLY_TO_COMPLETE", 409);
+  }
 
   await getDb()
     .update(appointments)
-    .set({ status: "Completed", completedAt: input.now ?? new Date() })
+    .set({ status: "Completed", completedAt: now })
     .where(eq(appointments.id, input.appointmentId));
 
   return getAppointmentById(input.appointmentId);

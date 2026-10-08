@@ -36,7 +36,7 @@ describe("reviews", () => {
       format: "offline",
       now: NOW,
     });
-    await markCompleted({ appointmentId: apt.id, doctorId, now: NOW });
+    await markCompleted({ appointmentId: apt.id, doctorId, now: FREE_SLOT });
 
     const review = await createReview({
       patientId,
@@ -79,7 +79,7 @@ describe("reviews", () => {
       createReview({ patientId, appointmentId: apt.id, rating: 4 }),
     ).rejects.toMatchObject({ code: "REVIEW_FORBIDDEN" });
 
-    await markCompleted({ appointmentId: apt.id, doctorId, now: NOW });
+    await markCompleted({ appointmentId: apt.id, doctorId, now: FREE_SLOT });
     await createReview({ patientId, appointmentId: apt.id, rating: 4 });
     await expect(
       createReview({ patientId, appointmentId: apt.id, rating: 3 }),

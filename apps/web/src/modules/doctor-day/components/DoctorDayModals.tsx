@@ -1,4 +1,4 @@
-import { Button, CircularProgress } from '@mui/material';
+import { Button, CircularProgress, Tooltip } from '@mui/material';
 import { styled } from '@/theme/styled';
 
 import { IconX } from '@tabler/icons-react';
@@ -7,9 +7,11 @@ import { useTranslation } from 'react-i18next';
 
 import { SheetDialog } from '@/components/Dialog/SheetDialog';
 import { StateMascot } from '@/components/StateMascot/StateMascot';
+import { useCanCompleteVisit } from '@/modules/doctor-day/hooks/useCanCompleteVisit';
 import type { DoctorDayVisit, FreeWindowSlot } from '@/modules/doctor-day/types';
 import { mapFreeWindowsFromSlots } from '@/modules/doctor-day/utils/mapDashboard';
 import {
+  CompleteTooltipTarget,
   DayInfoNote,
   DayInfoSection,
   DayInfoSectionTitle,
@@ -143,6 +145,7 @@ export const VisitCardDialog = ({
   onCancel,
 }: VisitCardDialogProps) => {
   const { t, i18n } = useTranslation('doctorDay');
+  const canComplete = useCanCompleteVisit(visit?.startsAt ?? '', visit?.status ?? 'cancelled');
 
   if (!visit) {
     return null;
@@ -197,16 +200,27 @@ export const VisitCardDialog = ({
 
         {canAct ? (
           <VisitCardActions>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={() => {
-                onComplete?.();
-                onClose();
-              }}
+            <Tooltip
+              title={canComplete ? '' : t('rowActions.completeBeforeStart')}
+              disableHoverListener={canComplete}
             >
-              {t('nextVisit.complete')}
-            </Button>
+              <CompleteTooltipTarget>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  disabled={!canComplete}
+                  onClick={() => {
+                    if (!canComplete) {
+                      return;
+                    }
+                    onComplete?.();
+                    onClose();
+                  }}
+                >
+                  {t('nextVisit.complete')}
+                </Button>
+              </CompleteTooltipTarget>
+            </Tooltip>
             <Button
               variant="outlined"
               color="error"

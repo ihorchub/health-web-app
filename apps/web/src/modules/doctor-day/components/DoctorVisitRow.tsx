@@ -1,8 +1,10 @@
-import { Button } from '@mui/material';
+import { Button, Tooltip } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 
+import { useCanCompleteVisit } from '@/modules/doctor-day/hooks/useCanCompleteVisit';
 import type { DoctorDayVisit } from '@/modules/doctor-day/types';
 import {
+  CompleteTooltipTarget,
   DangerOutlineButton,
   DoctorLine,
   FormatChip,
@@ -69,6 +71,7 @@ export const DoctorVisitRow = ({
   onOpen,
 }: DoctorVisitRowProps) => {
   const { t, i18n } = useTranslation('doctorDay');
+  const canComplete = useCanCompleteVisit(visit.startsAt, visit.status);
   const mutedTime =
     visit.status === 'completed' ||
     visit.status === 'cancelled' ||
@@ -110,17 +113,32 @@ export const DoctorVisitRow = ({
 
       {visit.status === 'upcoming' ? (
         <RowActions>
-          <SmallButton
-            variant="contained"
-            color="primary"
-            size="small"
-            onClick={(event) => {
-              event.stopPropagation();
-              onComplete?.();
-            }}
+          <Tooltip
+            title={canComplete ? '' : t('rowActions.completeBeforeStart')}
+            disableHoverListener={canComplete}
           >
-            {t('rowActions.complete')}
-          </SmallButton>
+            <CompleteTooltipTarget
+              onClick={(event) => {
+                event.stopPropagation();
+              }}
+            >
+              <SmallButton
+                variant="contained"
+                color="primary"
+                size="small"
+                disabled={!canComplete}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  if (!canComplete) {
+                    return;
+                  }
+                  onComplete?.();
+                }}
+              >
+                {t('rowActions.complete')}
+              </SmallButton>
+            </CompleteTooltipTarget>
+          </Tooltip>
           <SmallButton
             variant="outlined"
             color="error"
@@ -152,6 +170,7 @@ export const DoctorNextVisitHero = ({
   onOpen,
 }: DoctorNextVisitHeroProps) => {
   const { t, i18n } = useTranslation('doctorDay');
+  const canComplete = useCanCompleteVisit(visit.startsAt, visit.status);
 
   return (
     <NextVisitCard
@@ -185,16 +204,31 @@ export const DoctorNextVisitHero = ({
         </VisitMain>
 
         <HeroActions>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={(event) => {
-              event.stopPropagation();
-              onComplete();
-            }}
+          <Tooltip
+            title={canComplete ? '' : t('rowActions.completeBeforeStart')}
+            disableHoverListener={canComplete}
           >
-            {t('nextVisit.complete')}
-          </Button>
+            <CompleteTooltipTarget
+              onClick={(event) => {
+                event.stopPropagation();
+              }}
+            >
+              <Button
+                variant="contained"
+                color="primary"
+                disabled={!canComplete}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  if (!canComplete) {
+                    return;
+                  }
+                  onComplete();
+                }}
+              >
+                {t('nextVisit.complete')}
+              </Button>
+            </CompleteTooltipTarget>
+          </Tooltip>
           <DangerOutlineButton
             variant="outlined"
             onClick={(event) => {

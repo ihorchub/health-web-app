@@ -176,15 +176,6 @@ export const NextVisitCard = styled('div')(({ theme }) => ({
       ? '0 1px 2px rgba(22, 62, 82, 0.06), 0 8px 24px rgba(22, 62, 82, 0.06)'
       : 'none',
   cursor: 'pointer',
-  transition: theme.transitions.create(['background-color', 'box-shadow', 'transform'], {
-    duration: theme.transitions.duration.shorter,
-  }),
-
-  '&:hover': {
-    backgroundColor: theme.palette.action.hover,
-    boxShadow: `0 4px 16px ${alpha(theme.palette.text.primary, theme.palette.mode === 'light' ? 0.1 : 0.3)}`,
-    transform: 'translateY(-1px)',
-  },
 
   [theme.breakpoints.up('sm')]: {
     padding: theme.spacing(2.75, 3),
@@ -304,9 +295,13 @@ export const HeroActions = styled('div')(({ theme }) => ({
   width: '100%',
   flexBasis: '100%',
 
-  '& > .MuiButton-root': {
+  // Complete is wrapped in Tooltip target span — size both children equally.
+  '& > .MuiButton-root, & > span': {
     flex: '1 1 calc(50% - 8px)',
     minWidth: 120,
+  },
+
+  '& .MuiButton-root': {
     height: 40,
     minHeight: 40,
     boxSizing: 'border-box',
@@ -317,15 +312,22 @@ export const HeroActions = styled('div')(({ theme }) => ({
     paddingBottom: 0,
   },
 
+  '& > span > .MuiButton-root': {
+    width: '100%',
+  },
+
   [theme.breakpoints.up('md')]: {
     flexBasis: 'auto',
     width: 'auto',
     flexShrink: 0,
     flexWrap: 'nowrap',
 
-    '& > .MuiButton-root': {
+    '& > .MuiButton-root, & > span': {
       flex: '0 0 auto',
       minWidth: 0,
+    },
+
+    '& .MuiButton-root': {
       whiteSpace: 'nowrap',
     },
   },
@@ -543,23 +545,6 @@ export const VisitRow = styled('div')<{
         ? '0 1px 2px rgba(22, 62, 82, 0.06), 0 8px 24px rgba(22, 62, 82, 0.06)'
         : 'none',
   cursor: 'pointer',
-  transition: theme.transitions.create(
-    ['background-color', 'border-color', 'box-shadow', 'transform'],
-    { duration: theme.transitions.duration.shorter },
-  ),
-
-  '&:hover': {
-    backgroundColor:
-      $variant === 'pending' || $variant === 'reserved'
-        ? alpha(theme.palette.primary.main, theme.palette.mode === 'light' ? 0.06 : 0.12)
-        : theme.palette.action.hover,
-    borderColor:
-      $variant === 'pending' || $variant === 'reserved'
-        ? alpha(theme.palette.primary.main, 0.35)
-        : alpha(theme.palette.primary.main, 0.35),
-    boxShadow: `0 4px 14px ${alpha(theme.palette.text.primary, theme.palette.mode === 'light' ? 0.1 : 0.3)}`,
-    transform: 'translateY(-1px)',
-  },
 
   [theme.breakpoints.up('md')]: {
     flexDirection: 'row',
@@ -708,6 +693,14 @@ export const SmallButton = styled(Button)({
   fontSize: 13,
   lineHeight: '18px',
   borderRadius: 8,
+});
+
+/** Wrapper so MUI Tooltip works on a disabled Complete button. */
+export const CompleteTooltipTarget = styled('span')({
+  display: 'inline-flex',
+  flexShrink: 0,
+  alignItems: 'stretch',
+  alignSelf: 'stretch',
 });
 
 export const WaitingLabel = styled('span')(({ theme }) => ({
@@ -1630,22 +1623,7 @@ export const ScheduleSlotRow = styled('button')<{
     textAlign: 'left',
     font: 'inherit',
     boxSizing: 'border-box',
-    transition: theme.transitions.create(
-      ['background-color', 'border-color', 'box-shadow', 'transform'],
-      { duration: theme.transitions.duration.shorter },
-    ),
     ...variants[$variant],
-
-    ...($variant !== 'free'
-      ? {
-          '&:hover': {
-            backgroundColor: theme.palette.action.hover,
-            borderColor: alpha(theme.palette.primary.main, 0.45),
-            boxShadow: `0 2px 8px ${alpha(theme.palette.text.primary, theme.palette.mode === 'light' ? 0.08 : 0.28)}`,
-            transform: 'translateY(-1px)',
-          },
-        }
-      : {}),
 
     [theme.breakpoints.up('sm')]: {
       flexWrap: 'nowrap',

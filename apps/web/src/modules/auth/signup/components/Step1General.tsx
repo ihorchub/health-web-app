@@ -1,3 +1,6 @@
+import { InputAdornment } from '@mui/material';
+import { IconEye, IconEyeOff } from '@tabler/icons-react';
+import { useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -18,6 +21,7 @@ import {
   InlineLink,
   NameCol,
   NameRow,
+  PasswordToggle,
   PrimaryButton,
   RoleRow,
   SegmentButton,
@@ -42,6 +46,8 @@ export const Step1General = ({ onSuccess }: Step1GeneralProps) => {
   const { mode } = useThemeMode();
   const mutation = usePostAuthRegisterStep1();
   const mapError = useAuthApiErrorMessage();
+  const [showPassword, setShowPassword] = useState(false);
+  const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
 
   const {
     control,
@@ -188,9 +194,28 @@ export const Step1General = ({ onSuccess }: Step1GeneralProps) => {
               <AuthTextField
                 {...field}
                 id={FieldName.password}
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 autoComplete="new-password"
                 error={Boolean(errors.password)}
+                slotProps={{
+                  input: {
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <PasswordToggle
+                          type="button"
+                          aria-label={
+                            showPassword ? t('login.hidePassword') : t('login.showPassword')
+                          }
+                          onClick={() => {
+                            setShowPassword((value) => !value);
+                          }}
+                        >
+                          {showPassword ? <IconEyeOff size={18} /> : <IconEye size={18} />}
+                        </PasswordToggle>
+                      </InputAdornment>
+                    ),
+                  },
+                }}
               />
             )}
           />
@@ -207,9 +232,34 @@ export const Step1General = ({ onSuccess }: Step1GeneralProps) => {
               <AuthTextField
                 {...field}
                 id={FieldName.passwordConfirm}
-                type="password"
+                type={showPasswordConfirm ? 'text' : 'password'}
                 autoComplete="new-password"
                 error={Boolean(errors.passwordConfirm)}
+                slotProps={{
+                  input: {
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <PasswordToggle
+                          type="button"
+                          aria-label={
+                            showPasswordConfirm
+                              ? t('login.hidePassword')
+                              : t('login.showPassword')
+                          }
+                          onClick={() => {
+                            setShowPasswordConfirm((value) => !value);
+                          }}
+                        >
+                          {showPasswordConfirm ? (
+                            <IconEyeOff size={18} />
+                          ) : (
+                            <IconEye size={18} />
+                          )}
+                        </PasswordToggle>
+                      </InputAdornment>
+                    ),
+                  },
+                }}
               />
             )}
           />

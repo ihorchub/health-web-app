@@ -71,6 +71,7 @@
     "cancel": "Cancel",
     "completeSuccess": "Visit marked completed",
     "completeError": "Could not complete the visit",
+    "completeBeforeStart": "Complete is available only after the visit starts. Until then you can only cancel.",
     "cancelSuccess": "Visit cancelled",
     "cancelError": "Could not cancel the visit"
   },
