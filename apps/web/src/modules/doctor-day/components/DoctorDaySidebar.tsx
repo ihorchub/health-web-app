@@ -40,6 +40,7 @@ interface DoctorDaySidebarProps {
   nextVisit: DoctorDayVisit | null;
   weekDays: WeekDaySummary[];
   freeWindows: FreeWindowSlot[];
+  isLoading?: boolean;
   onSelectDay: (ymd: string) => void;
   onOpenVisit: () => void;
 }
@@ -86,6 +87,7 @@ export const DoctorDaySidebar = ({
   nextVisit,
   weekDays,
   freeWindows,
+  isLoading = false,
   onSelectDay,
   onOpenVisit,
 }: DoctorDaySidebarProps) => {
@@ -185,7 +187,9 @@ export const DoctorDaySidebar = ({
           ) : null}
         </WidgetHead>
         <FreeHint>{t('sidebar.freeHint')}</FreeHint>
-        {freeWindows.length === 0 ? (
+        {isLoading ? (
+          <FreeEmptyNote>{t('list.loading')}</FreeEmptyNote>
+        ) : freeWindows.length === 0 ? (
           <FreeEmptyNote>{t('sidebar.freeEmpty')}</FreeEmptyNote>
         ) : (
           <>

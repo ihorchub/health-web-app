@@ -13,4 +13,5 @@ export const doctorEducation = pgTable("doctor_education", {
   subtitle: text("subtitle"),
   yearFrom: integer("year_from").notNull(),
   yearTo: integer("year_to"),
+  imageUrl: text("image_url"),
 });

@@ -1,3 +1,4 @@
+import { CircularProgress } from '@mui/material';
 import { useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -226,6 +227,7 @@ export const DoctorDayPage = () => {
             <DoctorDayTabs
               active={tab}
               counts={tabCounts}
+              isLoading={isLoading}
               onChange={(next) => {
                 setTab(next);
                 setVisibleCount(8);
@@ -238,7 +240,13 @@ export const DoctorDayPage = () => {
                 <SectionMeta>{listMeta}</SectionMeta>
               </SectionHead>
 
-              {tab === 'free' ? (
+              {isLoading ? (
+                <VisitsEmptyState aria-live="polite">
+                  <CircularProgress size={32} />
+                  <VisitsEmptyTitle>{t('loadingState.title')}</VisitsEmptyTitle>
+                  <VisitsEmptyBody>{t('loadingState.body')}</VisitsEmptyBody>
+                </VisitsEmptyState>
+              ) : tab === 'free' ? (
                 freeWindows.map((window) => (
                   <EmptyBlock key={window.id}>
                     {window.start}–{window.end} · {window.slotsCount}
@@ -299,7 +307,7 @@ export const DoctorDayPage = () => {
                 </VisitsEmptyState>
               )}
 
-              {filteredVisits.length > visibleCount ? (
+              {!isLoading && filteredVisits.length > visibleCount ? (
                 <ShowMore
                   type="button"
                   onClick={() => {
@@ -317,6 +325,7 @@ export const DoctorDayPage = () => {
               nextVisit={heroVisit ?? null}
               weekDays={weekDays}
               freeWindows={freeWindows}
+              isLoading={isLoading}
               onSelectDay={(ymd) => {
                 setScheduleDayYmd(ymd);
               }}

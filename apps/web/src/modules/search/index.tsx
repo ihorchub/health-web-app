@@ -115,6 +115,10 @@ export const SearchPage = () => {
           onSubmit={() => {
             applyQuery(queryInput);
           }}
+          onClear={() => {
+            setQueryInput('');
+            applyQuery('');
+          }}
           onOpenFilters={() => {
             setFiltersOpen(true);
           }}
@@ -156,6 +160,7 @@ export const SearchPage = () => {
           cityNameById={{}}
           clinicNameById={{}}
           isLoading={doctorsQuery.isLoading && !doctorsQuery.data}
+          isLoadingMore={doctorsQuery.isFetching && Boolean(doctorsQuery.data)}
           isError={doctorsQuery.isError}
           hasMore={Boolean(doctorsQuery.data?.nextCursor)}
           onSortChange={changeSort}

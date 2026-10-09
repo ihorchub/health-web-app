@@ -46,6 +46,7 @@ describe("getDoctorById", () => {
     expect(profile.cityName).toBe("Test City");
     expect(profile.address).toContain("Test Clinic");
     expect(profile.reviews).toEqual([]);
+    expect(profile.education).toEqual([]);
     expect(profile.isFavourite).toBe(false);
     expect(profile.consultationCount).toBe(0);
   });

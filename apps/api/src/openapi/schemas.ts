@@ -237,6 +237,21 @@ export const DoctorReviewDto = Type.Object({
 });
 export type DoctorReviewDto = Static<typeof DoctorReviewDto>;
 
+export const DoctorEducationItem = Type.Object({
+  id: Type.String(),
+  kind: Type.Union([
+    Type.Literal("university"),
+    Type.Literal("certificate"),
+    Type.Literal("training"),
+  ]),
+  title: Type.String(),
+  subtitle: NullableString,
+  yearFrom: Type.Number(),
+  yearTo: NullableNumber,
+  imageUrl: NullableString,
+});
+export type DoctorEducationItem = Static<typeof DoctorEducationItem>;
+
 export const DoctorProfileDto = Type.Object({
   id: Type.String(),
   firstName: Type.String(),
@@ -261,6 +276,7 @@ export const DoctorProfileDto = Type.Object({
   reviewCount: Type.Number(),
   consultationCount: Type.Number(),
   isFavourite: Type.Boolean(),
+  education: Type.Array(DoctorEducationItem),
   reviews: Type.Array(DoctorReviewDto),
 });
 export type DoctorProfileDto = Static<typeof DoctorProfileDto>;
@@ -526,6 +542,8 @@ export type DoctorScheduleResponse = Static<typeof DoctorScheduleResponse>;
 
 export const BulkCancelResponse = Type.Object({
   cancelledIds: Type.Array(Type.String()),
+  /** How many appointments matched the scope (dry-run or after cancel). */
+  matchedCount: Type.Number(),
 });
 export type BulkCancelResponse = Static<typeof BulkCancelResponse>;
 
@@ -586,20 +604,6 @@ export const DoctorDashboardResponse = Type.Object({
 });
 export type DoctorDashboardResponse = Static<typeof DoctorDashboardResponse>;
 
-export const DoctorEducationItem = Type.Object({
-  id: Type.String(),
-  kind: Type.Union([
-    Type.Literal("university"),
-    Type.Literal("certificate"),
-    Type.Literal("training"),
-  ]),
-  title: Type.String(),
-  subtitle: NullableString,
-  yearFrom: Type.Number(),
-  yearTo: NullableNumber,
-});
-export type DoctorEducationItem = Static<typeof DoctorEducationItem>;
-
 export const DoctorMeProfileDto = Type.Object({
   id: Type.String(),
   email: Type.String(),
@@ -619,6 +623,9 @@ export const DoctorMeProfileDto = Type.Object({
   theme: NullableString,
   education: Type.Array(DoctorEducationItem),
   consultationCount: Type.Number(),
+  ratingAverage: Type.Number(),
+  reviewCount: Type.Number(),
+  reviews: Type.Array(DoctorReviewDto),
 });
 export type DoctorMeProfileDto = Static<typeof DoctorMeProfileDto>;
 

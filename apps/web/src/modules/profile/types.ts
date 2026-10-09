@@ -17,6 +17,10 @@ export interface DoctorEducationItem {
   subtitle: string;
   years: string;
   kind: 'education' | 'certificate';
+  /** Stored upload path (or empty). */
+  imageUrl: string;
+  /** Local blob preview while a new file is pending. */
+  previewUrl?: string;
 }
 
 export interface DoctorReviewItem {

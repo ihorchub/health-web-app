@@ -34,10 +34,13 @@
   "past": {
     "title": "Past visits",
     "count": "{{count}} records",
+    "countWindow": "{{count}} in the last 2 months",
     "leaveReview": "Leave a review",
     "yourReview": "Your review",
     "showMore": "Show more",
     "showLess": "Show less",
+    "paginationLabel": "Past visits pages",
+    "page": "Page {{page}}",
     "emptyTitle": "No past visits yet",
     "emptyBody": "Completed appointments will appear here."
   },

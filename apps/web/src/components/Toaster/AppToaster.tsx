@@ -46,10 +46,11 @@ export const AppToaster = () => {
           },
           '[data-sonner-toast].medicly-toast': {
             display: 'flex',
+            flexDirection: 'row',
             alignItems: 'center',
-            gap: theme.spacing(1.25),
+            gap: theme.spacing(1.5),
             width: 'min(420px, calc(100vw - 32px))',
-            padding: theme.spacing(1.5, 1.75),
+            padding: theme.spacing(1.5, 5, 1.5, 1.75),
             borderRadius: 14,
             border: '1px solid',
             boxShadow:
@@ -60,9 +61,27 @@ export const AppToaster = () => {
             lineHeight: '22px',
             fontWeight: 600,
           },
+          // Sonner defaults to absolute icon — force inline row: icon, then text.
+          '[data-sonner-toast].medicly-toast [data-icon]': {
+            position: 'static',
+            left: 'auto',
+            top: 'auto',
+            width: 'auto',
+            height: 'auto',
+            minWidth: 0,
+            margin: 0,
+            padding: 0,
+            transform: 'none',
+            flexShrink: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          },
           '[data-sonner-toast].medicly-toast [data-content]': {
             flex: 1,
             minWidth: 0,
+            margin: 0,
+            padding: 0,
           },
           '[data-sonner-toast].medicly-toast [data-title]': {
             fontWeight: 600,
@@ -73,18 +92,37 @@ export const AppToaster = () => {
             color: theme.palette.text.secondary,
             marginTop: 2,
           },
+          '[data-sonner-toast].medicly-toast [data-close-button]': {
+            position: 'absolute',
+            left: 'auto',
+            right: 10,
+            top: 10,
+            transform: 'none',
+            border: `1px solid ${theme.palette.divider}`,
+            background: theme.palette.background.paper,
+          },
           '.medicly-toast__icon': {
             display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'center',
+            boxSizing: 'border-box',
             flexShrink: 0,
             width: 36,
             height: 36,
+            margin: 0,
+            padding: 0,
+            lineHeight: 0,
             borderRadius: 10,
             backgroundColor:
               theme.palette.mode === 'light'
                 ? 'rgba(255, 255, 255, 0.72)'
                 : 'rgba(255, 255, 255, 0.08)',
+          },
+          '.medicly-toast__icon svg': {
+            display: 'block',
+            width: 20,
+            height: 20,
+            flexShrink: 0,
           },
           '[data-sonner-toast][data-type="success"] .medicly-toast__icon': {
             color: theme.palette.primary.dark,
@@ -117,7 +155,7 @@ export const AppToaster = () => {
         expand
         gap={10}
         offset={24}
-        duration={4000}
+        duration={3000}
         icons={{
           success: toastIcon(<IconCircleCheck size={20} stroke={2} />),
           error: toastIcon(<IconAlertCircle size={20} stroke={2} />),

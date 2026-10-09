@@ -32,7 +32,15 @@
     "basic": "Basic information",
     "about": "About me",
     "education": "Education & certificates",
-    "contact": "Contact information"
+    "contact": "Contact information",
+    "reviews": "Reviews about me"
+  },
+  "reviews": {
+    "count": "{{count}} reviews",
+    "empty": "No patient reviews yet.",
+    "emptyHint": "Reviews will appear after completed visits.",
+    "showMore": "Show {{count}} more",
+    "showLess": "Show less"
   },
   "fields": {
     "fullName": "Full name",
@@ -57,7 +65,18 @@
     "fullBio": "Full biography"
   },
   "education": {
-    "add": "Add certificate"
+    "add": "Add certificate",
+    "title": "Title",
+    "subtitle": "Institution / details",
+    "years": "Years (e.g. 2018 – 2022)",
+    "remove": "Remove",
+    "emptyTitle": "New certificate",
+    "invalidYears": "Enter a valid year or year range",
+    "attachPhoto": "Attach photo",
+    "changePhoto": "Change photo",
+    "removePhoto": "Remove photo",
+    "photoAlt": "Certificate photo",
+    "openPhoto": "Open certificate photo"
   },
   "preview": {
     "eyebrow": "Preview",
@@ -69,6 +88,9 @@
     "format": "Format",
     "languages": "Languages",
     "about": "About the doctor",
+    "education": "Education & certificates",
+    "educationPhotoAlt": "Certificate photo",
+    "educationOpenPhoto": "Open certificate photo",
     "consultation": "Consultation",
     "reviews": "Reviews",
     "reviewsCount": "{{count}} reviews",

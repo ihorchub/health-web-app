@@ -1,4 +1,5 @@
 import { IconChevronLeft, IconInfoCircle } from '@tabler/icons-react';
+import { CircularProgress } from '@mui/material';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -9,6 +10,10 @@ import {
   usePostBulkCancel,
   type DoctorScheduleResponse,
 } from '@/api/doctors';
+import {
+  postBulkCancel,
+  type BulkCancelBody,
+} from '@/api/doctors/schedule';
 import { todayDoctorDayYmd } from '@/modules/doctor-day/utils/mapDashboard';
 import { useAppRole } from '@/hooks/useAppRole';
 import {
@@ -41,11 +46,16 @@ import {
   PageIntro,
   PageSubtitle,
   PageTitle,
+  ScheduleLoading,
   TitleBlock,
   TitleRow,
   ZonesRow,
 } from '@/modules/working-hours/styles';
-import type { BulkCancelScope, ZoneBFormState } from '@/modules/working-hours/types';
+import type {
+  BulkCancelScope,
+  ZoneAParams,
+  ZoneBFormState,
+} from '@/modules/working-hours/types';
 import {
   DEFAULT_WORKING_DAYS,
   WEEKDAY_KEYS,
@@ -60,11 +70,9 @@ import {
   findOverrideForSelection,
   listYmdsInInclusiveRange,
   mapScheduleToWorkingHours,
-  mapUiBulkScope,
   overrideToFormPatch,
   overrideToSavedInfo,
   workingDaysFromTemplate,
-  zoneBFormToBasePatch,
   zoneBFormToRangePatch,
 } from '@/modules/working-hours/utils/mapSchedule';
 import { AppRole } from '@/types/role';
@@ -138,6 +146,29 @@ const bulkRangeForScope = (
   return formatRangeLabel(selection, locale) || formatDisplayDate(todayYmd, locale);
 };
 
+/** Build bulk-cancel request fields from the Zone A radios + calendar selection. */
+const resolveBulkCancelBody = (
+  bulkScope: BulkCancelScope,
+  selection: CalendarSelection,
+  todayYmd: string,
+  confirm: boolean,
+): BulkCancelBody => {
+  if (bulkScope === 'today') {
+    return { scope: 'whole_day', from: todayYmd, confirm };
+  }
+  if (bulkScope === 'rest_of_day') {
+    return { scope: 'rest_of_day', confirm };
+  }
+  if (bulkScope === 'rest_of_week') {
+    return { scope: 'rest_of_week', confirm };
+  }
+  const start = selection.startYmd ?? todayYmd;
+  const end = selection.endYmd ?? selection.startYmd ?? todayYmd;
+  const from = start <= end ? start : end;
+  const to = start <= end ? end : start;
+  return { scope: 'custom_range', from, to, confirm };
+};
+
 export const WorkingHoursPage = () => {
   const { t, i18n } = useTranslation('workingHours');
   const navigate = useNavigate();
@@ -156,6 +187,8 @@ export const WorkingHoursPage = () => {
   const todayYmd = todayDoctorDayYmd();
   const [anchorYm, setAnchorYm] = useState<string | null>(null);
   const [zoneB, setZoneB] = useState<ZoneBFormState | null>(null);
+  /** Frozen Zone A display — never tied to live Zone B form edits or Zone B saves. */
+  const [zoneAFrozen, setZoneAFrozen] = useState<ZoneAParams | null>(null);
   const [bulkScope, setBulkScope] = useState<BulkCancelScope>('today');
   const [cancelReason, setCancelReason] = useState('');
   const [modal, setModal] = useState<WorkingHoursModalKind>(null);
@@ -170,8 +203,12 @@ export const WorkingHoursPage = () => {
   const [workingDays, setWorkingDays] = useState<WorkingDaysSelection>(DEFAULT_WORKING_DAYS);
   const [workingDaysHydrated, setWorkingDaysHydrated] = useState(false);
   const [exceptionPickMode, setExceptionPickMode] = useState(false);
+  const [bulkCount, setBulkCount] = useState(0);
 
   if (settings) {
+    if (zoneAFrozen === null) {
+      setZoneAFrozen(settings.zoneA);
+    }
     if (zoneB === null) {
       setZoneB(settings.zoneB);
     }
@@ -184,6 +221,28 @@ export const WorkingHoursPage = () => {
     setWorkingDays(workingDaysFromTemplate(scheduleQuery.data.weeklyTemplate));
     setWorkingDaysHydrated(true);
   }
+
+  useEffect(() => {
+    if (modal !== 'bulk') {
+      return;
+    }
+    let cancelled = false;
+    const body = resolveBulkCancelBody(bulkScope, selection, todayYmd, false);
+    void postBulkCancel(body)
+      .then((result) => {
+        if (!cancelled) {
+          setBulkCount(result.matchedCount);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setBulkCount(0);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [modal, bulkScope, selection.startYmd, selection.endYmd, todayYmd]);
 
   const monthOptions = useMemo(() => {
     if (!scheduleQuery.data) {
@@ -280,7 +339,16 @@ export const WorkingHoursPage = () => {
   }
 
   if (!settings || !zoneB || !anchorYm || !scheduleQuery.data) {
-    return null;
+    return (
+      <Page>
+        <Content>
+          <ScheduleLoading aria-live="polite">
+            <CircularProgress size={32} />
+            {t('loading')}
+          </ScheduleLoading>
+        </Content>
+      </Page>
+    );
   }
 
   const zoneBStartLabel = formatDisplayDate(settings.zoneBStartYmd, i18n.language);
@@ -401,53 +469,33 @@ export const WorkingHoursPage = () => {
 
   const confirmModal = () => {
     if (modal === 'bulk') {
-      const from =
-        bulkScope === 'custom'
-          ? selection.startYmd && selection.endYmd
-            ? selection.startYmd < selection.endYmd
-              ? selection.startYmd
-              : selection.endYmd
-            : selection.startYmd ?? todayYmd
-          : undefined;
-      const to =
-        bulkScope === 'custom'
-          ? selection.startYmd && selection.endYmd
-            ? selection.startYmd < selection.endYmd
-              ? selection.endYmd
-              : selection.startYmd
-            : selection.startYmd ?? todayYmd
-          : undefined;
-
-      bulkCancelMutation.mutate(
-        {
-          scope: mapUiBulkScope(bulkScope),
-          ...(from ? { from } : {}),
-          ...(to ? { to } : {}),
-          confirm: true,
+      const body = resolveBulkCancelBody(bulkScope, selection, todayYmd, true);
+      bulkCancelMutation.mutate(body, {
+        onSuccess: () => {
+          toast.success(t('bulkDone'));
+          setVacationUnlockedAfterCancel(true);
+          if (body.scope === 'custom_range' && body.from && body.to) {
+            setEmptiedDayYmds(listYmdsInRange(body.from, body.to));
+          } else if (bulkScope === 'rest_of_week') {
+            setEmptiedDayYmds(listYmdsInRange(todayYmd, endOfWeekYmd(todayYmd)));
+          } else {
+            setEmptiedDayYmds([todayYmd]);
+          }
         },
-        {
-          onSuccess: () => {
-            toast.success(t('bulkDone'));
-            setVacationUnlockedAfterCancel(true);
-            if (from && to) {
-              setEmptiedDayYmds(listYmdsInRange(from, to));
-            } else if (bulkScope === 'rest_of_week') {
-              setEmptiedDayYmds(listYmdsInRange(todayYmd, endOfWeekYmd(todayYmd)));
-            } else {
-              setEmptiedDayYmds([todayYmd]);
-            }
-          },
-        },
-      );
+      });
     } else if (modal === 'saveB') {
       setIsSaving(true);
       const finishSave = {
         onSuccess: (data: DoctorScheduleResponse) => {
           const next = mapScheduleToWorkingHours(data);
+          // Keep Zone A frozen snapshot — Zone B saves must not rewrite Zone A params.
+          setZoneAFrozen((current) => current ?? next.zoneA);
           setZoneB({
             ...next.zoneB,
             vacationDayOff: false,
             customDuration: undefined,
+            promoPriceUah: data.promoPriceUah,
+            promoValidUntil: data.promoValidUntil,
           });
           setWorkingDays(workingDaysFromTemplate(data.weeklyTemplate));
           setSelection({ startYmd: null, endYmd: null });
@@ -461,29 +509,49 @@ export const WorkingHoursPage = () => {
         },
       };
 
-      // Editing a selected Zone B range (e.g. «Редагувати» on a planned card)
-      // must upsert zoneBOverride — not the base Zone B defaults.
-      if (selectedZoneBDays.length > 0) {
-        const from = selectedZoneBDays[0]!;
-        const to = selectedZoneBDays[selectedZoneBDays.length - 1]!;
-        patchScheduleMutation.mutate(zoneBFormToRangePatch(zoneB, { from, to }), finishSave);
-      } else {
-        const basePatch = zoneBFormToBasePatch(zoneB, workingDays, settings.zoneBStartYmd);
-        // Drop redundant vacation dates that fall on regular weekly days off.
-        const prunedVacation = scheduleQuery.data.vacationDates.filter((ymd) => {
-          if (ymd < settings.zoneBStartYmd || ymd > zoneBEndYmd) {
-            return true;
-          }
-          return workingDays[jsDayToWeekdayKey(weekdayOfYmd(ymd))];
-        });
-        patchScheduleMutation.mutate(
-          {
-            ...basePatch,
-            vacationDates: prunedVacation,
-          },
-          finishSave,
-        );
+      // Always save as a Zone B range override for the period shown in the form.
+      // Never patch shared weeklyTemplate / duration / format / price — those feed Zone A.
+      const from = zoneBFieldStart;
+      const to = zoneBFieldEnd;
+      if (!from || !to) {
+        setIsSaving(false);
+        toast.error(t('saveErrorNoPeriod'));
+        setModal(null);
+        return;
       }
+      if (from < settings.zoneBStartYmd || to > zoneBEndYmd) {
+        setIsSaving(false);
+        toast.error(
+          t('saveErrorOutsideZoneB', {
+            end: formatDisplayDate(zoneBEndYmd, i18n.language),
+          }),
+        );
+        setModal(null);
+        return;
+      }
+      const rangeDays = listYmdsInInclusiveRange(from, to);
+      const vacationSet = new Set(scheduleQuery.data.vacationDates);
+      for (const ymd of rangeDays) {
+        const works = workingDays[jsDayToWeekdayKey(weekdayOfYmd(ymd))];
+        if (!works) {
+          vacationSet.add(ymd);
+        }
+      }
+      const promoPriceUah =
+        zoneB.promoPriceUah != null && zoneB.promoPriceUah > 0
+          ? zoneB.promoPriceUah
+          : null;
+      const promoValidUntil =
+        promoPriceUah != null ? (zoneB.promoValidUntil ?? zoneBEndYmd) : null;
+      patchScheduleMutation.mutate(
+        {
+          ...zoneBFormToRangePatch(zoneB, { from, to }),
+          vacationDates: [...vacationSet].sort(),
+          promoPriceUah,
+          promoValidUntil,
+        },
+        finishSave,
+      );
     } else if (modal === 'vacationA') {
       if (emptiedDayYmds.length === 0) {
         toast.error(t('vacationError'));
@@ -635,13 +703,15 @@ export const WorkingHoursPage = () => {
 
         <ZonesRow>
           <ZoneAPanel
-            params={settings.zoneA}
+            params={zoneAFrozen ?? settings.zoneA}
             locale={i18n.language}
             rangeStartYmd={zoneAFieldStart}
             rangeEndYmd={zoneAFieldEnd}
             minYmd={settings.zoneAStartYmd}
             maxYmd={settings.zoneAEndYmd}
             todayShort={todayShort}
+            promoPriceUah={zoneB.promoPriceUah}
+            promoValidUntil={zoneB.promoValidUntil}
             bulkScope={bulkScope}
             onBulkScopeChange={setBulkScope}
             onRangeChange={(startYmd, endYmd) => {
@@ -789,7 +859,7 @@ export const WorkingHoursPage = () => {
         zoneBStartLabel={zoneBStartLabel}
         zoneBShortLabel={zoneBShortLabel}
         bulkRangeLabel={bulkRangeLabel}
-        bulkCount={bulkScope === 'custom' ? 12 : bulkScope === 'rest_of_week' ? 8 : 3}
+        bulkCount={bulkCount}
         emptiedDays={emptiedDayYmds.map((ymd) => shortDayMonth(ymd, i18n.language))}
         vacationBRangeLabel={vacationBRangeLabel}
         zoneBSaveRangeLabel={

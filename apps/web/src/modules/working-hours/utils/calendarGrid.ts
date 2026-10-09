@@ -67,6 +67,7 @@ export const zoneForDate = (
   zoneAStartYmd: string,
   zoneAEndYmd: string,
   zoneBStartYmd: string,
+  zoneBEndYmd?: string,
 ): 'a' | 'b' | 'none' => {
   if (!ymd) {
     return 'none';
@@ -75,11 +76,12 @@ export const zoneForDate = (
   const aStart = parseIsoDate(zoneAStartYmd);
   const aEnd = parseIsoDate(zoneAEndYmd);
   const bStart = parseIsoDate(zoneBStartYmd);
+  const bEnd = zoneBEndYmd ? parseIsoDate(zoneBEndYmd) : null;
 
   if (d >= aStart && d <= aEnd) {
     return 'a';
   }
-  if (d >= bStart) {
+  if (d >= bStart && (bEnd == null || d <= bEnd)) {
     return 'b';
   }
   return 'none';

@@ -5,6 +5,7 @@ import { and, count, eq } from "drizzle-orm";
 
 import { getDb } from "../db/client.js";
 import { appointments } from "../db/schema/appointments.js";
+import { doctorEducation } from "../db/schema/doctor-education.js";
 import { doctorSchedules } from "../db/schema/doctor-schedule.js";
 import { doctorProfiles } from "../db/schema/profiles.js";
 import { cities, clinics } from "../db/schema/reference.js";
@@ -49,6 +50,15 @@ export type DoctorProfileDto = {
   reviewCount: number;
   consultationCount: number;
   isFavourite: boolean;
+  education: Array<{
+    id: string;
+    kind: "university" | "certificate" | "training";
+    title: string;
+    subtitle: string | null;
+    yearFrom: number;
+    yearTo: number | null;
+    imageUrl: string | null;
+  }>;
   reviews: DoctorReviewDto[];
 };
 
@@ -130,6 +140,10 @@ export async function getDoctorById(params: {
 
   const stats = await getDoctorReviewStats(params.doctorId);
   const reviewList = await listDoctorReviews(params.doctorId);
+  const educationRows = await db
+    .select()
+    .from(doctorEducation)
+    .where(eq(doctorEducation.doctorUserId, params.doctorId));
   let favourite = false;
   if (params.sessionUser?.role === "patient") {
     favourite = await isFavourite(params.sessionUser.id, params.doctorId);
@@ -159,6 +173,15 @@ export async function getDoctorById(params: {
     reviewCount: stats.reviewCount,
     consultationCount: Number(completed?.value ?? 0),
     isFavourite: favourite,
+    education: educationRows.map((item) => ({
+      id: item.id,
+      kind: item.kind,
+      title: item.title,
+      subtitle: item.subtitle,
+      yearFrom: item.yearFrom,
+      yearTo: item.yearTo,
+      imageUrl: item.imageUrl,
+    })),
     reviews: reviewList,
   };
 }

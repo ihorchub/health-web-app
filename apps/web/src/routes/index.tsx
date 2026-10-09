@@ -1,40 +1,18 @@
-import { createBrowserRouter, Outlet } from 'react-router-dom';
+import { createBrowserRouter } from 'react-router-dom';
 
-import { AppHeader, AppShell, Footer } from '@/components/Layout';
-import { AppPopups } from '@/components/Popups';
-import { PreviewRoleProvider } from '@/context/PreviewRoleContext';
+import { AuthLayout } from '@/layouts/AuthLayout';
+import { ChromeLayout } from '@/layouts/ChromeLayout';
 import { LoginPage } from '@/modules/auth/login';
 import { SignupPage } from '@/modules/auth/signup';
-import { DoctorProfileRoute } from '@/modules/booking/doctor-profile';
 import { DoctorDayPage } from '@/modules/doctor-day';
 import { PatientCabinetPage } from '@/modules/patient-room';
 import { ProfilePage } from '@/modules/profile';
 import { WorkingHoursPage } from '@/modules/working-hours';
-import { SearchPage } from '@/modules/search';
 import { LegalDocumentPage } from '@/modules/shared/legal/LegalDocumentPage';
 import { DevCheckRoute } from '@/routes/DevCheckRoute';
+import { DoctorProfileAccessRoute } from '@/routes/DoctorProfileAccessRoute';
+import { HomeRoute } from '@/routes/HomeRoute';
 import { AppRoute } from '@/utils/routeUtils/routes';
-
-const ChromeLayout = () => {
-  return (
-    <PreviewRoleProvider>
-      <AppShell header={<AppHeader />} footer={<Footer />}>
-        <Outlet />
-      </AppShell>
-      <AppPopups />
-    </PreviewRoleProvider>
-  );
-};
-
-const AuthLayout = () => {
-  return (
-    <PreviewRoleProvider>
-      <AppShell>
-        <Outlet />
-      </AppShell>
-    </PreviewRoleProvider>
-  );
-};
 
 export const router = createBrowserRouter([
   {
@@ -42,11 +20,11 @@ export const router = createBrowserRouter([
     children: [
       {
         path: AppRoute.HOME,
-        element: <SearchPage />,
+        element: <HomeRoute />,
       },
       {
         path: AppRoute.DOCTOR_PROFILE,
-        element: <DoctorProfileRoute />,
+        element: <DoctorProfileAccessRoute />,
       },
       {
         path: AppRoute.DEV,

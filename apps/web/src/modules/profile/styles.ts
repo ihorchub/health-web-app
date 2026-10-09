@@ -134,7 +134,7 @@ export const AvatarFallback = styled('div')(({ theme }) => ({
 export const CameraButton = styled('button')(({ theme }) => ({
   position: 'absolute',
   right: 0,
-  bottom: 0,
+  top: 0,
   width: 28,
   height: 28,
   display: 'flex',
@@ -152,7 +152,7 @@ export const CameraButton = styled('button')(({ theme }) => ({
 export const RemovePhotoButton = styled('button')(({ theme }) => ({
   position: 'absolute',
   right: 0,
-  top: 0,
+  bottom: 0,
   width: 28,
   height: 28,
   display: 'flex',
@@ -409,12 +409,23 @@ export const BioValue = styled('span')(({ theme }) => ({
   color: theme.palette.text.primary,
 }));
 
-export const EduList = styled('div')({
+export const EduList = styled('div')(({ theme }) => ({
   display: 'flex',
   flexDirection: 'column',
   width: '100%',
-  gap: 16,
-});
+  gap: theme.spacing(1.5),
+}));
+
+export const EduItem = styled('div')(({ theme }) => ({
+  display: 'flex',
+  flexDirection: 'column',
+  width: '100%',
+  gap: theme.spacing(1.5),
+  padding: theme.spacing(1.5, 2),
+  borderRadius: theme.shape.borderRadius,
+  border: `1px solid ${theme.palette.divider}`,
+  backgroundColor: theme.palette.action.hover,
+}));
 
 export const EduRow = styled('div')({
   display: 'flex',
@@ -422,6 +433,13 @@ export const EduRow = styled('div')({
   width: '100%',
   gap: 12,
 });
+
+export const EduRowActions = styled('div')(({ theme }) => ({
+  display: 'flex',
+  flexShrink: 0,
+  alignItems: 'center',
+  gap: theme.spacing(1.5),
+}));
 
 export const EduText = styled('div')({
   display: 'flex',
@@ -439,6 +457,36 @@ export const EduYears = styled('span')(({ theme }) => ({
   fontSize: 13,
   lineHeight: '18px',
   color: theme.palette.muted,
+}));
+
+export const EduThumb = styled('img')(({ theme }) => ({
+  flexShrink: 0,
+  width: 48,
+  height: 48,
+  objectFit: 'cover',
+  borderRadius: theme.shape.borderRadius,
+  border: `1px solid ${theme.palette.divider}`,
+  backgroundColor: theme.palette.background.paper,
+}));
+
+export const EduThumbLink = styled('a')({
+  display: 'inline-flex',
+  flexShrink: 0,
+  lineHeight: 0,
+  textDecoration: 'none',
+});
+
+export const EduPhotoRow = styled('div')(({ theme }) => ({
+  display: 'flex',
+  flexWrap: 'wrap',
+  alignItems: 'center',
+  gap: theme.spacing(1.5),
+}));
+
+export const EduPhotoActions = styled('div')(({ theme }) => ({
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: theme.spacing(1),
 }));
 
 export const AddLink = styled('button')(({ theme }) => ({
@@ -728,6 +776,59 @@ export const PreviewBioText = styled('p')(({ theme }) => ({
   color: theme.palette.text.primary,
 }));
 
+export const PreviewEducation = styled('div')(({ theme }) => ({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: theme.spacing(1.5),
+  width: '100%',
+}));
+
+export const PreviewEducationList = styled('div')(({ theme }) => ({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: theme.spacing(1.5),
+  width: '100%',
+}));
+
+export const PreviewEducationRow = styled('div')(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  gap: theme.spacing(1.5),
+  width: '100%',
+}));
+
+export const PreviewEducationText = styled('div')({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 2,
+  flex: 1,
+  minWidth: 0,
+});
+
+export const PreviewEducationTitle = styled('div')(({ theme }) => ({
+  fontFamily: theme.typography.fontFamily,
+  fontSize: 15,
+  lineHeight: '22px',
+  fontWeight: 600,
+  color: theme.palette.text.primary,
+}));
+
+export const PreviewEducationSubtitle = styled('div')(({ theme }) => ({
+  fontFamily: theme.typography.fontFamily,
+  fontSize: 13,
+  lineHeight: '18px',
+  color: theme.palette.text.secondary,
+}));
+
+export const PreviewEducationYears = styled('div')(({ theme }) => ({
+  flexShrink: 0,
+  fontFamily: theme.typography.fontFamily,
+  fontSize: 13,
+  lineHeight: '18px',
+  color: theme.palette.muted,
+  textAlign: 'right',
+}));
+
 export const PreviewPriceRating = styled('div')(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
@@ -868,6 +969,94 @@ export const PreviewReviewText = styled('p')(({ theme }) => ({
   fontSize: 14,
   lineHeight: '22px',
   color: theme.palette.muted,
+}));
+
+export const ReviewsMeta = styled('span')(({ theme }) => ({
+  fontFamily: theme.typography.fontFamily,
+  fontSize: 13,
+  lineHeight: '18px',
+  fontWeight: 500,
+  color: theme.palette.text.secondary,
+}));
+
+export const ReviewsEmpty = styled('div')(({ theme }) => ({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 6,
+  paddingBlock: 8,
+}));
+
+export const ReviewsEmptyTitle = styled('p')(({ theme }) => ({
+  margin: 0,
+  fontFamily: theme.typography.fontFamily,
+  fontSize: 15,
+  lineHeight: '22px',
+  fontWeight: 600,
+  color: theme.palette.text.primary,
+}));
+
+export const ReviewsEmptyHint = styled('p')(({ theme }) => ({
+  margin: 0,
+  fontFamily: theme.typography.fontFamily,
+  fontSize: 14,
+  lineHeight: '20px',
+  color: theme.palette.text.secondary,
+}));
+
+export const HeroRatingButton = styled('button')(({ theme }) => ({
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: 6,
+  margin: 0,
+  padding: 0,
+  border: 'none',
+  background: 'transparent',
+  cursor: 'pointer',
+  appearance: 'none',
+  WebkitAppearance: 'none',
+  font: 'inherit',
+  color: 'inherit',
+  borderRadius: 6,
+
+  '&:hover': {
+    color: theme.palette.primary.main,
+  },
+
+  '&:focus-visible': {
+    outline: `2px solid ${theme.palette.primary.main}`,
+    outlineOffset: 2,
+  },
+}));
+
+export const ReviewsExpandButton = styled('button')(({ theme }) => ({
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  alignSelf: 'center',
+  gap: 6,
+  width: '100%',
+  marginTop: 4,
+  border: 'none',
+  background: 'none',
+  padding: theme.spacing(1, 0),
+  cursor: 'pointer',
+  appearance: 'none',
+  WebkitAppearance: 'none',
+  fontFamily: theme.typography.fontFamily,
+  fontSize: 14,
+  lineHeight: '20px',
+  fontWeight: 600,
+  color: theme.palette.primary.main,
+
+  '&:hover': {
+    color: theme.palette.primary.dark,
+  },
+
+  '&:focus-visible': {
+    outline: `2px solid ${theme.palette.primary.main}`,
+    outlineOffset: 2,
+    borderRadius: 6,
+  },
 }));
 
 export const PreviewFooter = styled('div')(({ theme }) => ({

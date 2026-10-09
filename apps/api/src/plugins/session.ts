@@ -45,7 +45,14 @@ export function setSessionCookie(reply: FastifyReply, sessionId: string, expires
 }
 
 export function clearSessionCookie(reply: FastifyReply): void {
-  reply.clearCookie(SESSION_COOKIE, { path: "/" });
+  // Options must match setSessionCookie or the browser may keep medicly_sid.
+  reply.clearCookie(SESSION_COOKIE, {
+    path: "/",
+    httpOnly: true,
+    sameSite: "lax",
+    secure: config.nodeEnv === "production",
+    signed: true,
+  });
 }
 
 export const sessionPlugin: FastifyPluginAsync = async (app) => {

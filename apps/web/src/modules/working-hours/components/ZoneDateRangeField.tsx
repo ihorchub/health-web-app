@@ -52,9 +52,11 @@ export const ZoneDateRangeField = ({
   const open = Boolean(anchorEl);
   const month = useMemo(() => buildSingleMonthBlock(viewYm), [viewYm]);
 
+  const displayStart = draftStart ?? startYmd;
+  const displayEnd = draftStart ? draftStart : endYmd;
   const label =
-    startYmd && endYmd
-      ? `${formatDisplayDate(startYmd, locale)} – ${formatDisplayDate(endYmd, locale)}`
+    displayStart && displayEnd
+      ? `${formatDisplayDate(displayStart, locale)} – ${formatDisplayDate(displayEnd, locale)}`
       : t('datePicker.pickRange');
 
   const openPicker = (event: React.MouseEvent<HTMLElement>) => {
@@ -120,17 +122,26 @@ export const ZoneDateRangeField = ({
                 return <span key={`pad-${index}`} />;
               }
               const disabled = cell.ymd < minYmd || cell.ymd > maxYmd;
+              const rangeFrom = draftStart
+                ? draftStart
+                : startYmd < endYmd
+                  ? startYmd
+                  : endYmd;
+              const rangeTo = draftStart
+                ? draftStart
+                : startYmd < endYmd
+                  ? endYmd
+                  : startYmd;
               const inCurrentRange =
-                !draftStart &&
-                startYmd &&
-                endYmd &&
-                cell.ymd >= (startYmd < endYmd ? startYmd : endYmd) &&
-                cell.ymd <= (startYmd < endYmd ? endYmd : startYmd);
+                Boolean(rangeFrom) &&
+                Boolean(rangeTo) &&
+                cell.ymd >= rangeFrom &&
+                cell.ymd <= rangeTo;
               const selected =
                 cell.ymd === draftStart ||
                 cell.ymd === startYmd ||
                 cell.ymd === endYmd ||
-                Boolean(inCurrentRange);
+                inCurrentRange;
 
               return (
                 <PickerDay
@@ -141,6 +152,8 @@ export const ZoneDateRangeField = ({
                   onClick={() => {
                     if (!draftStart) {
                       setDraftStart(cell.ymd);
+                      // Reflect the first pick in the field immediately.
+                      onRangeChange(cell.ymd, cell.ymd);
                       return;
                     }
                     const from = draftStart <= cell.ymd ? draftStart : cell.ymd;

@@ -123,11 +123,22 @@ describe("me-profile", () => {
 
     const updated = await patchDoctorProfile(doctorId, {
       bio: "Hello",
-      education: [{ kind: "university", title: "NMU", yearFrom: 2005, yearTo: 2011 }],
+      education: [
+        {
+          kind: "university",
+          title: "NMU",
+          yearFrom: 2005,
+          yearTo: 2011,
+          imageUrl: "uploads/certificates/test_cert.jpg",
+        },
+      ],
     });
     expect(updated.bio).toBe("Hello");
     expect(updated.education).toHaveLength(1);
     expect((await getDoctorProfile(doctorId)).education[0]?.title).toBe("NMU");
+    expect((await getDoctorProfile(doctorId)).education[0]?.imageUrl).toBe(
+      "uploads/certificates/test_cert.jpg",
+    );
   });
 });
 
@@ -180,6 +191,16 @@ describe("doctor-schedule", () => {
     createdUserIds.push(doctorId, patientId);
     await bookAppointment({ doctorId, patientId, startAt: FREE_SLOT, format: "offline", now: NOW });
 
+    const preview = await bulkCancelAppointments({
+      doctorId,
+      scope: "whole_day",
+      from: "2026-08-11",
+      confirm: false,
+      now: NOW,
+    });
+    expect(preview.matchedCount).toBe(1);
+    expect(preview.cancelledIds).toHaveLength(0);
+
     const result = await bulkCancelAppointments({
       doctorId,
       scope: "whole_day",
@@ -188,6 +209,7 @@ describe("doctor-schedule", () => {
       now: NOW,
     });
     expect(result.cancelledIds).toHaveLength(1);
+    expect(result.matchedCount).toBe(1);
     expect((await listUnread(patientId)).unreadCount).toBeGreaterThan(0);
   });
 });

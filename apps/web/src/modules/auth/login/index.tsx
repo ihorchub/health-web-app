@@ -11,6 +11,7 @@ import { LanguageToggle } from '@/components/Layout/LanguageToggle';
 import { ThemeToggleButton } from '@/components/Layout/ThemeToggleButton';
 import { Body, TitleH3 } from '@/components/Text';
 import { useAppRole } from '@/hooks/useAppRole';
+import { useAuthTransition } from '@/hooks/useAuthTransition';
 import {
   AuthChromeBar,
   AuthPage,
@@ -49,6 +50,7 @@ export const LoginPage = () => {
   const [searchParams] = useSearchParams();
   const returnTo = searchParams.get('returnTo');
   const { me, isLoading: meLoading } = useAppRole();
+  const { beginAuthTransition } = useAuthTransition();
   const loginMutation = usePostAuthLogin();
   const mapError = useAuthApiErrorMessage();
   const [showPassword, setShowPassword] = useState(false);
@@ -78,6 +80,7 @@ export const LoginPage = () => {
         email: values.email,
         password: values.password,
       });
+      beginAuthTransition();
       void navigate(safeReturnTo || result.redirectTo || AppRoute.HOME, {
         replace: true,
       });

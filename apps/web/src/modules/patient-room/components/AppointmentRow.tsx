@@ -62,12 +62,14 @@ export const AppointmentRow = ({
 
   const statusTone =
     appointment.status === 'completed'
-      ? 'accent'
-      : appointment.status === 'cancelled'
-        ? 'muted'
-        : appointment.status === 'reschedule_pending'
-          ? 'warning'
-          : 'accent';
+      ? 'success'
+      : appointment.status === 'rescheduled'
+        ? 'info'
+        : appointment.status === 'cancelled'
+          ? 'muted'
+          : appointment.status === 'reschedule_pending'
+            ? 'warning'
+            : 'accent';
 
   return (
     <VisitRow

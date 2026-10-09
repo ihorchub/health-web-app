@@ -2,6 +2,7 @@ import { CircularProgress } from '@mui/material';
 import { IconPlus, IconX } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
 
+import { todayDoctorDayYmd } from '@/modules/doctor-day/utils/mapDashboard';
 import { ZoneDateField } from '@/modules/working-hours/components/ZoneDateField';
 import {
   ConstructorDaysBody,
@@ -24,6 +25,9 @@ import {
   PeriodFieldsRow,
   PrimaryOutlineButton,
   PrimarySaveButton,
+  PromoBlock,
+  PromoClearButton,
+  PromoFieldsRow,
   ReasonHint,
   SectionLabel,
   SegmentButton,
@@ -376,6 +380,63 @@ export const ZoneBPanel = ({
             />
           </SplitBlock>
         </FormatPriceRow>
+
+        <PromoBlock>
+          <SectionLabel>{t('zoneB.promoTitle')}</SectionLabel>
+          <ReasonHint>{t('zoneB.promoHint')}</ReasonHint>
+          <PromoFieldsRow>
+            <ZoneTextField
+              size="small"
+              fullWidth
+              label={t('zoneB.promoPrice')}
+              value={
+                form.promoPriceUah != null
+                  ? t('zoneB.priceValue', { price: form.promoPriceUah })
+                  : ''
+              }
+              placeholder={t('zoneB.promoEmpty')}
+              onChange={(event) => {
+                const digits = event.target.value.replace(/\D/g, '');
+                onChange({
+                  promoPriceUah: digits ? Number(digits) : null,
+                  promoValidUntil:
+                    digits && !form.promoValidUntil
+                      ? maxYmd
+                      : form.promoValidUntil,
+                });
+              }}
+            />
+            <div>
+              <SectionLabel>{t('zoneB.promoUntil')}</SectionLabel>
+              <ZoneDateField
+                label={
+                  form.promoValidUntil
+                    ? formatDisplayDate(form.promoValidUntil, locale)
+                    : t('zoneB.promoPickUntil')
+                }
+                valueYmd={form.promoValidUntil ?? maxYmd}
+                minYmd={todayDoctorDayYmd()}
+                maxYmd={maxYmd}
+                onPick={(ymd) => {
+                  onChange({
+                    promoValidUntil: ymd,
+                    promoPriceUah: form.promoPriceUah ?? form.priceUah,
+                  });
+                }}
+              />
+            </div>
+          </PromoFieldsRow>
+          {form.promoPriceUah != null || form.promoValidUntil ? (
+            <PromoClearButton
+              type="button"
+              onClick={() => {
+                onChange({ promoPriceUah: null, promoValidUntil: null });
+              }}
+            >
+              {t('zoneB.promoClear')}
+            </PromoClearButton>
+          ) : null}
+        </PromoBlock>
       </FormSection>
 
       <PrimarySaveButton

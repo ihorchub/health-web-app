@@ -5,11 +5,15 @@ import { IconX } from '@tabler/icons-react';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { DoctorPhoto } from '@/components/DoctorPhoto/DoctorPhoto';
 import { SheetDialog } from '@/components/Dialog/SheetDialog';
 import { StateMascot } from '@/components/StateMascot/StateMascot';
 import { useCanCompleteVisit } from '@/modules/doctor-day/hooks/useCanCompleteVisit';
 import type { DoctorDayVisit, FreeWindowSlot } from '@/modules/doctor-day/types';
-import { mapFreeWindowsFromSlots } from '@/modules/doctor-day/utils/mapDashboard';
+import {
+  mapFreeWindowsFromSlots,
+  splitPatientName,
+} from '@/modules/doctor-day/utils/mapDashboard';
 import {
   CompleteTooltipTarget,
   DayInfoNote,
@@ -33,6 +37,7 @@ import {
   ScheduleSlotRow,
   ScheduleSlotTime,
   SoftStatusPill,
+  VisitIdentity,
   VisitsEmptyBody,
   VisitsEmptyState,
   VisitsEmptyTitle,
@@ -175,27 +180,35 @@ export const VisitCardDialog = ({
             </VisitCardDuration>
           </VisitCardTimeCol>
 
-          <VisitCardMain>
-            <VisitCardNameRow>
-              <VisitCardName>{visit.patientName}</VisitCardName>
-              <SoftStatusPill $tone={softTone(visit.status)}>
-                {t(`status.${visit.status}`)}
-              </SoftStatusPill>
-            </VisitCardNameRow>
+          <VisitIdentity>
+            <DoctorPhoto
+              photoUrl={visit.photoUrl}
+              {...splitPatientName(visit.patientName)}
+              size="md"
+              alt={visit.patientName}
+            />
+            <VisitCardMain>
+              <VisitCardNameRow>
+                <VisitCardName>{visit.patientName}</VisitCardName>
+                <SoftStatusPill $tone={softTone(visit.status)}>
+                  {t(`status.${visit.status}`)}
+                </SoftStatusPill>
+              </VisitCardNameRow>
 
-            <VisitCardChips>
-              <MetaChip>{t(`format.${visit.format}`)}</MetaChip>
-              <MetaChip>{formatShortDate(visit.startsAt, i18n.language)}</MetaChip>
-            </VisitCardChips>
+              <VisitCardChips>
+                <MetaChip>{t(`format.${visit.format}`)}</MetaChip>
+                <MetaChip>{formatShortDate(visit.startsAt, i18n.language)}</MetaChip>
+              </VisitCardChips>
 
-            {visit.reason ? (
-              <VisitCardReason>{t('list.reason', { reason: visit.reason })}</VisitCardReason>
-            ) : null}
+              {visit.reason ? (
+                <VisitCardReason>{t('list.reason', { reason: visit.reason })}</VisitCardReason>
+              ) : null}
 
-            {contactParts.length > 0 ? (
-              <VisitCardContact>{contactParts.join(' · ')}</VisitCardContact>
-            ) : null}
-          </VisitCardMain>
+              {contactParts.length > 0 ? (
+                <VisitCardContact>{contactParts.join(' · ')}</VisitCardContact>
+              ) : null}
+            </VisitCardMain>
+          </VisitIdentity>
         </VisitCardBody>
 
         {canAct ? (

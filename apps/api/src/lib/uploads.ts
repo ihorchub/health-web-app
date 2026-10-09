@@ -50,3 +50,12 @@ export async function saveLicenseFile(file: MultipartFile): Promise<string> {
 export async function saveProfilePhoto(file: MultipartFile): Promise<string> {
   return saveUpload(file, { subdir: "photos", prefix: "photo", allowedTypes: PHOTO_TYPES });
 }
+
+/** SCR-07 education/certificate image — images only, max 10 MB. */
+export async function saveCertificateImage(file: MultipartFile): Promise<string> {
+  return saveUpload(file, {
+    subdir: "certificates",
+    prefix: "cert",
+    allowedTypes: PHOTO_TYPES,
+  });
+}

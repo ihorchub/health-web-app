@@ -21,6 +21,7 @@ import {
 interface DoctorDayTabsProps {
   active: DoctorDayTab;
   counts: Record<DoctorDayTab, number>;
+  isLoading?: boolean;
   onChange: (tab: DoctorDayTab) => void;
 }
 
@@ -43,7 +44,12 @@ const TAB_META: Record<DoctorDayTab, { tone: 'green' | 'orange' | 'red'; icon: R
   },
 };
 
-export const DoctorDayTabs = ({ active, counts, onChange }: DoctorDayTabsProps) => {
+export const DoctorDayTabs = ({
+  active,
+  counts,
+  isLoading = false,
+  onChange,
+}: DoctorDayTabsProps) => {
   const { t } = useTranslation('doctorDay');
   const theme = useTheme();
   const isCompact = useMediaQuery(theme.breakpoints.down('md'));
@@ -67,7 +73,7 @@ export const DoctorDayTabs = ({ active, counts, onChange }: DoctorDayTabsProps) 
             <TabIcon $tone={meta.tone}>{meta.icon}</TabIcon>
             <TabCopy>
               <TabLabel>{t(labelKey)}</TabLabel>
-              <TabCount $tone={meta.tone}>{counts[tab]}</TabCount>
+              <TabCount $tone={meta.tone}>{isLoading ? '…' : counts[tab]}</TabCount>
             </TabCopy>
           </FilterTab>
         );

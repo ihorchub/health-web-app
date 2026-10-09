@@ -20,6 +20,7 @@ import { usePostAuthLogout } from '@/api/auth';
 import { LanguageToggle } from '@/components/Layout/LanguageToggle';
 import { Meta } from '@/components/Text';
 import { useAppRole } from '@/hooks/useAppRole';
+import { useAuthTransition } from '@/hooks/useAuthTransition';
 import { useThemeMode } from '@/hooks/useThemeMode';
 import { useAuthApiErrorMessage } from '@/modules/auth/hooks/useAuthApiErrorMessage';
 import { AppRole } from '@/types/role';
@@ -143,6 +144,7 @@ export const MobileMenu = ({ onNavigate }: MobileMenuProps) => {
   const { t } = useTranslation('common');
   const navigate = useNavigate();
   const { role, isSession, setPreviewRole } = useAppRole();
+  const { beginAuthTransition } = useAuthTransition();
   const { mode, toggleTheme } = useThemeMode();
   const logoutMutation = usePostAuthLogout();
   const mapError = useAuthApiErrorMessage();
@@ -152,17 +154,18 @@ export const MobileMenu = ({ onNavigate }: MobileMenuProps) => {
     void navigate(path);
   };
 
-  const handleLogOut = async () => {
-    try {
-      if (isSession) {
-        await logoutMutation.mutateAsync();
-      }
-      setPreviewRole(AppRole.GUEST);
-      onNavigate?.();
-      void navigate(AppRoute.HOME);
-    } catch (error) {
-      toast.error(mapError(error));
+  const handleLogOut = () => {
+    beginAuthTransition();
+    setPreviewRole(AppRole.GUEST);
+    onNavigate?.();
+    if (isSession) {
+      logoutMutation.mutate(undefined, {
+        onError: (error) => {
+          toast.error(mapError(error));
+        },
+      });
     }
+    void navigate(AppRoute.HOME, { replace: true });
   };
 
   return (

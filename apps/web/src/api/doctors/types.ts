@@ -76,6 +76,16 @@ export interface DoctorReview {
   createdAt: string;
 }
 
+export interface DoctorEducationPublic {
+  id: string;
+  kind: 'university' | 'certificate' | 'training';
+  title: string;
+  subtitle: string | null;
+  yearFrom: number;
+  yearTo: number | null;
+  imageUrl: string | null;
+}
+
 /** Full public profile — GET /api/v1/doctors/:doctorId */
 export interface DoctorProfile {
   id: string;
@@ -101,6 +111,7 @@ export interface DoctorProfile {
   reviewCount: number;
   consultationCount: number;
   isFavourite: boolean;
+  education: DoctorEducationPublic[];
   reviews: DoctorReview[];
 }
 

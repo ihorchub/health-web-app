@@ -12,6 +12,7 @@
   "search": {
     "placeholder": "Doctor name, clinic, or specialty",
     "submit": "Search",
+    "clear": "Clear search",
     "filtersOpen": "Filters"
   },
   "popular": {

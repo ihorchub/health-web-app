@@ -117,7 +117,7 @@ const MenuOverlay = styled('div')(({ theme }) => ({
 
 export const AppHeader = () => {
   const { t } = useTranslation('common');
-  const { role } = useAppRole();
+  const { role, isSessionPending } = useAppRole();
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuRole, setMenuRole] = useState(role);
 
@@ -134,13 +134,28 @@ export const AppHeader = () => {
     setMenuOpen((open) => !open);
   };
 
+  const logoTo =
+    role === AppRole.DOCTOR
+      ? AppRoute.DOCTOR_DAY
+      : role === AppRole.PATIENT
+        ? AppRoute.APPOINTMENTS
+        : AppRoute.HOME;
+
   return (
     <HeaderRoot>
       <Bar>
-        <BrandLogo />
+        <BrandLogo to={logoTo} />
 
         <DesktopActions>
-          {role === AppRole.GUEST ? (
+          {/* While /auth/me is unresolved, show only chrome toggles — no Login↔Avatar flash. */}
+          {isSessionPending ? (
+            <>
+              <LanguageToggle />
+              <ThemeToggleButton />
+            </>
+          ) : null}
+
+          {!isSessionPending && role === AppRole.GUEST ? (
             <>
               <LanguageToggle />
               <ThemeToggleButton />
@@ -151,7 +166,7 @@ export const AppHeader = () => {
             </>
           ) : null}
 
-          {role === AppRole.PATIENT ? (
+          {!isSessionPending && role === AppRole.PATIENT ? (
             <>
               <PrimaryCompactLink to={AppRoute.HOME}>
                 {t('header.findDoctor')}
@@ -162,7 +177,7 @@ export const AppHeader = () => {
             </>
           ) : null}
 
-          {role === AppRole.DOCTOR ? (
+          {!isSessionPending && role === AppRole.DOCTOR ? (
             <>
               <NotificationBell />
               <ThemeToggleButton />
@@ -182,7 +197,7 @@ export const AppHeader = () => {
             </HeaderIconButton>
           ) : (
             <>
-              {role !== AppRole.GUEST ? (
+              {!isSessionPending && role !== AppRole.GUEST ? (
                 <NotificationBell size="sm" />
               ) : null}
               <HeaderIconButton

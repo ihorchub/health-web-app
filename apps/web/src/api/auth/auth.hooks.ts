@@ -13,6 +13,7 @@ import {
 } from '@/api/auth/auth';
 import type {
   LoginBody,
+  MeResponse,
   RegisterCompleteBody,
   RegisterResendEmailBody,
   RegisterStep1Body,
@@ -25,16 +26,28 @@ export const authQueryKeys = {
   me: ['auth', 'me'] as const,
 };
 
-/** Drop all cached user data when the session changes (login / logout / signup). */
-const resetSessionQueryCache = async (queryClient: QueryClient) => {
-  await queryClient.cancelQueries();
-  queryClient.clear();
+const isMeQuery = (queryKey: readonly unknown[]) =>
+  queryKey[0] === authQueryKeys.me[0] && queryKey[1] === authQueryKeys.me[1];
+
+/** Drop non-session caches after login/logout so the next role does not see stale data. */
+const clearNonSessionQueries = (queryClient: QueryClient) => {
+  queryClient.removeQueries({
+    predicate: (query) => !isMeQuery(query.queryKey),
+  });
+};
+
+/** Resolve /auth/me into the cache before navigation so the header does not flash guest. */
+const warmSessionMe = async (queryClient: QueryClient) => {
+  await queryClient.fetchQuery({
+    queryKey: authQueryKeys.me,
+    queryFn: ({ signal }) => getAuthMe(signal),
+  });
 };
 
 export const useGetAuthMe = () => {
   return useQuery({
     queryKey: authQueryKeys.me,
-    queryFn: getAuthMe,
+    queryFn: ({ signal }) => getAuthMe(signal),
     staleTime: 60_000,
   });
 };
@@ -45,8 +58,10 @@ export const usePostAuthLogin = () => {
   return useMutation({
     mutationFn: (data: LoginBody) => postAuthLogin(data),
     onSuccess: async () => {
-      await resetSessionQueryCache(queryClient);
-      await queryClient.invalidateQueries({ queryKey: authQueryKeys.me });
+      await queryClient.cancelQueries();
+      // Warm me BEFORE clearing other caches / navigating — avoids guest chrome flash.
+      await warmSessionMe(queryClient);
+      clearNonSessionQueries(queryClient);
     },
   });
 };
@@ -56,9 +71,18 @@ export const usePostAuthLogout = () => {
 
   return useMutation({
     mutationFn: postAuthLogout,
-    onSuccess: async () => {
-      await resetSessionQueryCache(queryClient);
-      queryClient.setQueryData(authQueryKeys.me, null);
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: authQueryKeys.me });
+      const previousMe = queryClient.getQueryData<MeResponse | null>(authQueryKeys.me);
+      // Clear session immediately so UI does not wait on the network round-trip.
+      queryClient.setQueryData<MeResponse | null>(authQueryKeys.me, null);
+      clearNonSessionQueries(queryClient);
+      return { previousMe };
+    },
+    onError: (_error, _variables, context) => {
+      if (context && 'previousMe' in context) {
+        queryClient.setQueryData(authQueryKeys.me, context.previousMe);
+      }
     },
   });
 };
@@ -99,8 +123,9 @@ export const usePostAuthRegisterComplete = () => {
   return useMutation({
     mutationFn: (data: RegisterCompleteBody) => postAuthRegisterComplete(data),
     onSuccess: async () => {
-      await resetSessionQueryCache(queryClient);
-      await queryClient.invalidateQueries({ queryKey: authQueryKeys.me });
+      await queryClient.cancelQueries();
+      await warmSessionMe(queryClient);
+      clearNonSessionQueries(queryClient);
     },
   });
 };

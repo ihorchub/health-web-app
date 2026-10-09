@@ -38,6 +38,9 @@
   "legal": {
     "loading": "Loading…",
     "error": "Could not load this document. Please try again later."
+  },
+  "authTransition": {
+    "loading": "Loading…"
   }
 }
 

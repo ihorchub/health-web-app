@@ -26,8 +26,8 @@ import type {
   RegisterVerifyEmailResponse,
 } from '@/api/auth/types';
 
-export const getAuthMe = () => {
-  return generatedGetAuthMe() as Promise<MeResponse | null>;
+export const getAuthMe = (signal?: AbortSignal) => {
+  return generatedGetAuthMe(undefined, signal) as Promise<MeResponse | null>;
 };
 
 export const postAuthLogin = (data: LoginBody) => {

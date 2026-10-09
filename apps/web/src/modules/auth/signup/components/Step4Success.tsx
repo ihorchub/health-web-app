@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
 import { Body, TitleH2 } from '@/components/Text';
+import { useAuthTransition } from '@/hooks/useAuthTransition';
 import {
   CenterCard,
   PrimaryButton,
@@ -22,9 +23,11 @@ interface Step4SuccessProps {
 export const Step4Success = ({ draft }: Step4SuccessProps) => {
   const { t } = useTranslation('auth');
   const navigate = useNavigate();
+  const { beginAuthTransition } = useAuthTransition();
 
   const handleContinue = () => {
     clearSignupDraft();
+    beginAuthTransition();
     void navigate(draft.redirectTo || AppRoute.HOME, { replace: true });
   };
 

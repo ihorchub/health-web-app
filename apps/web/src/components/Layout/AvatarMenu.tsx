@@ -16,6 +16,7 @@ import { usePostAuthLogout } from '@/api/auth';
 import { LanguageToggle } from '@/components/Layout/LanguageToggle';
 import { Meta } from '@/components/Text';
 import { useAppRole } from '@/hooks/useAppRole';
+import { useAuthTransition } from '@/hooks/useAuthTransition';
 import { useAuthApiErrorMessage } from '@/modules/auth/hooks/useAuthApiErrorMessage';
 import { AppRole } from '@/types/role';
 import { AppRoute } from '@/utils/routeUtils/routes';
@@ -85,6 +86,7 @@ export const AvatarMenu = () => {
   const { t } = useTranslation('common');
   const navigate = useNavigate();
   const { role, initials, isSession, setPreviewRole } = useAppRole();
+  const { beginAuthTransition } = useAuthTransition();
   const logoutMutation = usePostAuthLogout();
   const mapError = useAuthApiErrorMessage();
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
@@ -107,17 +109,20 @@ export const AvatarMenu = () => {
     void navigate(path);
   };
 
-  const handleLogOut = async () => {
+  const handleLogOut = () => {
     handleClose();
-    try {
-      if (isSession) {
-        await logoutMutation.mutateAsync();
-      }
-      setPreviewRole(AppRole.GUEST);
-      void navigate(AppRoute.HOME);
-    } catch (error) {
-      toast.error(mapError(error));
+    // Cover role/chrome swap so header + page do not flash between states.
+    beginAuthTransition();
+    setPreviewRole(AppRole.GUEST);
+    if (isSession) {
+      // onMutate clears /auth/me synchronously before the network call.
+      logoutMutation.mutate(undefined, {
+        onError: (error) => {
+          toast.error(mapError(error));
+        },
+      });
     }
+    void navigate(AppRoute.HOME, { replace: true });
   };
 
   return (

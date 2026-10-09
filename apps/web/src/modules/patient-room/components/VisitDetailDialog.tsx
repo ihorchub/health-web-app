@@ -53,17 +53,23 @@ const formatVisitWhen = (iso: string, locale: string) => {
 
 const statusTone = (
   status: CabinetAppointment['status'],
-): 'accent' | 'warning' | 'muted' | 'soft' => {
+): 'accent' | 'success' | 'info' | 'warning' | 'muted' | 'soft' => {
   if (status === 'reschedule_pending') {
     return 'warning';
   }
   if (status === 'completed') {
-    return 'soft';
+    return 'success';
   }
-  if (status === 'cancelled' || status === 'rescheduled') {
+  if (status === 'rescheduled') {
+    return 'info';
+  }
+  if (status === 'cancelled') {
     return 'muted';
   }
-  return 'warning';
+  if (status === 'upcoming') {
+    return 'accent';
+  }
+  return 'muted';
 };
 
 export const VisitDetailDialog = ({

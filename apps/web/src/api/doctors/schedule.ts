@@ -81,6 +81,7 @@ export type BulkCancelBody = {
 
 export type BulkCancelResponse = {
   cancelledIds: string[];
+  matchedCount: number;
 };
 
 /** GET /api/v1/doctors/me/schedule */

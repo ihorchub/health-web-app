@@ -8,6 +8,15 @@ export type DoctorEducationDto = {
   subtitle: string | null;
   yearFrom: number;
   yearTo: number | null;
+  imageUrl: string | null;
+};
+
+export type DoctorMeReviewDto = {
+  id: string;
+  rating: number;
+  text: string;
+  patientDisplayName: string;
+  createdAt: string;
 };
 
 export interface DoctorMeProfileDto {
@@ -29,6 +38,9 @@ export interface DoctorMeProfileDto {
   theme: string | null;
   education: DoctorEducationDto[];
   consultationCount: number;
+  ratingAverage: number;
+  reviewCount: number;
+  reviews: DoctorMeReviewDto[];
 }
 
 export type DoctorMeProfilePatch = Partial<{
@@ -52,7 +64,9 @@ export type DoctorMeProfilePatch = Partial<{
     subtitle?: string;
     yearFrom: number;
     yearTo?: number;
+    imageUrl?: string | null;
   }>;
+  educationImages: Array<File | null | undefined>;
   photo: File;
   photoUrl: string | null;
 }>;
@@ -62,13 +76,29 @@ export const getDoctorMeProfile = () => {
   return generatedGetDoctorMeProfile() as Promise<DoctorMeProfileDto>;
 };
 
+const hasEducationImages = (images: DoctorMeProfilePatch['educationImages']): boolean =>
+  Boolean(images?.some((file) => file instanceof File));
+
 /** PATCH /api/v1/doctors/me/profile */
 export const patchDoctorMeProfile = (body: DoctorMeProfilePatch) => {
-  if (body.photo instanceof File) {
+  const useMultipart = body.photo instanceof File || hasEducationImages(body.educationImages);
+
+  if (useMultipart) {
     const formData = new FormData();
     for (const [key, value] of Object.entries(body)) {
       if (key === 'photo') {
-        formData.append('photo', value as File);
+        if (value instanceof File) {
+          formData.append('photo', value);
+        }
+        continue;
+      }
+      if (key === 'educationImages') {
+        const images = value as DoctorMeProfilePatch['educationImages'];
+        images?.forEach((file, index) => {
+          if (file instanceof File) {
+            formData.append(`educationImage_${index}`, file);
+          }
+        });
         continue;
       }
       if (value === undefined) continue;
@@ -85,8 +115,9 @@ export const patchDoctorMeProfile = (body: DoctorMeProfilePatch) => {
     });
   }
 
-  const { photo: _ignoredPhoto, ...json } = body;
+  const { photo: _ignoredPhoto, educationImages: _ignoredImages, ...json } = body;
   void _ignoredPhoto;
+  void _ignoredImages;
   return customInstance<DoctorMeProfileDto>({
     url: '/v1/doctors/me/profile',
     method: 'PATCH',

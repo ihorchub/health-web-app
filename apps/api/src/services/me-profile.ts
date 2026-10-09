@@ -8,6 +8,7 @@ import { cities, clinics } from "../db/schema/reference.js";
 import { users } from "../db/schema/users.js";
 import { ApiError } from "../lib/errors.js";
 import { newId } from "../lib/ids.js";
+import { getDoctorReviewStats, listDoctorReviews } from "./reviews.js";
 
 export async function getPatientProfile(userId: string) {
   const db = getDb();
@@ -81,6 +82,7 @@ export type EducationInput = {
   subtitle?: string;
   yearFrom: number;
   yearTo?: number;
+  imageUrl?: string | null;
 };
 
 export async function getDoctorProfile(userId: string) {
@@ -121,6 +123,9 @@ export async function getDoctorProfile(userId: string) {
     .from(appointments)
     .where(and(eq(appointments.doctorId, userId), eq(appointments.status, "Completed")));
 
+  const stats = await getDoctorReviewStats(userId);
+  const reviewList = await listDoctorReviews(userId, 50);
+
   return {
     ...row,
     education: education.map((e) => ({
@@ -130,8 +135,12 @@ export async function getDoctorProfile(userId: string) {
       subtitle: e.subtitle,
       yearFrom: e.yearFrom,
       yearTo: e.yearTo,
+      imageUrl: e.imageUrl,
     })),
     consultationCount: Number(completed?.value ?? 0),
+    ratingAverage: stats.ratingAverage,
+    reviewCount: stats.reviewCount,
+    reviews: reviewList,
   };
 }
 
@@ -184,6 +193,7 @@ export async function patchDoctorProfile(userId: string, body: Record<string, un
           subtitle: item.subtitle ?? null,
           yearFrom: item.yearFrom,
           yearTo: item.yearTo ?? null,
+          imageUrl: item.imageUrl ?? null,
         })),
       );
     }

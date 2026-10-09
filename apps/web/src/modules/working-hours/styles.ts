@@ -40,6 +40,22 @@ export const Content = styled('div')(({ theme }) => ({
   },
 }));
 
+export const ScheduleLoading = styled('div')(({ theme }) => ({
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: theme.spacing(2),
+  minHeight: 280,
+  padding: theme.spacing(5, 3),
+  fontFamily: theme.typography.fontFamily,
+  fontSize: 15,
+  lineHeight: '22px',
+  fontWeight: 500,
+  color: theme.palette.text.secondary,
+  textAlign: 'center',
+}));
+
 export const BackLink = styled('button')(({ theme }) => ({
   display: 'inline-flex',
   alignItems: 'center',
@@ -401,7 +417,7 @@ export const MonthBlock = styled('div')(({ theme }) => ({
 export const MonthLabel = styled('span')(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
-  justifyContent: 'flex-start',
+  justifyContent: 'center',
   minHeight: 28,
   fontWeight: 700,
   fontSize: 15,
@@ -409,6 +425,7 @@ export const MonthLabel = styled('span')(({ theme }) => ({
   letterSpacing: '-0.01em',
   textTransform: 'lowercase',
   color: theme.palette.text.primary,
+  textAlign: 'center',
 }));
 
 export const DayGrid = styled('div')({
@@ -1102,6 +1119,38 @@ export const FormatPriceRow = styled('div')(({ theme }) => ({
     gridTemplateColumns: 'minmax(0, 1.2fr) minmax(0, 1fr)',
     alignItems: 'end',
   },
+}));
+
+export const PromoBlock = styled('div')(({ theme }) => ({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: theme.spacing(1),
+  width: '100%',
+  paddingTop: theme.spacing(0.5),
+}));
+
+export const PromoFieldsRow = styled('div')(({ theme }) => ({
+  display: 'grid',
+  gridTemplateColumns: '1fr',
+  gap: theme.spacing(1.5),
+
+  [theme.breakpoints.up('sm')]: {
+    gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)',
+    alignItems: 'end',
+  },
+}));
+
+export const PromoClearButton = styled('button')(({ theme }) => ({
+  alignSelf: 'flex-start',
+  border: 'none',
+  background: 'none',
+  padding: 0,
+  cursor: 'pointer',
+  fontFamily: theme.typography.fontFamily,
+  fontSize: 13,
+  lineHeight: '18px',
+  fontWeight: 500,
+  color: theme.palette.error.main,
 }));
 
 export const ExceptionBadge = styled('span')(({ theme }) => ({

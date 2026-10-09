@@ -38,6 +38,15 @@ import {
   DialogShell,
   DialogTitle,
   DoctorName,
+  EducationList,
+  EducationRow,
+  EducationSection,
+  EducationSubtitle,
+  EducationText,
+  EducationThumb,
+  EducationThumbLink,
+  EducationTitle,
+  EducationYears,
   FactCell,
   FactsRow,
   FactValue,
@@ -84,9 +93,13 @@ import {
   dispatchPendingRescheduleResolved,
   readPendingReschedulePick,
 } from '@/modules/patient-room/utils/pendingRescheduleEvents';
+import { resolveMediaUrl } from '@/utils/mediaUrl';
 import { pickLocalizedDescription } from '@/utils/pickLocalizedDescription';
 import { Popups, type DoctorProfilePopupPayload } from '@/utils/popupUtils/popupTypes';
 import { AppRoute, doctorProfilePath } from '@/utils/routeUtils/routes';
+
+const formatEducationYears = (yearFrom: number, yearTo: number | null) =>
+  yearTo != null ? `${yearFrom} – ${yearTo}` : String(yearFrom);
 
 const CONFIRM_FORM_ID = 'booking-confirm-form';
 
@@ -425,7 +438,20 @@ export const DoctorProfilePopup = () => {
                         {tSearch(`specialties.${doctor.specialty}`)}
                       </SpecialtyText>
                     </NameBlock>
-                    {role === AppRole.GUEST || !isSession ? (
+                    {isPatient ? (
+                      <IconRoundButton
+                        type="button"
+                        $active={Boolean(doctor.isFavourite)}
+                        aria-label={doctor.isFavourite ? t('unfavorite') : t('favorite')}
+                        onClick={handleFavourite}
+                      >
+                        {doctor.isFavourite ? (
+                          <IconHeartFilled size={20} />
+                        ) : (
+                          <IconHeart size={20} />
+                        )}
+                      </IconRoundButton>
+                    ) : role === AppRole.GUEST || !isSession ? (
                       <Tooltip title={t('favoriteGuestHint')}>
                         <FavouriteTooltipTarget>
                           <IconRoundButton
@@ -437,20 +463,7 @@ export const DoctorProfilePopup = () => {
                           </IconRoundButton>
                         </FavouriteTooltipTarget>
                       </Tooltip>
-                    ) : (
-                      <IconRoundButton
-                        type="button"
-                        $active={Boolean(doctor.isFavourite && isPatient)}
-                        aria-label={doctor.isFavourite ? t('unfavorite') : t('favorite')}
-                        onClick={handleFavourite}
-                      >
-                        {doctor.isFavourite && isPatient ? (
-                          <IconHeartFilled size={20} />
-                        ) : (
-                          <IconHeart size={20} />
-                        )}
-                      </IconRoundButton>
-                    )}
+                    ) : null}
                   </NameRow>
                   <ClinicBlock>
                     <FieldLabel>{t('clinic')}</FieldLabel>
@@ -495,6 +508,43 @@ export const DoctorProfilePopup = () => {
                   )}
                 </BioText>
               </BioBlock>
+
+              {(doctor.education?.length ?? 0) > 0 ? (
+                <EducationSection>
+                  <FieldLabel>{t('education')}</FieldLabel>
+                  <EducationList>
+                    {doctor.education.map((item) => {
+                      const imageSrc = resolveMediaUrl(item.imageUrl);
+                      return (
+                        <EducationRow key={item.id}>
+                          <EducationText>
+                            <EducationTitle>{item.title}</EducationTitle>
+                            {item.subtitle ? (
+                              <EducationSubtitle>{item.subtitle}</EducationSubtitle>
+                            ) : null}
+                          </EducationText>
+                          {imageSrc ? (
+                            <EducationThumbLink
+                              href={imageSrc}
+                              target="_blank"
+                              rel="noreferrer"
+                              aria-label={t('educationOpenPhoto')}
+                            >
+                              <EducationThumb
+                                src={imageSrc}
+                                alt={t('educationPhotoAlt')}
+                              />
+                            </EducationThumbLink>
+                          ) : null}
+                          <EducationYears>
+                            {formatEducationYears(item.yearFrom, item.yearTo)}
+                          </EducationYears>
+                        </EducationRow>
+                      );
+                    })}
+                  </EducationList>
+                </EducationSection>
+              ) : null}
 
               <PriceRatingRow>
                 <PriceBlock>

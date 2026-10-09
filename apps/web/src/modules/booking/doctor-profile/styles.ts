@@ -265,6 +265,75 @@ export const BioText = styled('p')(({ theme }) => ({
   color: theme.palette.text.primary,
 }));
 
+export const EducationSection = styled('div')(({ theme }) => ({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: theme.spacing(1.5),
+  width: '100%',
+}));
+
+export const EducationList = styled('div')(({ theme }) => ({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: theme.spacing(1.5),
+  width: '100%',
+}));
+
+export const EducationRow = styled('div')(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  gap: theme.spacing(1.5),
+  width: '100%',
+}));
+
+export const EducationText = styled('div')({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 2,
+  flex: 1,
+  minWidth: 0,
+});
+
+export const EducationTitle = styled('div')(({ theme }) => ({
+  fontFamily: theme.typography.fontFamily,
+  fontSize: 15,
+  lineHeight: '22px',
+  fontWeight: 600,
+  color: theme.palette.text.primary,
+}));
+
+export const EducationSubtitle = styled('div')(({ theme }) => ({
+  fontFamily: theme.typography.fontFamily,
+  fontSize: 13,
+  lineHeight: '18px',
+  color: theme.palette.text.secondary,
+}));
+
+export const EducationYears = styled('div')(({ theme }) => ({
+  flexShrink: 0,
+  fontFamily: theme.typography.fontFamily,
+  fontSize: 13,
+  lineHeight: '18px',
+  color: theme.palette.muted,
+  textAlign: 'right',
+}));
+
+export const EducationThumbLink = styled('a')({
+  display: 'inline-flex',
+  flexShrink: 0,
+  lineHeight: 0,
+  textDecoration: 'none',
+});
+
+export const EducationThumb = styled('img')(({ theme }) => ({
+  width: 48,
+  height: 48,
+  objectFit: 'cover',
+  borderRadius: theme.shape.borderRadius,
+  border: `1px solid ${theme.palette.divider}`,
+  backgroundColor: theme.palette.background.paper,
+}));
+
 export const PriceRatingRow = styled('div')(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',

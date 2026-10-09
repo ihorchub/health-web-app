@@ -23,6 +23,7 @@ import { PendingDecisionBanner } from '@/modules/patient-room/components/Pending
 import { ReschedulePendingDialog } from '@/modules/patient-room/components/ReschedulePendingDialog';
 import { MyReviewsDialog } from '@/modules/patient-room/components/MyReviewsDialog';
 import { NextVisitHero } from '@/modules/patient-room/components/NextVisitHero';
+import { PastVisitsPagination } from '@/modules/patient-room/components/PastVisitsPagination';
 import { VisitDetailDialog } from '@/modules/patient-room/components/VisitDetailDialog';
 import { WriteReviewDialog } from '@/modules/patient-room/components/WriteReviewDialog';
 import { useCabinetAppointmentsState } from '@/modules/patient-room/hooks/useCabinetAppointmentsState';
@@ -62,6 +63,8 @@ import { AppRoute, doctorProfilePath } from '@/utils/routeUtils/routes';
 
 const UPCOMING_PREVIEW = 2;
 const PAST_PREVIEW = 2;
+const PAST_PAGE_SIZE = 10;
+const PAST_WINDOW_MONTHS = 2;
 
 const isUpcomingGroup = (status: CabinetAppointment['status']) =>
   status === 'upcoming' || status === 'reschedule_pending';
@@ -98,6 +101,7 @@ export const PatientCabinetPage = () => {
   );
   const [showAllUpcoming, setShowAllUpcoming] = useState(false);
   const [showAllPast, setShowAllPast] = useState(false);
+  const [pastPage, setPastPage] = useState(1);
   const [reviewsListOpen, setReviewsListOpen] = useState(false);
 
   const favouriteIds = useMemo(
@@ -122,14 +126,26 @@ export const PatientCabinetPage = () => {
     [appointments],
   );
   const pendingVisits = upcoming.filter((item) => item.status === 'reschedule_pending');
-  const past = useMemo(
-    () =>
-      [...appointments.filter((item) => !isUpcomingGroup(item.status))].sort((a, b) =>
-        b.startsAt.localeCompare(a.startsAt),
-      ),
-    [appointments],
-  );
-  const listPast = showAllPast ? past : past.slice(0, PAST_PREVIEW);
+  const past = useMemo(() => {
+    const cutoff = todayInKyiv();
+    cutoff.setMonth(cutoff.getMonth() - PAST_WINDOW_MONTHS);
+    const cutoffMs = cutoff.getTime();
+
+    return appointments
+      .filter((item) => !isUpcomingGroup(item.status))
+      .filter((item) => new Date(item.startsAt).getTime() >= cutoffMs)
+      .sort((a, b) => b.startsAt.localeCompare(a.startsAt));
+  }, [appointments]);
+
+  const pastPageCount = Math.max(1, Math.ceil(past.length / PAST_PAGE_SIZE));
+
+  const listPast = showAllPast
+    ? past.slice((pastPage - 1) * PAST_PAGE_SIZE, pastPage * PAST_PAGE_SIZE)
+    : past.slice(0, PAST_PREVIEW);
+
+  if (pastPage > pastPageCount) {
+    setPastPage(pastPageCount);
+  }
   const nextVisit = upcoming[0] ?? null;
   const restUpcoming = upcoming.slice(1);
   const listUpcoming = showAllUpcoming
@@ -421,7 +437,9 @@ export const PatientCabinetPage = () => {
               <section ref={pastSectionRef}>
                 <SectionHead>
                   <SectionTitle>{t('past.title')}</SectionTitle>
-                  <SectionMeta>{t('past.count', { count: past.length })}</SectionMeta>
+                  <SectionMeta>
+                    {t('past.countWindow', { count: past.length })}
+                  </SectionMeta>
                 </SectionHead>
 
                 {past.length > 0 ? (
@@ -439,6 +457,13 @@ export const PatientCabinetPage = () => {
                         }}
                       />
                     ))}
+                    {showAllPast ? (
+                      <PastVisitsPagination
+                        page={pastPage}
+                        pageCount={pastPageCount}
+                        onChange={setPastPage}
+                      />
+                    ) : null}
                     {past.length > PAST_PREVIEW ? (
                       <ShowMoreButton
                         type="button"
@@ -452,7 +477,12 @@ export const PatientCabinetPage = () => {
                           )
                         }
                         onClick={() => {
-                          setShowAllPast((value) => !value);
+                          setShowAllPast((value) => {
+                            if (value) {
+                              setPastPage(1);
+                            }
+                            return !value;
+                          });
                         }}
                       >
                         {showAllPast ? t('past.showLess') : t('past.showMore')}

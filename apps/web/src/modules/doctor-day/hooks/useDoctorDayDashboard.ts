@@ -40,7 +40,9 @@ export const useDoctorDayDashboard = (date = todayDoctorDayYmd()) => {
 
   return {
     date,
-    isLoading: dashboardQuery.isLoading,
+    isLoading:
+      dashboardQuery.isLoading ||
+      (dashboardQuery.isFetching && dashboardQuery.data === undefined),
     isError: dashboardQuery.isError,
     visits,
     nextVisit,

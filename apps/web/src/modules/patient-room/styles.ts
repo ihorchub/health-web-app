@@ -189,22 +189,43 @@ export const OverlineLabel = styled('span')(({ theme }) => ({
   color: theme.palette.text.secondary,
 }));
 
+export type StatusPillTone =
+  | 'accent'
+  | 'success'
+  | 'info'
+  | 'warning'
+  | 'muted'
+  | 'soft';
+
 export const StatusPill = styled('span')<{
-  $tone?: 'accent' | 'warning' | 'muted' | 'soft';
+  $tone?: StatusPillTone;
 }>(({ theme, $tone = 'accent' }) => {
-  const tones = {
+  const tones: Record<StatusPillTone, { bg: string; color: string }> = {
+    // Upcoming
     accent: {
       bg: theme.palette.primary.main,
       color: '#FFFFFF',
+    },
+    // Completed
+    success: {
+      bg: theme.palette.mode === 'light' ? '#D7F0E8' : 'rgba(46, 177, 145, 0.28)',
+      color: theme.palette.mode === 'light' ? '#1B7A5C' : theme.palette.primary.light,
     },
     soft: {
       bg: theme.palette.mode === 'light' ? '#E6F7F2' : theme.palette.action.selected,
       color: theme.palette.primary.main,
     },
-    warning: {
-      bg: theme.palette.mode === 'light' ? '#F5EBE9' : theme.palette.action.selected,
-      color: theme.palette.text.primary,
+    // Rescheduled
+    info: {
+      bg: theme.palette.mode === 'light' ? '#E3EEF8' : 'rgba(59, 130, 180, 0.28)',
+      color: theme.palette.mode === 'light' ? '#2B6B9A' : '#8EBFDF',
     },
+    // Pending decision
+    warning: {
+      bg: theme.palette.mode === 'light' ? '#FFF0E0' : 'rgba(230, 162, 60, 0.22)',
+      color: theme.palette.mode === 'light' ? '#B87830' : '#E6A23C',
+    },
+    // Cancelled
     muted: {
       bg: theme.palette.action.hover,
       color: theme.palette.text.secondary,
@@ -446,6 +467,49 @@ export const ShowMoreButton = styled(Button)(({ theme }) => ({
   borderColor: theme.palette.divider,
   color: theme.palette.text.primary,
 }));
+
+export const PastPagination = styled('nav')(({ theme }) => ({
+  display: 'flex',
+  flexWrap: 'wrap',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: theme.spacing(1),
+  marginTop: theme.spacing(2),
+}));
+
+export const PastPageButton = styled('button')<{ $active?: boolean }>(
+  ({ theme, $active }) => ({
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 40,
+    height: 40,
+    paddingInline: theme.spacing(1.25),
+    borderRadius: 10,
+    border: `1px solid ${$active ? theme.palette.primary.main : theme.palette.divider}`,
+    backgroundColor: $active ? theme.palette.primary.main : theme.palette.background.paper,
+    color: $active ? '#FFFFFF' : theme.palette.text.primary,
+    cursor: 'pointer',
+    fontFamily: theme.typography.fontFamily,
+    fontSize: 14,
+    lineHeight: '18px',
+    fontWeight: 600,
+
+    '&:hover': {
+      borderColor: theme.palette.primary.main,
+      backgroundColor: $active
+        ? theme.palette.primary.light
+        : theme.palette.mode === 'light'
+          ? 'rgba(46, 177, 145, 0.08)'
+          : 'rgba(46, 177, 145, 0.16)',
+    },
+
+    '&:disabled': {
+      cursor: 'default',
+      opacity: 0.45,
+    },
+  }),
+);
 
 export const CarouselShell = styled('div')<{
   $fadeStart?: boolean;

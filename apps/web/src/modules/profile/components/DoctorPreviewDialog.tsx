@@ -1,4 +1,5 @@
-import { IconHeart, IconStarFilled, IconX } from '@tabler/icons-react';
+import { IconChevronDown, IconChevronUp, IconHeart, IconStarFilled, IconX } from '@tabler/icons-react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { DoctorPhoto } from '@/components/DoctorPhoto/DoctorPhoto';
@@ -8,6 +9,13 @@ import {
   PreviewBioBlock,
   PreviewBioText,
   PreviewBody,
+  PreviewEducation,
+  PreviewEducationList,
+  PreviewEducationRow,
+  PreviewEducationSubtitle,
+  PreviewEducationText,
+  PreviewEducationTitle,
+  PreviewEducationYears,
   PreviewClinicBlock,
   PreviewClinicName,
   PreviewCloseButton,
@@ -48,10 +56,18 @@ import {
   PreviewSpecialty,
   PreviewStruckPrice,
   PreviewTitle,
+  EduThumb,
+  EduThumbLink,
+  ReviewsExpandButton,
   StarAccent,
 } from '@/modules/profile/styles';
-import type { DoctorProfileData } from '@/modules/profile/types';
+import type { DoctorEducationItem, DoctorProfileData } from '@/modules/profile/types';
+import { resolveMediaUrl } from '@/utils/mediaUrl';
 import { pickLocalizedDescription } from '@/utils/pickLocalizedDescription';
+
+const formatEducationYears = (item: DoctorEducationItem) => item.years;
+
+const REVIEWS_PREVIEW_COUNT = 3;
 
 interface DoctorPreviewDialogProps {
   open: boolean;
@@ -65,6 +81,7 @@ export const DoctorPreviewDialog = ({
   onClose,
 }: DoctorPreviewDialogProps) => {
   const { t, i18n } = useTranslation('profile');
+  const [reviewsExpanded, setReviewsExpanded] = useState(false);
 
   const shortBio = pickLocalizedDescription(
     profile.shortBioUk,
@@ -148,6 +165,38 @@ export const DoctorPreviewDialog = ({
           <PreviewBioText>{shortBio}</PreviewBioText>
         </PreviewBioBlock>
 
+        {profile.education.length > 0 ? (
+          <PreviewEducation>
+            <PreviewMutedOverline>{t('preview.education')}</PreviewMutedOverline>
+            <PreviewEducationList>
+              {profile.education.map((item) => {
+                const imageSrc = resolveMediaUrl(item.imageUrl || item.previewUrl);
+                return (
+                  <PreviewEducationRow key={item.id}>
+                    <PreviewEducationText>
+                      <PreviewEducationTitle>{item.title}</PreviewEducationTitle>
+                      {item.subtitle ? (
+                        <PreviewEducationSubtitle>{item.subtitle}</PreviewEducationSubtitle>
+                      ) : null}
+                    </PreviewEducationText>
+                    {imageSrc ? (
+                      <EduThumbLink
+                        href={imageSrc}
+                        target="_blank"
+                        rel="noreferrer"
+                        aria-label={t('preview.educationOpenPhoto')}
+                      >
+                        <EduThumb src={imageSrc} alt={t('preview.educationPhotoAlt')} />
+                      </EduThumbLink>
+                    ) : null}
+                    <PreviewEducationYears>{formatEducationYears(item)}</PreviewEducationYears>
+                  </PreviewEducationRow>
+                );
+              })}
+            </PreviewEducationList>
+          </PreviewEducation>
+        ) : null}
+
         <PreviewPriceRating>
           <PreviewPriceBlock>
             <PreviewOverline>{t('preview.consultation')}</PreviewOverline>
@@ -184,7 +233,10 @@ export const DoctorPreviewDialog = ({
               {t('preview.reviewsCount', { count: profile.reviewCount })}
             </PreviewReviewCount>
           </PreviewReviewsHeader>
-          {profile.reviews.map((review) => (
+          {(reviewsExpanded
+            ? profile.reviews
+            : profile.reviews.slice(0, REVIEWS_PREVIEW_COUNT)
+          ).map((review) => (
             <PreviewReviewItem key={review.id}>
               <PreviewReviewHeader>
                 <PreviewReviewAuthor>{review.author}</PreviewReviewAuthor>
@@ -200,6 +252,28 @@ export const DoctorPreviewDialog = ({
               <PreviewReviewText>{review.text}</PreviewReviewText>
             </PreviewReviewItem>
           ))}
+          {profile.reviews.length > REVIEWS_PREVIEW_COUNT ? (
+            <ReviewsExpandButton
+              type="button"
+              onClick={() => {
+                setReviewsExpanded((open) => !open);
+              }}
+            >
+              {reviewsExpanded ? (
+                <>
+                  {t('reviews.showLess')}
+                  <IconChevronUp size={16} stroke={1.75} aria-hidden />
+                </>
+              ) : (
+                <>
+                  {t('reviews.showMore', {
+                    count: profile.reviews.length - REVIEWS_PREVIEW_COUNT,
+                  })}
+                  <IconChevronDown size={16} stroke={1.75} aria-hidden />
+                </>
+              )}
+            </ReviewsExpandButton>
+          ) : null}
         </PreviewReviews>
       </PreviewBody>
 

@@ -22,11 +22,27 @@ export const customInstance = <T>(
   options?: AxiosRequestConfig,
 ): Promise<T> => {
   const source = Axios.CancelToken.source();
+  const signal = options?.signal ?? config.signal;
+
+  if (signal) {
+    if (signal.aborted) {
+      source.cancel('Query was cancelled');
+    } else {
+      signal.addEventListener(
+        'abort',
+        () => {
+          source.cancel('Query was cancelled');
+        },
+        { once: true },
+      );
+    }
+  }
 
   const promise = AXIOS_INSTANCE({
     ...config,
     ...options,
     cancelToken: source.token,
+    signal,
   }).then(({ data }) => data as T) as CancellablePromise<T>;
 
   promise.cancel = () => {

@@ -4,7 +4,7 @@ import {
   IconHeartFilled,
   IconStarFilled,
 } from '@tabler/icons-react';
-import { Button, Tooltip } from '@mui/material';
+import { Button, CircularProgress, Tooltip } from '@mui/material';
 import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -130,6 +130,8 @@ export const DoctorCard = ({
 }: DoctorCardProps) => {
   const { t, i18n } = useTranslation('search');
   const isGuest = role === AppRole.GUEST;
+  const canFavourite = role === AppRole.PATIENT;
+  const showFavourite = isGuest || canFavourite;
   const displayPrice = doctor.promoPrice ?? doctor.basePrice;
   const place = [clinicName, cityName].filter(Boolean).join(', ');
 
@@ -160,39 +162,41 @@ export const DoctorCard = ({
             <DoctorName>
               {doctor.firstName} {doctor.lastName}
             </DoctorName>
-            {isGuest ? (
-              <Tooltip title={t('card.favoriteGuestHint')}>
-                <HeartTooltipTarget
+            {showFavourite ? (
+              isGuest ? (
+                <Tooltip title={t('card.favoriteGuestHint')}>
+                  <HeartTooltipTarget
+                    onClick={(event) => {
+                      event.stopPropagation();
+                    }}
+                  >
+                    <HeartButton
+                      type="button"
+                      disabled
+                      aria-label={t('card.favoriteGuestHint')}
+                    >
+                      <IconHeart size={20} />
+                    </HeartButton>
+                  </HeartTooltipTarget>
+                </Tooltip>
+              ) : (
+                <HeartButton
+                  type="button"
+                  $active={doctor.isFavourite}
+                  aria-label={doctor.isFavourite ? t('card.unfavorite') : t('card.favorite')}
                   onClick={(event) => {
                     event.stopPropagation();
+                    onFavourite(doctor);
                   }}
                 >
-                  <HeartButton
-                    type="button"
-                    disabled
-                    aria-label={t('card.favoriteGuestHint')}
-                  >
+                  {doctor.isFavourite ? (
+                    <IconHeartFilled size={20} />
+                  ) : (
                     <IconHeart size={20} />
-                  </HeartButton>
-                </HeartTooltipTarget>
-              </Tooltip>
-            ) : (
-              <HeartButton
-                type="button"
-                $active={doctor.isFavourite}
-                aria-label={doctor.isFavourite ? t('card.unfavorite') : t('card.favorite')}
-                onClick={(event) => {
-                  event.stopPropagation();
-                  onFavourite(doctor);
-                }}
-              >
-                {doctor.isFavourite ? (
-                  <IconHeartFilled size={20} />
-                ) : (
-                  <IconHeart size={20} />
-                )}
-              </HeartButton>
-            )}
+                  )}
+                </HeartButton>
+              )
+            ) : null}
           </NameRow>
           <SpecialtyText>{t(`specialties.${doctor.specialty}`)}</SpecialtyText>
           {place ? <ClinicText>{place}</ClinicText> : null}
@@ -295,6 +299,8 @@ interface DoctorsSectionProps {
   cityNameById: Record<string, string>;
   clinicNameById: Record<string, string>;
   isLoading: boolean;
+  /** Fetching next page while previous results stay visible. */
+  isLoadingMore?: boolean;
   isError: boolean;
   hasMore: boolean;
   onSortChange: (sort: SearchSort) => void;
@@ -312,6 +318,7 @@ export const DoctorsSection = ({
   cityNameById,
   clinicNameById,
   isLoading,
+  isLoadingMore = false,
   isError,
   hasMore,
   onSortChange,
@@ -494,10 +501,14 @@ export const DoctorsSection = ({
             type="button"
             variant="outlined"
             color="inherit"
-            endIcon={<IconChevronDown size={18} />}
+            disabled={isLoadingMore}
+            startIcon={
+              isLoadingMore ? <CircularProgress size={18} color="inherit" /> : undefined
+            }
+            endIcon={isLoadingMore ? undefined : <IconChevronDown size={18} />}
             onClick={onShowMore}
           >
-            {t('results.showMore')}
+            {isLoadingMore ? t('results.loadingBadge') : t('results.showMore')}
           </ShowMoreButton>
         </ShowMoreRow>
       ) : null}

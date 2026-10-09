@@ -1,6 +1,6 @@
-import { styled } from '@/theme/styled';
-
 import type { ReactNode } from 'react';
+
+import { styled } from '@/theme/styled';
 
 const Shell = styled('div')({
   display: 'flex',

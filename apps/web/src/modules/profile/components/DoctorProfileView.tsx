@@ -3,11 +3,14 @@ import {
   IconBuildingHospital,
   IconCalendarEvent,
   IconCertificate,
+  IconChevronDown,
+  IconChevronUp,
   IconEye,
   IconFileText,
   IconId,
   IconMail,
   IconMapPin,
+  IconPencil,
   IconPhone,
   IconPlus,
   IconSchool,
@@ -15,7 +18,7 @@ import {
   IconUser,
   IconWorld,
 } from '@tabler/icons-react';
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState, type ChangeEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
@@ -39,10 +42,18 @@ import {
   AddLink,
   BioValue,
   Content,
+  ReviewsExpandButton,
   EducationCard,
+  EditLink,
+  EduItem,
   EduList,
+  EduPhotoActions,
+  EduPhotoRow,
   EduRow,
+  EduRowActions,
   EduText,
+  EduThumb,
+  EduThumbLink,
   EduYears,
   FieldGrid,
   FieldIcon,
@@ -59,6 +70,7 @@ import {
   HeroMuted,
   HeroName,
   HeroNameRow,
+  HeroRatingButton,
   HeroStat,
   HeroStats,
   HeroStatMuted,
@@ -68,7 +80,17 @@ import {
   PageIntro,
   PageSubtitle,
   PageTitle,
+  PreviewReviewAuthor,
+  PreviewReviewHeader,
+  PreviewReviewItem,
+  PreviewReviewScore,
+  PreviewReviewScoreValue,
+  PreviewReviewText,
   ProfileTextField,
+  ReviewsEmpty,
+  ReviewsEmptyHint,
+  ReviewsEmptyTitle,
+  ReviewsMeta,
   SectionCard,
   SoftBadge,
   StarAccent,
@@ -79,7 +101,12 @@ import type {
   DoctorProfileData,
   ProfileSection,
 } from '@/modules/profile/types';
+import { resolveMediaUrl } from '@/utils/mediaUrl';
 import { pickLocalizedDescription } from '@/utils/pickLocalizedDescription';
+
+const CERT_PHOTO_ACCEPT = 'image/jpeg,image/png,image/webp';
+const CERT_PHOTO_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
+const CERT_PHOTO_MAX_BYTES = 10 * 1024 * 1024;
 
 const mapEducationKind = (
   kind: DoctorEducationDto['kind'],
@@ -92,7 +119,60 @@ const mapEducation = (items: DoctorEducationDto[]): DoctorEducationItem[] =>
     subtitle: item.subtitle ?? '',
     years: item.yearTo ? `${item.yearFrom} – ${item.yearTo}` : String(item.yearFrom),
     kind: mapEducationKind(item.kind),
+    imageUrl: item.imageUrl ?? '',
   }));
+
+const revokePreviewUrl = (url: string | undefined) => {
+  if (url?.startsWith('blob:')) {
+    URL.revokeObjectURL(url);
+  }
+};
+
+const parseEducationYears = (
+  years: string,
+): { yearFrom: number; yearTo?: number } | null => {
+  const match = years.trim().match(/^(\d{4})(?:\s*[–\-—]\s*(\d{4}))?$/);
+  if (!match) {
+    return null;
+  }
+  const yearFrom = Number(match[1]);
+  const yearTo = match[2] ? Number(match[2]) : undefined;
+  if (yearTo != null && yearTo < yearFrom) {
+    return null;
+  }
+  return { yearFrom, yearTo };
+};
+
+const toApiEducation = (items: DoctorEducationItem[]) =>
+  items
+    .map((item) => {
+      const years = parseEducationYears(item.years);
+      if (!years || !item.title.trim()) {
+        return null;
+      }
+      return {
+        id: item.id.startsWith('edu_tmp_') ? undefined : item.id,
+        kind: (item.kind === 'education' ? 'university' : 'certificate') as
+          | 'university'
+          | 'certificate'
+          | 'training',
+        title: item.title.trim(),
+        subtitle: item.subtitle.trim() || undefined,
+        yearFrom: years.yearFrom,
+        yearTo: years.yearTo,
+        imageUrl: item.imageUrl || null,
+      };
+    })
+    .filter((item): item is NonNullable<typeof item> => item != null);
+
+const createEmptyCertificate = (): DoctorEducationItem => ({
+  id: `edu_tmp_${Date.now()}`,
+  title: '',
+  subtitle: '',
+  years: String(new Date().getFullYear()),
+  kind: 'certificate',
+  imageUrl: '',
+});
 
 const mapSupportedFormat = (
   formats: DoctorScheduleResponse['supportedFormats'],
@@ -141,8 +221,8 @@ const mapDoctorDto = (
     languages: (dto.languages ?? []).join(', '),
     licenseFileName: licenseFileNameFromUrl(dto.licenseFileUrl),
     consultationCount: dto.consultationCount,
-    ratingAverage: 0,
-    reviewCount: 0,
+    ratingAverage: dto.ratingAverage ?? 0,
+    reviewCount: dto.reviewCount ?? 0,
     basePrice: schedule?.basePriceUah ?? 0,
     promoPrice: schedule?.promoPriceUah ?? undefined,
     format: schedule ? mapSupportedFormat(schedule.supportedFormats) : 'offline',
@@ -152,9 +232,16 @@ const mapDoctorDto = (
     fullBioUk: bio,
     fullBioEn: bio,
     education: mapEducation(dto.education),
-    reviews: [],
+    reviews: (dto.reviews ?? []).map((review) => ({
+      id: review.id,
+      author: review.patientDisplayName,
+      rating: review.rating,
+      text: review.text,
+    })),
   };
 };
+
+const REVIEWS_PREVIEW_COUNT = 3;
 
 export const DoctorProfileView = () => {
   const { t, i18n } = useTranslation('profile');
@@ -169,6 +256,11 @@ export const DoctorProfileView = () => {
   const [editing, setEditing] = useState<ProfileSection | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [reviewsExpanded, setReviewsExpanded] = useState(false);
+  const [pendingCertImages, setPendingCertImages] = useState<Record<string, File>>({});
+  const [certPhotoTargetId, setCertPhotoTargetId] = useState<string | null>(null);
+  const [editingEducationId, setEditingEducationId] = useState<string | null>(null);
+  const certPhotoInputRef = useRef<HTMLInputElement>(null);
 
   const cityName =
     citiesQuery.data?.items.find((city) => city.id === profileQuery.data?.cityId)?.name ?? '';
@@ -247,6 +339,11 @@ export const DoctorProfileView = () => {
   };
 
   const cancelEdit = () => {
+    draft?.education.forEach((item) => {
+      revokePreviewUrl(item.previewUrl);
+    });
+    setPendingCertImages({});
+    setEditingEducationId(null);
     setDraft(null);
     setEditing(null);
   };
@@ -267,17 +364,34 @@ export const DoctorProfileView = () => {
         .filter(Boolean);
       const bio = profile.fullBioUk.trim() || profile.shortBioUk.trim() || null;
 
-      await patchMutation.mutateAsync({
-        firstName: profile.firstName,
-        lastName: profile.lastName,
-        phone: profile.phone || null,
-        email: profile.email,
-        dob: profile.dateOfBirth,
-        cityId: profile.cityId,
-        clinicId: profile.clinicId,
-        bio,
-        languages,
-      });
+      if (editing === 'education') {
+        const filled = profile.education.filter((item) => item.title.trim());
+        const education = toApiEducation(filled);
+        if (filled.length > 0 && education.length === 0) {
+          toast.error(t('education.invalidYears'));
+          setSaving(false);
+          return;
+        }
+        const educationImages = filled.map((item) => pendingCertImages[item.id]);
+        await patchMutation.mutateAsync({ education, educationImages });
+        filled.forEach((item) => {
+          revokePreviewUrl(item.previewUrl);
+        });
+        setPendingCertImages({});
+        setEditingEducationId(null);
+      } else {
+        await patchMutation.mutateAsync({
+          firstName: profile.firstName,
+          lastName: profile.lastName,
+          phone: profile.phone || null,
+          email: profile.email,
+          dob: profile.dateOfBirth,
+          cityId: profile.cityId,
+          clinicId: profile.clinicId,
+          bio,
+          languages,
+        });
+      }
       setDraft(null);
       setEditing(null);
       toast.success(t('saved'));
@@ -285,6 +399,132 @@ export const DoctorProfileView = () => {
       setSaving(false);
     }
   };
+
+  const beginEducationRowEdit = (id: string) => {
+    setDraft((current) => current ?? serverProfile);
+    setEditing('education');
+    setEditingEducationId(id);
+  };
+
+  const addCertificate = () => {
+    const next = createEmptyCertificate();
+    setDraft((current) => {
+      const base = current ?? serverProfile;
+      if (!base) {
+        return current;
+      }
+      return {
+        ...base,
+        education: [...base.education, next],
+      };
+    });
+    setEditing('education');
+    setEditingEducationId(next.id);
+  };
+
+  const updateEducationItem = (id: string, patch: Partial<DoctorEducationItem>) => {
+    setDraft((current) => {
+      const base = current ?? serverProfile;
+      if (!base) {
+        return current;
+      }
+      return {
+        ...base,
+        education: base.education.map((item) =>
+          item.id === id ? { ...item, ...patch } : item,
+        ),
+      };
+    });
+  };
+
+  const removeEducationItem = (id: string) => {
+    setDraft((current) => {
+      const base = current ?? serverProfile;
+      if (!base) {
+        return current;
+      }
+      const removed = base.education.find((item) => item.id === id);
+      revokePreviewUrl(removed?.previewUrl);
+      return {
+        ...base,
+        education: base.education.filter((item) => item.id !== id),
+      };
+    });
+    setPendingCertImages((current) => {
+      const next = { ...current };
+      delete next[id];
+      return next;
+    });
+    setEditingEducationId((current) => (current === id ? null : current));
+  };
+
+  const openCertPhotoPicker = (id: string) => {
+    setCertPhotoTargetId(id);
+    certPhotoInputRef.current?.click();
+  };
+
+  const onCertPhotoInputChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    const targetId = certPhotoTargetId;
+    event.target.value = '';
+    setCertPhotoTargetId(null);
+    if (!file || !targetId) {
+      return;
+    }
+    if (!CERT_PHOTO_TYPES.has(file.type)) {
+      toast.error(t('photoInvalidType'));
+      return;
+    }
+    if (file.size > CERT_PHOTO_MAX_BYTES) {
+      toast.error(t('photoTooLarge'));
+      return;
+    }
+    const previewUrl = URL.createObjectURL(file);
+    setPendingCertImages((current) => ({ ...current, [targetId]: file }));
+    setDraft((current) => {
+      const base = current ?? serverProfile;
+      if (!base) {
+        return current;
+      }
+      return {
+        ...base,
+        education: base.education.map((item) => {
+          if (item.id !== targetId) {
+            return item;
+          }
+          revokePreviewUrl(item.previewUrl);
+          return { ...item, previewUrl };
+        }),
+      };
+    });
+  };
+
+  const removeCertPhoto = (id: string) => {
+    setPendingCertImages((current) => {
+      const next = { ...current };
+      delete next[id];
+      return next;
+    });
+    setDraft((current) => {
+      const base = current ?? serverProfile;
+      if (!base) {
+        return current;
+      }
+      return {
+        ...base,
+        education: base.education.map((item) => {
+          if (item.id !== id) {
+            return item;
+          }
+          revokePreviewUrl(item.previewUrl);
+          return { ...item, imageUrl: '', previewUrl: undefined };
+        }),
+      };
+    });
+  };
+
+  const educationImageSrc = (item: DoctorEducationItem) =>
+    item.previewUrl || resolveMediaUrl(item.imageUrl);
 
   return (
     <Page>
@@ -319,15 +559,24 @@ export const DoctorProfileView = () => {
               </HeroMuted>
               <HeroStats>
                 <HeroStat>
-                  <StarAccent>
-                    <IconStarFilled size={16} aria-hidden />
-                  </StarAccent>
-                  <HeroStatValue>
-                    {t('fields.rating', {
-                      rating: profile.ratingAverage.toFixed(1),
-                      count: profile.reviewCount,
-                    })}
-                  </HeroStatValue>
+                  <HeroRatingButton
+                    type="button"
+                    onClick={() => {
+                      document
+                        .getElementById('doctor-reviews')
+                        ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }}
+                  >
+                    <StarAccent>
+                      <IconStarFilled size={16} aria-hidden />
+                    </StarAccent>
+                    <HeroStatValue>
+                      {t('fields.rating', {
+                        rating: profile.ratingAverage.toFixed(1),
+                        count: profile.reviewCount,
+                      })}
+                    </HeroStatValue>
+                  </HeroRatingButton>
                 </HeroStat>
                 <HeroDot />
                 <HeroStatMuted>
@@ -535,32 +784,160 @@ export const DoctorProfileView = () => {
           <ProfileSectionHeader
             title={t('sections.education')}
             editLabel={t('edit')}
-            onEdit={() => {
-              beginEdit('education');
-            }}
+            showEdit={false}
           />
+          {editing === 'education' ? (
+            <input
+              ref={certPhotoInputRef}
+              type="file"
+              accept={CERT_PHOTO_ACCEPT}
+              hidden
+              onChange={onCertPhotoInputChange}
+            />
+          ) : null}
           <EduList>
-            {profile.education.map((item) => (
-              <EduRow key={item.id}>
-                <FieldIcon aria-hidden>
-                  {item.kind === 'education' ? (
-                    <IconSchool size={18} stroke={1.75} />
-                  ) : (
-                    <IconCertificate size={18} stroke={1.75} />
-                  )}
-                </FieldIcon>
-                <EduText>
-                  <FieldValue>{item.title}</FieldValue>
-                  <FieldLabel>{item.subtitle}</FieldLabel>
-                </EduText>
-                <EduYears>{item.years}</EduYears>
-              </EduRow>
-            ))}
+            {profile.education.map((item) => {
+              const imageSrc = educationImageSrc(item);
+              const isRowEditing =
+                editing === 'education' && editingEducationId === item.id;
+
+              if (isRowEditing) {
+                return (
+                  <EduItem key={item.id}>
+                    <FieldGrid>
+                      <ProfileTextField
+                        label={t('education.title')}
+                        value={item.title}
+                        placeholder={t('education.emptyTitle')}
+                        onChange={(event) => {
+                          updateEducationItem(item.id, { title: event.target.value });
+                        }}
+                      />
+                      <ProfileTextField
+                        label={t('education.subtitle')}
+                        value={item.subtitle}
+                        onChange={(event) => {
+                          updateEducationItem(item.id, { subtitle: event.target.value });
+                        }}
+                      />
+                      <ProfileTextField
+                        label={t('education.years')}
+                        value={item.years}
+                        onChange={(event) => {
+                          updateEducationItem(item.id, { years: event.target.value });
+                        }}
+                      />
+                      <EduPhotoRow>
+                        {imageSrc ? (
+                          <EduThumb src={imageSrc} alt={t('education.photoAlt')} />
+                        ) : null}
+                        <EduPhotoActions>
+                          <Button
+                            onClick={() => {
+                              openCertPhotoPicker(item.id);
+                            }}
+                          >
+                            {imageSrc
+                              ? t('education.changePhoto')
+                              : t('education.attachPhoto')}
+                          </Button>
+                          {imageSrc ? (
+                            <Button
+                              color="error"
+                              onClick={() => {
+                                removeCertPhoto(item.id);
+                              }}
+                            >
+                              {t('education.removePhoto')}
+                            </Button>
+                          ) : null}
+                        </EduPhotoActions>
+                      </EduPhotoRow>
+                      <Button
+                        color="error"
+                        onClick={() => {
+                          removeEducationItem(item.id);
+                        }}
+                      >
+                        {t('education.remove')}
+                      </Button>
+                    </FieldGrid>
+                  </EduItem>
+                );
+              }
+
+              return (
+                <EduItem key={item.id}>
+                  <EduRow>
+                    <FieldIcon aria-hidden>
+                      {item.kind === 'education' ? (
+                        <IconSchool size={18} stroke={1.75} />
+                      ) : (
+                        <IconCertificate size={18} stroke={1.75} />
+                      )}
+                    </FieldIcon>
+                    <EduText>
+                      <FieldValue>
+                        {item.title.trim() || t('education.emptyTitle')}
+                      </FieldValue>
+                      {item.subtitle ? <FieldLabel>{item.subtitle}</FieldLabel> : null}
+                    </EduText>
+                    {imageSrc ? (
+                      <EduThumbLink
+                        href={imageSrc}
+                        target="_blank"
+                        rel="noreferrer"
+                        aria-label={t('education.openPhoto')}
+                      >
+                        <EduThumb src={imageSrc} alt={t('education.photoAlt')} />
+                      </EduThumbLink>
+                    ) : null}
+                    <EduYears>{item.years}</EduYears>
+                    <EduRowActions>
+                      <EditLink
+                        type="button"
+                        onClick={() => {
+                          beginEducationRowEdit(item.id);
+                        }}
+                      >
+                        <IconPencil size={16} stroke={1.75} aria-hidden />
+                        {t('edit')}
+                      </EditLink>
+                      {editing === 'education' ? (
+                        <Button
+                          color="error"
+                          onClick={() => {
+                            removeEducationItem(item.id);
+                          }}
+                        >
+                          {t('education.remove')}
+                        </Button>
+                      ) : null}
+                    </EduRowActions>
+                  </EduRow>
+                </EduItem>
+              );
+            })}
           </EduList>
-          <AddLink type="button">
+          <AddLink type="button" onClick={addCertificate}>
             <IconPlus size={16} stroke={1.75} aria-hidden />
             {t('education.add')}
           </AddLink>
+          {editing === 'education' ? (
+            <ActionRow>
+              <Button onClick={cancelEdit}>{t('cancel')}</Button>
+              <Button
+                variant="contained"
+                color="primary"
+                disabled={saving}
+                onClick={() => {
+                  void saveEdit();
+                }}
+              >
+                {saving ? t('saving') : t('save')}
+              </Button>
+            </ActionRow>
+          ) : null}
         </EducationCard>
 
         <SectionCard>
@@ -619,6 +996,63 @@ export const DoctorProfileView = () => {
                 />
               </FieldRow>
             </FieldRows>
+          )}
+        </SectionCard>
+
+        <SectionCard id="doctor-reviews">
+          <ProfileSectionHeader title={t('sections.reviews')} editLabel="" showEdit={false} />
+          {profile.reviews.length === 0 ? (
+            <ReviewsEmpty>
+              <ReviewsEmptyTitle>{t('reviews.empty')}</ReviewsEmptyTitle>
+              <ReviewsEmptyHint>{t('reviews.emptyHint')}</ReviewsEmptyHint>
+            </ReviewsEmpty>
+          ) : (
+            <>
+              <ReviewsMeta>{t('reviews.count', { count: profile.reviewCount })}</ReviewsMeta>
+              {(reviewsExpanded
+                ? profile.reviews
+                : profile.reviews.slice(0, REVIEWS_PREVIEW_COUNT)
+              ).map((review) => (
+                <PreviewReviewItem key={review.id}>
+                  <PreviewReviewHeader>
+                    <PreviewReviewAuthor>{review.author}</PreviewReviewAuthor>
+                    <PreviewReviewScore>
+                      <StarAccent>
+                        <IconStarFilled size={14} aria-hidden />
+                      </StarAccent>
+                      <PreviewReviewScoreValue>
+                        {review.rating.toFixed(1)}
+                      </PreviewReviewScoreValue>
+                    </PreviewReviewScore>
+                  </PreviewReviewHeader>
+                  {review.text ? (
+                    <PreviewReviewText>{review.text}</PreviewReviewText>
+                  ) : null}
+                </PreviewReviewItem>
+              ))}
+              {profile.reviews.length > REVIEWS_PREVIEW_COUNT ? (
+                <ReviewsExpandButton
+                  type="button"
+                  onClick={() => {
+                    setReviewsExpanded((open) => !open);
+                  }}
+                >
+                  {reviewsExpanded ? (
+                    <>
+                      {t('reviews.showLess')}
+                      <IconChevronUp size={16} stroke={1.75} aria-hidden />
+                    </>
+                  ) : (
+                    <>
+                      {t('reviews.showMore', {
+                        count: profile.reviews.length - REVIEWS_PREVIEW_COUNT,
+                      })}
+                      <IconChevronDown size={16} stroke={1.75} aria-hidden />
+                    </>
+                  )}
+                </ReviewsExpandButton>
+              ) : null}
+            </>
           )}
         </SectionCard>
       </Content>

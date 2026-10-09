@@ -17,6 +17,10 @@ export interface ZoneAParams {
 export interface ZoneBFormState extends ZoneAParams {
   vacationDayOff: boolean;
   customDuration?: number;
+  /** Profile-level promo (display only); not a Zone B range override. */
+  promoPriceUah: number | null;
+  /** Inclusive Kyiv calendar day; promo hidden after this date. */
+  promoValidUntil: string | null;
 }
 
 /** Read-only snapshot of a Zone B range plan. */

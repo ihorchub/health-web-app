@@ -294,9 +294,7 @@ export async function bulkCancelAppointments(input: {
   to?: string;
   confirm: boolean;
   now?: Date;
-}): Promise<{ cancelledIds: string[] }> {
-  if (!input.confirm) throw new ApiError("BULK_CANCEL_INVALID_SCOPE", 400, { confirm: "REQUIRED" });
-
+}): Promise<{ cancelledIds: string[]; matchedCount: number }> {
   const now = input.now ?? new Date();
   const zoneA = getZoneABounds(now);
   const todayParts = getZonedDateParts(now);
@@ -371,6 +369,13 @@ export async function bulkCancelAppointments(input: {
       ),
     );
 
+  const matchedCount = rows.length;
+
+  /** Dry-run preview for the confirm modal — count only, do not cancel. */
+  if (!input.confirm) {
+    return { cancelledIds: [], matchedCount };
+  }
+
   const cancelledIds: string[] = [];
   for (const row of rows) {
     await cancelAppointment({
@@ -381,5 +386,5 @@ export async function bulkCancelAppointments(input: {
     cancelledIds.push(row.id);
   }
 
-  return { cancelledIds };
+  return { cancelledIds, matchedCount };
 }

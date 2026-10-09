@@ -20,9 +20,13 @@ const roleFromMe = (role: 'patient' | 'doctor'): AppRole => {
 
 /** Session role from GET /auth/me; falls back to PreviewRole for guest QA. */
 export const useAppRole = () => {
-  const { data: me, isLoading, isFetching } = useGetAuthMe();
+  const { data: me, isPending, isFetched } = useGetAuthMe();
   const preview = usePreviewRole();
   const { hasUnread } = useNotifications();
+
+  // Only unresolved while we have never settled /auth/me.
+  // `me === null` after logout is settled — not loading (avoids blank/guest flashes).
+  const isSessionPending = isPending && !isFetched && me === undefined;
 
   return useMemo(() => {
     if (me) {
@@ -32,7 +36,8 @@ export const useAppRole = () => {
         hasUnreadNotifications: hasUnread,
         me,
         isSession: true as const,
-        isLoading: isLoading || isFetching,
+        isLoading: false,
+        isSessionPending: false,
         setPreviewRole: preview.setRole,
       };
     }
@@ -43,8 +48,9 @@ export const useAppRole = () => {
       hasUnreadNotifications: hasUnread,
       me: null,
       isSession: false as const,
-      isLoading: isLoading || isFetching,
+      isLoading: isSessionPending,
+      isSessionPending,
       setPreviewRole: preview.setRole,
     };
-  }, [hasUnread, isFetching, isLoading, me, preview]);
+  }, [hasUnread, isSessionPending, me, preview]);
 };

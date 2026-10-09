@@ -168,7 +168,13 @@ export const WorkingHoursCalendar = ({
                 if (!cell.inMonth) {
                   return <span key={`pad-${index}`} />;
                 }
-                const zone = zoneForDate(cell.ymd, zoneAStartYmd, zoneAEndYmd, zoneBStartYmd);
+                const zone = zoneForDate(
+                  cell.ymd,
+                  zoneAStartYmd,
+                  zoneAEndYmd,
+                  zoneBStartYmd,
+                  zoneBEndYmd,
+                );
                 const past = cell.ymd < zoneAStartYmd;
                 const selectable = !past && (zone === 'a' || zone === 'b');
                 const selected = endpoints.has(cell.ymd);

@@ -2,7 +2,9 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { RouterProvider } from 'react-router-dom';
 
+import { AuthTransitionOverlay } from '@/components/AuthTransitionOverlay/AuthTransitionOverlay';
 import { AppToaster } from '@/components/Toaster/AppToaster';
+import { AuthTransitionProvider } from '@/context/AuthTransitionContext';
 import { PopupsProvider } from '@/context/PopupsContext';
 import { AppThemeProvider } from '@/context/ThemeContext';
 import i18n from '@/i18n';
@@ -33,10 +35,13 @@ export const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <AppThemeProvider>
-        <PopupsProvider>
-          <RouterProvider key={language} router={router} />
-          <AppToaster />
-        </PopupsProvider>
+        <AuthTransitionProvider>
+          <PopupsProvider>
+            <RouterProvider key={language} router={router} />
+            <AuthTransitionOverlay />
+            <AppToaster />
+          </PopupsProvider>
+        </AuthTransitionProvider>
       </AppThemeProvider>
     </QueryClientProvider>
   );

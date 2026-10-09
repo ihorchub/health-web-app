@@ -12,6 +12,7 @@
   "search": {
     "placeholder": "ПІБ лікаря, клініка або спеціальність",
     "submit": "Пошук",
+    "clear": "Очистити пошук",
     "filtersOpen": "Фільтри"
   },
   "popular": {

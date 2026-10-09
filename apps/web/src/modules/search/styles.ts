@@ -295,6 +295,36 @@ export const SearchInput = styled('input')(({ theme }) => ({
   },
 }));
 
+export const SearchClearButton = styled('button')(({ theme }) => ({
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  width: 36,
+  height: 36,
+  padding: 0,
+  flexShrink: 0,
+  border: 'none',
+  borderRadius: 999,
+  background: 'transparent',
+  color: theme.palette.text.secondary,
+  cursor: 'pointer',
+  appearance: 'none',
+  WebkitAppearance: 'none',
+  transition: theme.transitions.create(['color', 'background-color'], {
+    duration: theme.transitions.duration.shorter,
+  }),
+
+  '&:hover': {
+    color: theme.palette.text.primary,
+    backgroundColor: theme.palette.action.hover,
+  },
+
+  '&:focus-visible': {
+    outline: `2px solid ${theme.palette.primary.main}`,
+    outlineOffset: 2,
+  },
+}));
+
 export const SearchSubmit = styled(Button)(({ theme }) => ({
   display: 'inline-flex',
   gap: theme.spacing(0.75),

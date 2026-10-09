@@ -25,9 +25,21 @@ export const mapDashboardVisit = (visit: DoctorDashboardVisit): DoctorDayVisit =
     startsAt: visit.startAt,
     durationMinutes: DEFAULT_VISIT_MINUTES,
     patientName: visit.patientDisplayName,
+    photoUrl: visit.patientPhotoUrl,
     status,
     format: visit.format,
     reason: visit.reason ?? undefined,
+  };
+};
+
+/** Split "First Last" for avatar initials. */
+export const splitPatientName = (
+  fullName: string,
+): { firstName: string; lastName: string } => {
+  const parts = fullName.trim().split(/\s+/).filter(Boolean);
+  return {
+    firstName: parts[0] ?? '',
+    lastName: parts.slice(1).join(' '),
   };
 };
 

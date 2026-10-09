@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 import { ZoneDateRangeField } from '@/modules/working-hours/components/ZoneDateRangeField';
 import type { BulkCancelScope, ZoneAParams } from '@/modules/working-hours/types';
+import { formatDisplayDate } from '@/modules/working-hours/utils/calendarGrid';
 import {
   ActionSection,
   DangerOutlineButton,
@@ -45,6 +46,8 @@ interface ZoneAPanelProps {
   minYmd: string;
   maxYmd: string;
   todayShort: string;
+  promoPriceUah?: number | null;
+  promoValidUntil?: string | null;
   bulkScope: BulkCancelScope;
   onBulkScopeChange: (scope: BulkCancelScope) => void;
   onRangeChange: (startYmd: string, endYmd: string) => void;
@@ -63,6 +66,8 @@ export const ZoneAPanel = ({
   minYmd,
   maxYmd,
   todayShort,
+  promoPriceUah,
+  promoValidUntil,
   bulkScope,
   onBulkScopeChange,
   onRangeChange,
@@ -134,6 +139,17 @@ export const ZoneAPanel = ({
               <MetaLabel>{t('zoneA.metaPrice')}</MetaLabel>
               <MetaValue>{t('zoneA.priceValue', { price: params.priceUah })}</MetaValue>
             </MetaRow>
+            {promoPriceUah != null && promoValidUntil ? (
+              <MetaRow>
+                <MetaLabel>{t('zoneA.metaPromo')}</MetaLabel>
+                <MetaValue>
+                  {t('zoneA.promoValue', {
+                    price: promoPriceUah,
+                    date: formatDisplayDate(promoValidUntil, locale),
+                  })}
+                </MetaValue>
+              </MetaRow>
+            ) : null}
           </MetaColumn>
         </MetaList>
       </FormSectionFirst>

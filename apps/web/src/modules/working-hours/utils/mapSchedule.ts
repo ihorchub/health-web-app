@@ -87,28 +87,6 @@ const dayToZoneParams = (
   priceUah: schedule.basePriceUah,
 });
 
-/** Map GET schedule → UI settings used by SCR-09 panels/calendar. */
-export const mapScheduleToWorkingHours = (
-  schedule: DoctorScheduleResponse,
-): WorkingHoursSettings => {
-  const primary = pickPrimaryDay(schedule.weeklyTemplate);
-  const zoneA = dayToZoneParams(primary, schedule);
-  const zoneB: ZoneBFormState = {
-    ...zoneA,
-    vacationDayOff: false,
-  };
-
-  return {
-    zoneA,
-    zoneB,
-    zoneAStartYmd: schedule.zoneAStart,
-    zoneAEndYmd: schedule.zoneAEnd,
-    zoneBStartYmd: schedule.zoneBStart,
-    appointmentDays: [],
-    vacationDates: schedule.vacationDates ?? [],
-  };
-};
-
 export const workingDaysFromTemplate = (
   template: DoctorScheduleResponse['weeklyTemplate'],
 ): WorkingDaysSelection => {
@@ -247,6 +225,45 @@ export const overrideToFormPatch = (
   vacationDayOff: override.dayOff === true,
   customDuration: undefined,
 });
+
+/** Map GET schedule → UI settings used by SCR-09 panels/calendar. */
+export const mapScheduleToWorkingHours = (
+  schedule: DoctorScheduleResponse,
+): WorkingHoursSettings => {
+  const primary = pickPrimaryDay(schedule.weeklyTemplate);
+  /** Zone A stays on the frozen global template / price / duration / format. */
+  const zoneA = dayToZoneParams(primary, schedule);
+  /**
+   * Zone B form prefers an override that covers the first Zone B day so saved
+   * plans do not rewrite Zone A display (shared globals stay frozen).
+   */
+  const zoneBCover = findOverrideForDay(schedule.zoneBOverrides ?? [], schedule.zoneBStart);
+  const promo = {
+    promoPriceUah: schedule.promoPriceUah,
+    promoValidUntil: schedule.promoValidUntil,
+  };
+  const zoneB: ZoneBFormState = zoneBCover
+    ? {
+        ...overrideToSavedInfo(zoneBCover, zoneA),
+        vacationDayOff: zoneBCover.dayOff === true,
+        ...promo,
+      }
+    : {
+        ...zoneA,
+        vacationDayOff: false,
+        ...promo,
+      };
+
+  return {
+    zoneA,
+    zoneB,
+    zoneAStartYmd: schedule.zoneAStart,
+    zoneAEndYmd: schedule.zoneAEnd,
+    zoneBStartYmd: schedule.zoneBStart,
+    appointmentDays: [],
+    vacationDates: schedule.vacationDates ?? [],
+  };
+};
 
 /** Build PATCH body that applies Zone B form values only to the selected inclusive range. */
 export const zoneBFormToRangePatch = (

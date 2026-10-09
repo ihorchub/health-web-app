@@ -143,5 +143,9 @@
     "body": "Adjust free hours in your working schedule.",
     "pastMonthTitle": "No past visits this month yet",
     "pastMonthBody": "Completed visits will show up here after appointments."
+  },
+  "loadingState": {
+    "title": "Loading…",
+    "body": "Fetching today’s schedule"
   }
 }

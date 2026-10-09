@@ -1,6 +1,7 @@
 import { Button, Tooltip } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 
+import { DoctorPhoto } from '@/components/DoctorPhoto/DoctorPhoto';
 import { useCanCompleteVisit } from '@/modules/doctor-day/hooks/useCanCompleteVisit';
 import type { DoctorDayVisit } from '@/modules/doctor-day/types';
 import {
@@ -24,9 +25,11 @@ import {
   TimeBlock,
   TimeMeta,
   TimeValue,
+  VisitIdentity,
   VisitMain,
   VisitRow,
 } from '@/modules/doctor-day/styles';
+import { splitPatientName } from '@/modules/doctor-day/utils/mapDashboard';
 import { formatTime } from '@/modules/patient-room/utils/formatCabinetDate';
 
 interface DoctorVisitRowProps {
@@ -95,21 +98,29 @@ export const DoctorVisitRow = ({
     >
       <RowTime $muted={mutedTime}>{timeLabel}</RowTime>
 
-      <RowMain>
-        <RowTitleLine>
-          <PatientName>{visit.patientName}</PatientName>
-          <StatusPill $tone={statusTone(visit)}>{t(`status.${visit.status}`)}</StatusPill>
-          <FormatChip>{t(`format.${visit.format}`)}</FormatChip>
-        </RowTitleLine>
-        {visit.reason ? <RowMeta>{t('list.reason', { reason: visit.reason })}</RowMeta> : null}
-        {visit.status === 'cancelled' && visit.cancelledBy ? (
-          <RowMeta>
-            {visit.cancelledBy === 'patient'
-              ? t('list.cancelledByPatientShort')
-              : t('list.cancelledByDoctorShort')}
-          </RowMeta>
-        ) : null}
-      </RowMain>
+      <VisitIdentity>
+        <DoctorPhoto
+          photoUrl={visit.photoUrl}
+          {...splitPatientName(visit.patientName)}
+          size="sm"
+          alt={visit.patientName}
+        />
+        <RowMain>
+          <RowTitleLine>
+            <PatientName>{visit.patientName}</PatientName>
+            <StatusPill $tone={statusTone(visit)}>{t(`status.${visit.status}`)}</StatusPill>
+            <FormatChip>{t(`format.${visit.format}`)}</FormatChip>
+          </RowTitleLine>
+          {visit.reason ? <RowMeta>{t('list.reason', { reason: visit.reason })}</RowMeta> : null}
+          {visit.status === 'cancelled' && visit.cancelledBy ? (
+            <RowMeta>
+              {visit.cancelledBy === 'patient'
+                ? t('list.cancelledByPatientShort')
+                : t('list.cancelledByDoctorShort')}
+            </RowMeta>
+          ) : null}
+        </RowMain>
+      </VisitIdentity>
 
       {visit.status === 'upcoming' ? (
         <RowActions>
@@ -195,13 +206,21 @@ export const DoctorNextVisitHero = ({
           <TimeMeta>{t('nextVisit.durationMin', { minutes: visit.durationMinutes })}</TimeMeta>
         </TimeBlock>
 
-        <VisitMain>
-          <DoctorLine>{visit.patientName}</DoctorLine>
-          <RowTitleLine>
-            <FormatChip>{t(`format.${visit.format}`)}</FormatChip>
-            {visit.reason ? <RowMeta>{t('list.reason', { reason: visit.reason })}</RowMeta> : null}
-          </RowTitleLine>
-        </VisitMain>
+        <VisitIdentity>
+          <DoctorPhoto
+            photoUrl={visit.photoUrl}
+            {...splitPatientName(visit.patientName)}
+            size="md"
+            alt={visit.patientName}
+          />
+          <VisitMain>
+            <DoctorLine>{visit.patientName}</DoctorLine>
+            <RowTitleLine>
+              <FormatChip>{t(`format.${visit.format}`)}</FormatChip>
+              {visit.reason ? <RowMeta>{t('list.reason', { reason: visit.reason })}</RowMeta> : null}
+            </RowTitleLine>
+          </VisitMain>
+        </VisitIdentity>
 
         <HeroActions>
           <Tooltip

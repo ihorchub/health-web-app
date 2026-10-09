@@ -15,6 +15,7 @@ export interface DoctorDayVisit {
   startsAt: string;
   durationMinutes: number;
   patientName: string;
+  photoUrl?: string | null;
   status: DoctorVisitStatus;
   format: VisitFormat;
   reason?: string;

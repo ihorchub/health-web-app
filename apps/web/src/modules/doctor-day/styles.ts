@@ -566,6 +566,14 @@ export const RowTime = styled('span')<{ $muted?: boolean }>(({ theme, $muted }) 
   color: $muted ? theme.palette.text.secondary : theme.palette.text.primary,
 }));
 
+export const VisitIdentity = styled('div')(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  gap: theme.spacing(1.5),
+  flex: 1,
+  minWidth: 0,
+}));
+
 export const RowMain = styled('div')({
   display: 'flex',
   flexDirection: 'column',
