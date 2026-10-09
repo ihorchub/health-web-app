@@ -7,14 +7,14 @@ import { Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import { usePostAuthLogin } from '@/api/auth';
+import { BrandLogo } from '@/components/Layout/BrandLogo';
 import { LanguageToggle } from '@/components/Layout/LanguageToggle';
 import { ThemeToggleButton } from '@/components/Layout/ThemeToggleButton';
 import { Body, TitleH3 } from '@/components/Text';
 import { useAppRole } from '@/hooks/useAppRole';
 import { useAuthTransition } from '@/hooks/useAuthTransition';
 import {
-  AuthChromeBar,
-  AuthPage,
+  AuthMain,
   AuthShell,
   AuthTextField,
   BrandCopy,
@@ -29,6 +29,9 @@ import {
   FormActions,
   FormIntro,
   FormPanel,
+  OnboardingHeader,
+  OnboardingHeaderActions,
+  OnboardingPage,
   PasswordToggle,
   PrimaryButton,
   SwitchLink,
@@ -90,109 +93,115 @@ export const LoginPage = () => {
   });
 
   return (
-    <AuthPage>
-      <AuthChromeBar>
-        <LanguageToggle />
-        <ThemeToggleButton />
-      </AuthChromeBar>
+    <OnboardingPage>
+      <OnboardingHeader>
+        <BrandLogo to={AppRoute.HOME} />
+        <OnboardingHeaderActions>
+          <LanguageToggle />
+          <ThemeToggleButton />
+        </OnboardingHeaderActions>
+      </OnboardingHeader>
 
-      <AuthShell>
-        <BrandPanel>
-          <BrandLogoImg src={BRAND_LOGO} alt={t('login.title')} />
-          <BrandCopy>
-            <BrandTitle>{t('login.brandTitle')}</BrandTitle>
-            <BrandSubtitle>{t('login.brandSubtitle')}</BrandSubtitle>
-          </BrandCopy>
-          <BrandMascot src={LIKA_WELCOME} alt="" />
-        </BrandPanel>
+      <AuthMain>
+        <AuthShell>
+          <BrandPanel>
+            <BrandLogoImg src={BRAND_LOGO} alt={t('login.title')} />
+            <BrandCopy>
+              <BrandTitle>{t('login.brandTitle')}</BrandTitle>
+              <BrandSubtitle>{t('login.brandSubtitle')}</BrandSubtitle>
+            </BrandCopy>
+            <BrandMascot src={LIKA_WELCOME} alt="" />
+          </BrandPanel>
 
-        <FormPanel onSubmit={onSubmit} noValidate>
-          <FormIntro>
-            <TitleH3>{t('login.title')}</TitleH3>
-            <Body color="textSecondary">{t('login.subtitle')}</Body>
-          </FormIntro>
+          <FormPanel onSubmit={onSubmit} noValidate>
+            <FormIntro>
+              <TitleH3>{t('login.title')}</TitleH3>
+              <Body color="textSecondary">{t('login.subtitle')}</Body>
+            </FormIntro>
 
-          <FieldStack>
-            <div>
-              <FieldLabel htmlFor={FieldName.email}>{t('login.email')}</FieldLabel>
-              <Controller
-                name={FieldName.email}
-                control={control}
-                render={({ field }) => (
-                  <AuthTextField
-                    {...field}
-                    id={FieldName.email}
-                    type="email"
-                    autoComplete="email"
-                    placeholder={t('login.emailPlaceholder')}
-                    error={Boolean(errors.email)}
-                    helperText={errors.email?.message}
-                  />
-                )}
-              />
-            </div>
+            <FieldStack>
+              <div>
+                <FieldLabel htmlFor={FieldName.email}>{t('login.email')}</FieldLabel>
+                <Controller
+                  name={FieldName.email}
+                  control={control}
+                  render={({ field }) => (
+                    <AuthTextField
+                      {...field}
+                      id={FieldName.email}
+                      type="email"
+                      autoComplete="email"
+                      placeholder={t('login.emailPlaceholder')}
+                      error={Boolean(errors.email)}
+                      helperText={errors.email?.message}
+                    />
+                  )}
+                />
+              </div>
 
-            <div>
-              <FieldLabel htmlFor={FieldName.password}>{t('login.password')}</FieldLabel>
-              <Controller
-                name={FieldName.password}
-                control={control}
-                render={({ field }) => (
-                  <AuthTextField
-                    {...field}
-                    id={FieldName.password}
-                    type={showPassword ? 'text' : 'password'}
-                    autoComplete="current-password"
-                    error={Boolean(errors.password)}
-                    helperText={errors.password?.message}
-                    slotProps={{
-                      input: {
-                        endAdornment: (
-                          <InputAdornment position="end">
-                            <PasswordToggle
-                              type="button"
-                              aria-label={
-                                showPassword
-                                  ? t('login.hidePassword')
-                                  : t('login.showPassword')
-                              }
-                              onClick={() => {
-                                setShowPassword((value) => !value);
-                              }}
-                            >
-                              {showPassword ? (
-                                <IconEyeOff size={18} />
-                              ) : (
-                                <IconEye size={18} />
-                              )}
-                            </PasswordToggle>
-                          </InputAdornment>
-                        ),
-                      },
-                    }}
-                  />
-                )}
-              />
-            </div>
-          </FieldStack>
+              <div>
+                <FieldLabel htmlFor={FieldName.password}>{t('login.password')}</FieldLabel>
+                <Controller
+                  name={FieldName.password}
+                  control={control}
+                  render={({ field }) => (
+                    <AuthTextField
+                      {...field}
+                      id={FieldName.password}
+                      type={showPassword ? 'text' : 'password'}
+                      autoComplete="current-password"
+                      placeholder={t('login.passwordPlaceholder')}
+                      error={Boolean(errors.password)}
+                      helperText={errors.password?.message}
+                      slotProps={{
+                        input: {
+                          endAdornment: (
+                            <InputAdornment position="end">
+                              <PasswordToggle
+                                type="button"
+                                aria-label={
+                                  showPassword
+                                    ? t('login.hidePassword')
+                                    : t('login.showPassword')
+                                }
+                                onClick={() => {
+                                  setShowPassword((value) => !value);
+                                }}
+                              >
+                                {showPassword ? (
+                                  <IconEyeOff size={18} />
+                                ) : (
+                                  <IconEye size={18} />
+                                )}
+                              </PasswordToggle>
+                            </InputAdornment>
+                          ),
+                        },
+                      }}
+                    />
+                  )}
+                />
+              </div>
+            </FieldStack>
 
-          {loginMutation.isError ? (
-            <ErrorText>{mapError(loginMutation.error)}</ErrorText>
-          ) : null}
+            {loginMutation.isError ? (
+              <ErrorText>{mapError(loginMutation.error)}</ErrorText>
+            ) : null}
 
-          <FormActions>
-            <PrimaryButton
-              type="submit"
-              variant="contained"
-              color="primary"
-              disabled={loginMutation.isPending}
-            >
-              {t('login.submit')}
-            </PrimaryButton>
-            <SwitchLink to={AppRoute.SIGNUP}>{t('login.toSignup')}</SwitchLink>
-          </FormActions>
-        </FormPanel>
-      </AuthShell>
-    </AuthPage>
+            <FormActions>
+              <PrimaryButton
+                type="submit"
+                variant="contained"
+                color="primary"
+                disabled={loginMutation.isPending}
+              >
+                {t('login.submit')}
+              </PrimaryButton>
+              <SwitchLink to={AppRoute.SIGNUP}>{t('login.toSignup')}</SwitchLink>
+            </FormActions>
+          </FormPanel>
+        </AuthShell>
+      </AuthMain>
+    </OnboardingPage>
   );
 };

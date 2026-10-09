@@ -27,6 +27,18 @@ export const AuthChromeBar = styled('div')(({ theme }) => ({
   zIndex: 1,
 }));
 
+/** Centered content below auth header (login shell, etc.). */
+export const AuthMain = styled('div')(({ theme }) => ({
+  display: 'flex',
+  flex: 1,
+  flexDirection: 'column',
+  alignItems: 'center',
+  justifyContent: 'center',
+  width: '100%',
+  padding: theme.spacing(2),
+  boxSizing: 'border-box',
+}));
+
 export const AuthShell = styled('div')(({ theme }) => ({
   display: 'flex',
   width: '100%',
