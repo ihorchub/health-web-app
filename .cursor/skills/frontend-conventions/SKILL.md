@@ -28,6 +28,7 @@ Load only what the task needs:
 
 - **ui-kit-master** — MUI `styled()`, theme, no `sx`
 - **paper-to-frontend** — implementing a screen from Paper
+- **frontend-code-review** — review uncommitted / branch FE diffs against these conventions
 - Specs: `docs/spec/product-spec.md` wins on behaviour; Paper wins on UI shape. `ia-chrome-decision.md` wins on chrome conflicts.
 
 ## Hard locks

@@ -102,8 +102,3 @@ export type {
   RescheduleAppointmentBody,
   RescheduleAppointmentResponse,
 } from '@/api/appointments/types';
-
-export type {
-  ProposeAppointmentBody,
-  ProposeAppointmentResponse,
-} from '@/api/doctors/dashboard.types';

@@ -132,25 +132,6 @@
         }
       }
     },
-    "/uploads/{*}": {
-      "get": {
-        "parameters": [
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "path",
-            "name": "*",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Default Response"
-          }
-        }
-      }
-    },
     "/v1/reference/cities": {
       "get": {
         "operationId": "getReferenceCities",
@@ -3365,6 +3346,7 @@
                     "supportedFormats",
                     "weeklyTemplate",
                     "vacationDates",
+                    "zoneBOverrides",
                     "visibleInSearch",
                     "visitDurationMinutes",
                     "zoneAStart",
@@ -3586,6 +3568,64 @@
                       "type": "array",
                       "items": {
                         "type": "string"
+                      }
+                    },
+                    "zoneBOverrides": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "from",
+                          "to"
+                        ],
+                        "properties": {
+                          "from": {
+                            "type": "string"
+                          },
+                          "to": {
+                            "type": "string"
+                          },
+                          "supportedFormats": {
+                            "type": "array",
+                            "items": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "enum": [
+                                    "offline"
+                                  ]
+                                },
+                                {
+                                  "type": "string",
+                                  "enum": [
+                                    "online"
+                                  ]
+                                }
+                              ]
+                            }
+                          },
+                          "visitDurationMinutes": {
+                            "type": "number"
+                          },
+                          "workStart": {
+                            "type": "string"
+                          },
+                          "workEnd": {
+                            "type": "string"
+                          },
+                          "lunchStart": {
+                            "type": "string"
+                          },
+                          "lunchEnd": {
+                            "type": "string"
+                          },
+                          "basePriceUah": {
+                            "type": "number"
+                          },
+                          "dayOff": {
+                            "type": "boolean"
+                          }
+                        }
                       }
                     },
                     "visibleInSearch": {
@@ -3872,6 +3912,61 @@
                   "promoValidUntil": {
                     "type": "string",
                     "nullable": true
+                  },
+                  "zoneBOverride": {
+                    "type": "object",
+                    "required": [
+                      "from",
+                      "to"
+                    ],
+                    "properties": {
+                      "from": {
+                        "type": "string"
+                      },
+                      "to": {
+                        "type": "string"
+                      },
+                      "supportedFormats": {
+                        "type": "array",
+                        "items": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": [
+                                "offline"
+                              ]
+                            },
+                            {
+                              "type": "string",
+                              "enum": [
+                                "online"
+                              ]
+                            }
+                          ]
+                        }
+                      },
+                      "visitDurationMinutes": {
+                        "type": "number"
+                      },
+                      "workStart": {
+                        "type": "string"
+                      },
+                      "workEnd": {
+                        "type": "string"
+                      },
+                      "lunchStart": {
+                        "type": "string"
+                      },
+                      "lunchEnd": {
+                        "type": "string"
+                      },
+                      "basePriceUah": {
+                        "type": "number"
+                      },
+                      "dayOff": {
+                        "type": "boolean"
+                      }
+                    }
                   }
                 }
               }
@@ -3893,6 +3988,7 @@
                     "supportedFormats",
                     "weeklyTemplate",
                     "vacationDates",
+                    "zoneBOverrides",
                     "visibleInSearch",
                     "visitDurationMinutes",
                     "zoneAStart",
@@ -4116,6 +4212,64 @@
                         "type": "string"
                       }
                     },
+                    "zoneBOverrides": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "from",
+                          "to"
+                        ],
+                        "properties": {
+                          "from": {
+                            "type": "string"
+                          },
+                          "to": {
+                            "type": "string"
+                          },
+                          "supportedFormats": {
+                            "type": "array",
+                            "items": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "enum": [
+                                    "offline"
+                                  ]
+                                },
+                                {
+                                  "type": "string",
+                                  "enum": [
+                                    "online"
+                                  ]
+                                }
+                              ]
+                            }
+                          },
+                          "visitDurationMinutes": {
+                            "type": "number"
+                          },
+                          "workStart": {
+                            "type": "string"
+                          },
+                          "workEnd": {
+                            "type": "string"
+                          },
+                          "lunchStart": {
+                            "type": "string"
+                          },
+                          "lunchEnd": {
+                            "type": "string"
+                          },
+                          "basePriceUah": {
+                            "type": "number"
+                          },
+                          "dayOff": {
+                            "type": "boolean"
+                          }
+                        }
+                      }
+                    },
                     "visibleInSearch": {
                       "type": "boolean"
                     },
@@ -4240,7 +4394,8 @@
                 "schema": {
                   "type": "object",
                   "required": [
-                    "cancelledIds"
+                    "cancelledIds",
+                    "matchedCount"
                   ],
                   "properties": {
                     "cancelledIds": {
@@ -4248,6 +4403,9 @@
                       "items": {
                         "type": "string"
                       }
+                    },
+                    "matchedCount": {
+                      "type": "number"
                     }
                   }
                 }
@@ -4286,6 +4444,8 @@
                     "visits",
                     "nextVisit",
                     "pendingPatients",
+                    "pastVisitsMonth",
+                    "cancellationsLast7Days",
                     "freeWindowsToday",
                     "weekStrip"
                   ],
@@ -4299,7 +4459,8 @@
                         "visitsToday",
                         "pendingCount",
                         "freeSlotsToday",
-                        "cancellationsLast7Days"
+                        "cancellationsLast7Days",
+                        "pastVisitsThisMonth"
                       ],
                       "properties": {
                         "visitsToday": {
@@ -4312,6 +4473,9 @@
                           "type": "number"
                         },
                         "cancellationsLast7Days": {
+                          "type": "number"
+                        },
+                        "pastVisitsThisMonth": {
                           "type": "number"
                         }
                       }
@@ -4581,6 +4745,184 @@
                         }
                       }
                     },
+                    "pastVisitsMonth": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "id",
+                          "patientDisplayName",
+                          "patientPhotoUrl",
+                          "startAt",
+                          "format",
+                          "reason",
+                          "status",
+                          "proposedStartAt"
+                        ],
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "patientDisplayName": {
+                            "type": "string"
+                          },
+                          "patientPhotoUrl": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "startAt": {
+                            "type": "string"
+                          },
+                          "format": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "offline"
+                                ]
+                              },
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "online"
+                                ]
+                              }
+                            ]
+                          },
+                          "reason": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "status": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "Upcoming"
+                                ]
+                              },
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "Reschedule Pending"
+                                ]
+                              },
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "Completed"
+                                ]
+                              },
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "Cancelled"
+                                ]
+                              },
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "Rescheduled"
+                                ]
+                              }
+                            ]
+                          },
+                          "proposedStartAt": {
+                            "type": "string",
+                            "nullable": true
+                          }
+                        }
+                      }
+                    },
+                    "cancellationsLast7Days": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "id",
+                          "patientDisplayName",
+                          "patientPhotoUrl",
+                          "startAt",
+                          "format",
+                          "reason",
+                          "status",
+                          "proposedStartAt"
+                        ],
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "patientDisplayName": {
+                            "type": "string"
+                          },
+                          "patientPhotoUrl": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "startAt": {
+                            "type": "string"
+                          },
+                          "format": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "offline"
+                                ]
+                              },
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "online"
+                                ]
+                              }
+                            ]
+                          },
+                          "reason": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "status": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "Upcoming"
+                                ]
+                              },
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "Reschedule Pending"
+                                ]
+                              },
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "Completed"
+                                ]
+                              },
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "Cancelled"
+                                ]
+                              },
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "Rescheduled"
+                                ]
+                              }
+                            ]
+                          },
+                          "proposedStartAt": {
+                            "type": "string",
+                            "nullable": true
+                          }
+                        }
+                      }
+                    },
                     "freeWindowsToday": {
                       "type": "array",
                       "items": {
@@ -4656,7 +4998,10 @@
                     "language",
                     "theme",
                     "education",
-                    "consultationCount"
+                    "consultationCount",
+                    "ratingAverage",
+                    "reviewCount",
+                    "reviews"
                   ],
                   "properties": {
                     "id": {
@@ -4727,7 +5072,8 @@
                           "title",
                           "subtitle",
                           "yearFrom",
-                          "yearTo"
+                          "yearTo",
+                          "imageUrl"
                         ],
                         "properties": {
                           "id": {
@@ -4768,12 +5114,52 @@
                           "yearTo": {
                             "type": "number",
                             "nullable": true
+                          },
+                          "imageUrl": {
+                            "type": "string",
+                            "nullable": true
                           }
                         }
                       }
                     },
                     "consultationCount": {
                       "type": "number"
+                    },
+                    "ratingAverage": {
+                      "type": "number"
+                    },
+                    "reviewCount": {
+                      "type": "number"
+                    },
+                    "reviews": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "id",
+                          "rating",
+                          "text",
+                          "patientDisplayName",
+                          "createdAt"
+                        ],
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "rating": {
+                            "type": "number"
+                          },
+                          "text": {
+                            "type": "string"
+                          },
+                          "patientDisplayName": {
+                            "type": "string"
+                          },
+                          "createdAt": {
+                            "type": "string"
+                          }
+                        }
+                      }
                     }
                   }
                 }
@@ -4812,7 +5198,10 @@
                     "language",
                     "theme",
                     "education",
-                    "consultationCount"
+                    "consultationCount",
+                    "ratingAverage",
+                    "reviewCount",
+                    "reviews"
                   ],
                   "properties": {
                     "id": {
@@ -4883,7 +5272,8 @@
                           "title",
                           "subtitle",
                           "yearFrom",
-                          "yearTo"
+                          "yearTo",
+                          "imageUrl"
                         ],
                         "properties": {
                           "id": {
@@ -4924,12 +5314,52 @@
                           "yearTo": {
                             "type": "number",
                             "nullable": true
+                          },
+                          "imageUrl": {
+                            "type": "string",
+                            "nullable": true
                           }
                         }
                       }
                     },
                     "consultationCount": {
                       "type": "number"
+                    },
+                    "ratingAverage": {
+                      "type": "number"
+                    },
+                    "reviewCount": {
+                      "type": "number"
+                    },
+                    "reviews": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "id",
+                          "rating",
+                          "text",
+                          "patientDisplayName",
+                          "createdAt"
+                        ],
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "rating": {
+                            "type": "number"
+                          },
+                          "text": {
+                            "type": "string"
+                          },
+                          "patientDisplayName": {
+                            "type": "string"
+                          },
+                          "createdAt": {
+                            "type": "string"
+                          }
+                        }
+                      }
                     }
                   }
                 }
@@ -5263,6 +5693,7 @@
                     "reviewCount",
                     "consultationCount",
                     "isFavourite",
+                    "education",
                     "reviews"
                   ],
                   "properties": {
@@ -5371,6 +5802,66 @@
                     },
                     "isFavourite": {
                       "type": "boolean"
+                    },
+                    "education": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "id",
+                          "kind",
+                          "title",
+                          "subtitle",
+                          "yearFrom",
+                          "yearTo",
+                          "imageUrl"
+                        ],
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "kind": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "university"
+                                ]
+                              },
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "certificate"
+                                ]
+                              },
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "training"
+                                ]
+                              }
+                            ]
+                          },
+                          "title": {
+                            "type": "string"
+                          },
+                          "subtitle": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "yearFrom": {
+                            "type": "number"
+                          },
+                          "yearTo": {
+                            "type": "number",
+                            "nullable": true
+                          },
+                          "imageUrl": {
+                            "type": "string",
+                            "nullable": true
+                          }
+                        }
+                      }
                     },
                     "reviews": {
                       "type": "array",
@@ -6232,186 +6723,6 @@
         "tags": [
           "appointments"
         ],
-        "parameters": [
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "path",
-            "name": "id",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Default Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": [
-                    "appointment"
-                  ],
-                  "properties": {
-                    "appointment": {
-                      "type": "object",
-                      "required": [
-                        "id",
-                        "doctorId",
-                        "patientId",
-                        "startAt",
-                        "endAt",
-                        "format",
-                        "status",
-                        "reason",
-                        "visitDurationMinutes",
-                        "proposedStartAt",
-                        "cancelledBy"
-                      ],
-                      "properties": {
-                        "id": {
-                          "type": "string"
-                        },
-                        "doctorId": {
-                          "type": "string"
-                        },
-                        "patientId": {
-                          "type": "string"
-                        },
-                        "startAt": {
-                          "type": "string"
-                        },
-                        "endAt": {
-                          "type": "string"
-                        },
-                        "format": {
-                          "anyOf": [
-                            {
-                              "type": "string",
-                              "enum": [
-                                "offline"
-                              ]
-                            },
-                            {
-                              "type": "string",
-                              "enum": [
-                                "online"
-                              ]
-                            }
-                          ]
-                        },
-                        "status": {
-                          "anyOf": [
-                            {
-                              "type": "string",
-                              "enum": [
-                                "Upcoming"
-                              ]
-                            },
-                            {
-                              "type": "string",
-                              "enum": [
-                                "Reschedule Pending"
-                              ]
-                            },
-                            {
-                              "type": "string",
-                              "enum": [
-                                "Completed"
-                              ]
-                            },
-                            {
-                              "type": "string",
-                              "enum": [
-                                "Cancelled"
-                              ]
-                            },
-                            {
-                              "type": "string",
-                              "enum": [
-                                "Rescheduled"
-                              ]
-                            }
-                          ]
-                        },
-                        "reason": {
-                          "type": "string",
-                          "nullable": true
-                        },
-                        "visitDurationMinutes": {
-                          "type": "number"
-                        },
-                        "proposedStartAt": {
-                          "type": "string",
-                          "nullable": true
-                        },
-                        "cancelledBy": {
-                          "anyOf": [
-                            {
-                              "type": "string",
-                              "enum": [
-                                "patient"
-                              ]
-                            },
-                            {
-                              "type": "string",
-                              "enum": [
-                                "doctor"
-                              ]
-                            }
-                          ],
-                          "nullable": true
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/v1/appointments/{id}/propose": {
-      "post": {
-        "operationId": "postProposeAppointment",
-        "tags": [
-          "appointments"
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "proposedStartAt"
-                ],
-                "properties": {
-                  "proposedStartAt": {
-                    "type": "string"
-                  },
-                  "format": {
-                    "anyOf": [
-                      {
-                        "type": "string",
-                        "enum": [
-                          "offline"
-                        ]
-                      },
-                      {
-                        "type": "string",
-                        "enum": [
-                          "online"
-                        ]
-                      }
-                    ]
-                  }
-                }
-              }
-            }
-          }
-        },
         "parameters": [
           {
             "schema": {

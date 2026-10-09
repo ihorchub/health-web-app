@@ -49,7 +49,6 @@ export type WorkingHoursModalKind =
 
 interface WorkingHoursModalsProps {
   kind: WorkingHoursModalKind;
-  zoneBStartLabel: string;
   zoneBShortLabel: string;
   bulkRangeLabel: string;
   bulkCount: number;
@@ -82,7 +81,6 @@ const ModalShell = styled(SheetDialog)<{ $maxWidth: number }>(({ theme, $maxWidt
 
 export const WorkingHoursModals = ({
   kind,
-  zoneBStartLabel,
   zoneBShortLabel,
   bulkRangeLabel,
   bulkCount,
@@ -97,6 +95,8 @@ export const WorkingHoursModals = ({
   onConfirm,
 }: WorkingHoursModalsProps) => {
   const { t } = useTranslation('workingHours');
+  const { t: tCommon } = useTranslation('common');
+  const closeLabel = tCommon('close');
   const open = kind !== null;
   const maxWidth =
     kind === 'saveB' ? 520 : kind === 'vacationA' || kind === 'vacationRemove' ? 480 : 500;
@@ -108,7 +108,7 @@ export const WorkingHoursModals = ({
           <>
             <ModalHeaderRow>
               <ModalTitle>{t('modals.bulkTitle')}</ModalTitle>
-              <ModalCloseButton type="button" aria-label="close" onClick={onClose}>
+              <ModalCloseButton type="button" aria-label={closeLabel} onClick={onClose}>
                 <IconX size={16} />
               </ModalCloseButton>
             </ModalHeaderRow>
@@ -139,7 +139,7 @@ export const WorkingHoursModals = ({
           <>
             <ModalHeaderRow>
               <ModalTitle>{t('modals.vacationATitle')}</ModalTitle>
-              <ModalCloseButton type="button" aria-label="close" onClick={onClose}>
+              <ModalCloseButton type="button" aria-label={closeLabel} onClick={onClose}>
                 <IconX size={16} />
               </ModalCloseButton>
             </ModalHeaderRow>
@@ -173,7 +173,7 @@ export const WorkingHoursModals = ({
           <>
             <ModalHeaderRow>
               <ModalTitle>{t('modals.vacationRemoveTitle')}</ModalTitle>
-              <ModalCloseButton type="button" aria-label="close" onClick={onClose}>
+              <ModalCloseButton type="button" aria-label={closeLabel} onClick={onClose}>
                 <IconX size={16} />
               </ModalCloseButton>
             </ModalHeaderRow>
@@ -207,7 +207,7 @@ export const WorkingHoursModals = ({
           <>
             <ModalHeaderRow>
               <ModalTitle>{t('modals.vacationBTitle')}</ModalTitle>
-              <ModalCloseButton type="button" aria-label="close" onClick={onClose}>
+              <ModalCloseButton type="button" aria-label={closeLabel} onClick={onClose}>
                 <IconX size={18} />
               </ModalCloseButton>
             </ModalHeaderRow>
@@ -234,7 +234,7 @@ export const WorkingHoursModals = ({
           <>
             <ModalHeaderRow>
               <ModalTitle>{t('modals.saveBTitle')}</ModalTitle>
-              <ModalCloseButton type="button" aria-label="close" onClick={onClose}>
+              <ModalCloseButton type="button" aria-label={closeLabel} onClick={onClose}>
                 <IconX size={18} />
               </ModalCloseButton>
             </ModalHeaderRow>

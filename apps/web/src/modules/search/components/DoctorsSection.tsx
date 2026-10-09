@@ -11,6 +11,9 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import type { DoctorSearchCard, SearchSort } from '@/api/doctors';
+
+const isSearchSort = (value: string): value is SearchSort =>
+  value === 'rating' || value === 'nearest_slot';
 import { useDeleteFavourite, usePostFavourite } from '@/api/patients';
 import { DoctorPhoto } from '@/components/DoctorPhoto/DoctorPhoto';
 import { StateMascot } from '@/components/StateMascot/StateMascot';
@@ -425,7 +428,10 @@ export const DoctorsSection = ({
             size="small"
             value={sort}
             onChange={(event) => {
-              onSortChange(event.target.value as SearchSort);
+              const next = String(event.target.value);
+              if (isSearchSort(next)) {
+                onSortChange(next);
+              }
             }}
             label={t('results.sortLabel')}
             disabled={isLoading}

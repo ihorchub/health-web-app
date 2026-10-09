@@ -31,8 +31,6 @@ import type {
   PostBookAppointmentBody,
   PostCancelAppointment200,
   PostCompleteAppointment200,
-  PostProposeAppointment200,
-  PostProposeAppointmentBody,
   PostRescheduleAppointment200,
   PostRescheduleAppointmentBody
 } from '../models';
@@ -300,68 +298,6 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getPostCompleteAppointmentMutationOptions(options), queryClient);
-    }
-    export const postProposeAppointment = (
-    id: string,
-    postProposeAppointmentBody: BodyType<PostProposeAppointmentBody>,
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
-) => {
-
-
-      return customInstance<PostProposeAppointment200>(
-      {url: `/v1/appointments/${id}/propose`, method: 'POST',
-      headers: {'Content-Type': 'application/json', },
-      data: postProposeAppointmentBody, signal
-    },
-      options);
-    }
-
-
-
-
-export const getPostProposeAppointmentMutationKey = () => ['postProposeAppointment'] as const;
-
-export const getPostProposeAppointmentMutationOptions = <TError = ErrorType<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postProposeAppointment>>, TError,PostProposeAppointmentMutationVariables, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof postProposeAppointment>>, TError,PostProposeAppointmentMutationVariables, TContext> => {
-
-const mutationKey = getPostProposeAppointmentMutationKey();
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postProposeAppointment>>, PostProposeAppointmentMutationVariables> = (props) => {
-          const {id,data} = props ?? {};
-
-          return  postProposeAppointment(id,data,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type PostProposeAppointmentMutationResult = NonNullable<Awaited<ReturnType<typeof postProposeAppointment>>>
-    export type PostProposeAppointmentMutationBody = BodyType<PostProposeAppointmentBody>
-    export type PostProposeAppointmentMutationError = ErrorType<unknown>
-    export type PostProposeAppointmentMutationVariables = {id: string;data: BodyType<PostProposeAppointmentBody>}
-
-    export const usePostProposeAppointment = <TError = ErrorType<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postProposeAppointment>>, TError,PostProposeAppointmentMutationVariables, TContext>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof postProposeAppointment>>,
-        TError,
-        PostProposeAppointmentMutationVariables,
-        TContext
-      > => {
-      return useMutation(getPostProposeAppointmentMutationOptions(options), queryClient);
     }
     export const getPendingDecision = (
     id: string,

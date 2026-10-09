@@ -6,6 +6,7 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export const PostProposeAppointment200AppointmentFormat = {  offline: 'offline',
-  online: 'online',
+export const GetDoctorById200EducationItemKind = {  university: 'university',
+  certificate: 'certificate',
+  training: 'training',
 } as const

@@ -229,15 +229,6 @@ const dayZoneBBg = (mode: 'light' | 'dark') => mintSoft(mode);
 const dayOffBg = (mode: 'light' | 'dark') =>
   mode === 'light' ? 'rgba(22, 62, 82, 0.04)' : 'rgba(255, 255, 255, 0.045)';
 
-export const LegendWorking = styled('span')(({ theme }) => ({
-  width: 14,
-  height: 14,
-  borderRadius: 6,
-  backgroundColor: dayZoneBBg(theme.palette.mode),
-  boxSizing: 'border-box',
-  flexShrink: 0,
-}));
-
 export const LegendToday = styled('span')(({ theme }) => ({
   width: 14,
   height: 14,
@@ -282,14 +273,6 @@ export const LegendVacation = styled('span')(({ theme }) => ({
 
 /** Regular weekly day off — muted fill (same as DayCell). */
 export const LegendRegularOff = styled('span')(({ theme }) => ({
-  width: 14,
-  height: 14,
-  borderRadius: 6,
-  backgroundColor: dayOffBg(theme.palette.mode),
-  flexShrink: 0,
-}));
-
-export const LegendWeekend = styled('span')(({ theme }) => ({
   width: 14,
   height: 14,
   borderRadius: 6,
@@ -343,15 +326,6 @@ export const ZoneStrip = styled('div')<{ $tone: 'a' | 'b' }>(({ theme, $tone }) 
       : theme.palette.mode === 'light'
         ? 'rgba(232, 197, 192, 0.28)'
         : 'rgba(74, 56, 54, 0.42)',
-}));
-
-export const ZoneStripDot = styled('span')<{ $tone: 'a' | 'b' }>(({ theme, $tone }) => ({
-  width: 8,
-  height: 8,
-  borderRadius: 999,
-  flexShrink: 0,
-  backgroundColor:
-    $tone === 'b' ? theme.palette.primary.main : theme.palette.text.secondary,
 }));
 
 export const ZoneStripCopy = styled('div')({
@@ -732,8 +706,6 @@ export const PeriodField = styled('button')<{ $compact?: boolean }>(({ theme, $c
   },
 }));
 
-export const PeriodFieldButton = PeriodField;
-
 export const ZoneTextField = styled(TextField)(({ theme }) => ({
   '& .MuiOutlinedInput-root': {
     backgroundColor: theme.palette.background.paper,
@@ -993,13 +965,13 @@ export const VacationSection = styled('div')(({ theme }) => ({
   },
 }));
 
-export const VacationCopy = styled('div')(({ theme }) => ({
+export const VacationCopy = styled('div')({
   display: 'flex',
   flexDirection: 'column',
   gap: 4,
   minWidth: 0,
   flex: 1,
-}));
+});
 
 export const VacationIcon = styled('span')(({ theme }) => ({
   display: 'inline-flex',
@@ -1174,55 +1146,6 @@ export const SectionLabel = styled('strong')(({ theme }) => ({
   color: theme.palette.text.primary,
 }));
 
-export const ParamList = styled('div')({
-  display: 'flex',
-  flexDirection: 'column',
-  gap: 10,
-});
-
-export const PlannedRangeChips = styled('div')(({ theme }) => ({
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: theme.spacing(1),
-}));
-
-export const PlannedRangeChip = styled('button')(({ theme }) => ({
-  display: 'inline-flex',
-  alignItems: 'center',
-  minHeight: 32,
-  padding: theme.spacing(0, 1.5),
-  borderRadius: 8,
-  border: `1px solid ${theme.palette.primary.main}`,
-  backgroundColor: mintSoft(theme.palette.mode),
-  color: theme.palette.primary.main,
-  fontFamily: theme.typography.fontFamily,
-  fontSize: 13,
-  fontWeight: 600,
-  lineHeight: '18px',
-  cursor: 'pointer',
-
-  '&:hover': {
-    outline: `1.5px solid ${theme.palette.primary.main}`,
-  },
-}));
-
-export const ParamRow = styled('div')(({ theme }) => ({
-  display: 'flex',
-  alignItems: 'center',
-  gap: 10,
-  fontSize: 14,
-  lineHeight: '20px',
-  color: theme.palette.text.primary,
-}));
-
-export const BulkSection = styled('div')(({ theme }) => ({
-  display: 'flex',
-  flexDirection: 'column',
-  gap: theme.spacing(2),
-  paddingTop: theme.spacing(2.5),
-  borderTop: `1px solid ${theme.palette.divider}`,
-}));
-
 export const RadioGroup = styled('div')({
   display: 'flex',
   flexDirection: 'column',
@@ -1297,16 +1220,6 @@ export const ReasonHint = styled('span')(({ theme }) => ({
   color: theme.palette.text.secondary,
 }));
 
-export const VacationBlock = styled('div')<{ $disabled?: boolean }>(({ theme, $disabled }) => ({
-  display: 'flex',
-  flexDirection: 'column',
-  gap: theme.spacing(1.5),
-  marginTop: 'auto',
-  paddingTop: theme.spacing(2),
-  borderTop: `1px solid ${theme.palette.divider}`,
-  color: $disabled ? theme.palette.text.disabled : theme.palette.text.primary,
-}));
-
 export const VacationHead = styled('div')(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
@@ -1325,13 +1238,6 @@ export const FieldGrid = styled('div')(({ theme }) => ({
   [theme.breakpoints.up('sm')]: {
     gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
   },
-}));
-
-export const FieldFull = styled('div')(({ theme }) => ({
-  gridColumn: '1 / -1',
-  display: 'flex',
-  flexDirection: 'column',
-  gap: theme.spacing(1),
 }));
 
 export const SegmentRow = styled('div')(({ theme }) => ({
@@ -1420,61 +1326,6 @@ export const DurationCustomField = styled(TextField)(({ theme }) => ({
   '& .MuiOutlinedInput-input': {
     paddingTop: 8,
     paddingBottom: 8,
-  },
-}));
-
-export const SwitchRow = styled('div')(({ theme }) => ({
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  gap: theme.spacing(2),
-  minHeight: 48,
-  paddingInline: theme.spacing(2),
-  borderRadius: 12,
-  border: `1px solid ${theme.palette.divider}`,
-  boxSizing: 'border-box',
-}));
-
-export const DaysOffBlock = styled('div')(({ theme }) => ({
-  display: 'flex',
-  flexDirection: 'column',
-  gap: theme.spacing(1.5),
-}));
-
-export const DaysOffDivider = styled('div')(({ theme }) => ({
-  height: 1,
-  backgroundColor: theme.palette.divider,
-  marginBlock: theme.spacing(0.5),
-}));
-
-export const WeekendActions = styled('div')(({ theme }) => ({
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: theme.spacing(1),
-}));
-
-export const OutlineSoftButton = styled(Button)(({ theme }) => ({
-  alignSelf: 'flex-start',
-  minHeight: 36,
-  textTransform: 'none',
-  fontWeight: 600,
-  fontSize: 13,
-  borderRadius: 10,
-  boxShadow: 'none',
-  border: `1px solid ${theme.palette.divider}`,
-  backgroundColor: 'transparent',
-  color: theme.palette.text.secondary,
-
-  '&:hover': {
-    borderColor: theme.palette.primary.main,
-    backgroundColor: theme.palette.action.hover,
-    boxShadow: 'none',
-  },
-
-  '&.Mui-disabled': {
-    borderColor: theme.palette.divider,
-    backgroundColor: theme.palette.action.disabledBackground,
-    color: theme.palette.text.disabled,
   },
 }));
 

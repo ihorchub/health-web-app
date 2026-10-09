@@ -6,6 +6,7 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { PatchDoctorMeProfile200EducationItem } from './patchDoctorMeProfile200EducationItem';
+import type { PatchDoctorMeProfile200ReviewsItem } from './patchDoctorMeProfile200ReviewsItem';
 
 export type PatchDoctorMeProfile200 = {
   id: string;
@@ -33,4 +34,7 @@ export type PatchDoctorMeProfile200 = {
   theme: string | null;
   education: PatchDoctorMeProfile200EducationItem[];
   consultationCount: number;
+  ratingAverage: number;
+  reviewCount: number;
+  reviews: PatchDoctorMeProfile200ReviewsItem[];
 };

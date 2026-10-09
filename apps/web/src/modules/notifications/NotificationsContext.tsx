@@ -35,6 +35,9 @@ const FE_TYPES = new Set<NotificationEventType>([
   'proposal_expired',
 ]);
 
+const isNotificationEventType = (value: string): value is NotificationEventType =>
+  (FE_TYPES as ReadonlySet<string>).has(value);
+
 const payloadString = (payload: Record<string, unknown>, key: string): string => {
   const value = payload[key];
   return typeof value === 'string' ? value : '';
@@ -65,8 +68,8 @@ const mapApiNotification = (item: ApiNotificationItem): AppNotification | null =
       type = 'proposal_expired';
       break;
     default:
-      if (FE_TYPES.has(item.type as NotificationEventType)) {
-        type = item.type as NotificationEventType;
+      if (isNotificationEventType(item.type)) {
+        type = item.type;
       }
       break;
   }

@@ -3,31 +3,6 @@ import { styled } from '@/theme/styled';
 
 import { Link as RouterLink } from 'react-router-dom';
 
-export const AuthPage = styled('section')(({ theme }) => ({
-  position: 'relative',
-  display: 'flex',
-  flex: 1,
-  flexDirection: 'column',
-  alignItems: 'center',
-  justifyContent: 'center',
-  width: '100%',
-  minHeight: '100%',
-  padding: theme.spacing(2),
-  backgroundColor: theme.palette.background.default,
-  boxSizing: 'border-box',
-}));
-
-export const AuthChromeBar = styled('div')(({ theme }) => ({
-  position: 'absolute',
-  top: theme.spacing(2),
-  right: theme.spacing(2),
-  display: 'flex',
-  alignItems: 'center',
-  gap: theme.spacing(1),
-  zIndex: 1,
-}));
-
-/** Centered content below auth header (login shell, etc.). */
 export const AuthMain = styled('div')(({ theme }) => ({
   display: 'flex',
   flex: 1,

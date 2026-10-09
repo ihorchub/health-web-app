@@ -381,30 +381,6 @@ export const VisitRow = styled(CardSurface)(({ theme }) => ({
   },
 }));
 
-export const RowAvatar = styled('img')({
-  width: 48,
-  height: 48,
-  borderRadius: 999,
-  objectFit: 'cover',
-  flexShrink: 0,
-});
-
-export const RowAvatarFallback = styled('div')(({ theme }) => ({
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  width: 48,
-  height: 48,
-  borderRadius: 999,
-  flexShrink: 0,
-  backgroundColor: theme.palette.brand.main,
-  color: theme.palette.onBrand,
-  fontFamily: theme.typography.fontFamily,
-  fontSize: 13,
-  lineHeight: '16px',
-  fontWeight: 700,
-}));
-
 export const RowDateLabel = styled('span')(({ theme }) => ({
   fontFamily: theme.typography.fontFamily,
   fontSize: 16,
@@ -822,14 +798,6 @@ export const PromoRating = styled('span')(({ theme }) => ({
   color: theme.palette.text.secondary,
 }));
 
-export const PromoAvatar = styled('img')({
-  width: 56,
-  height: 56,
-  borderRadius: 999,
-  objectFit: 'cover',
-  flexShrink: 0,
-});
-
 export const ReviewBadge = styled('span')(({ theme }) => ({
   display: 'inline-flex',
   alignItems: 'center',
@@ -951,14 +919,6 @@ export const StateBody = styled('div')(({ theme }) => ({
   lineHeight: '22px',
   maxWidth: 420,
   color: theme.palette.text.secondary,
-}));
-
-export const DayModalTitleRow = styled('div')(({ theme }) => ({
-  display: 'flex',
-  alignItems: 'flex-start',
-  justifyContent: 'space-between',
-  gap: theme.spacing(2),
-  width: '100%',
 }));
 
 export const DayModalDialogRoot = styled(SheetDialog)(({ theme }) => ({
@@ -1156,17 +1116,6 @@ export const DayModalBookHint = styled('span')(({ theme }) => ({
   fontSize: 13,
   lineHeight: '18px',
   fontWeight: 500,
-  color: theme.palette.text.secondary,
-}));
-
-export const CalendarDaySectionTitle = styled('p')(({ theme }) => ({
-  margin: theme.spacing(2, 0, 0.5),
-  fontFamily: theme.typography.fontFamily,
-  fontSize: 12,
-  lineHeight: '16px',
-  fontWeight: 700,
-  letterSpacing: '0.04em',
-  textTransform: 'uppercase',
   color: theme.palette.text.secondary,
 }));
 
@@ -1601,15 +1550,6 @@ export const VisitDetailMeta = styled('div')({
   alignItems: 'flex-start',
   gap: 14,
 });
-
-export const VisitDetailAvatar = styled('img')(({ theme }) => ({
-  width: 64,
-  height: 64,
-  borderRadius: 999,
-  objectFit: 'cover',
-  flexShrink: 0,
-  backgroundColor: theme.palette.secondary.light,
-}));
 
 export const VisitDetailMetaCopy = styled('div')(({ theme }) => ({
   display: 'flex',

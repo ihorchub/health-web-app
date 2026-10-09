@@ -5,6 +5,7 @@
  * Medicly MVP HTTP API. Cookie session: medicly_sid.
  * OpenAPI spec version: 1.0.0
  */
+import type { GetDoctorById200EducationItem } from './getDoctorById200EducationItem';
 import type { GetDoctorById200LanguagesItem } from './getDoctorById200LanguagesItem';
 import type { GetDoctorById200ReviewsItem } from './getDoctorById200ReviewsItem';
 import type { GetDoctorById200SupportedFormats } from './getDoctorById200SupportedFormats';
@@ -35,5 +36,6 @@ export type GetDoctorById200 = {
   reviewCount: number;
   consultationCount: number;
   isFavourite: boolean;
+  education: GetDoctorById200EducationItem[];
   reviews: GetDoctorById200ReviewsItem[];
 };

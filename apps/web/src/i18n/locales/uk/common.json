@@ -41,6 +41,7 @@
   },
   "authTransition": {
     "loading": "Завантаження…"
-  }
+  },
+  "close": "Закрити"
 }
 

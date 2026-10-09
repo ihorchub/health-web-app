@@ -85,6 +85,7 @@
     "lunchEnd": "Перерва до",
     "duration": "Тривалість прийому",
     "durationCustom": "або власне",
+    "durationCustomPlaceholder": "—",
     "durationUnit": "хв",
     "durationCustomHint": "якщо потрібне інше значення",
     "workingDaysTitle": "Робочі дні",

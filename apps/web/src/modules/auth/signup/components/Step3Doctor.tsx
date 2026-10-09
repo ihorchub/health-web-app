@@ -6,7 +6,6 @@ import { toast } from 'sonner';
 import {
   usePostAuthRegisterComplete,
   usePostAuthRegisterStep3Doctor,
-  type SpecialtyId,
   type VisitDurationMinutes,
 } from '@/api/auth';
 import {
@@ -78,14 +77,18 @@ export const Step3Doctor = ({ draft, onSuccess }: Step3DoctorProps) => {
 
   const onSubmit = handleSubmit(async (values) => {
     try {
+      const { specialty, visitDurationMinutes } = values;
+      if (specialty == null || visitDurationMinutes == null) {
+        return;
+      }
       await step3Mutation.mutateAsync({
         registrationId: draft.registrationId,
         dob: values.dob,
         cityId: values.cityId,
         clinicId: values.clinicId,
-        specialty: values.specialty as SpecialtyId,
+        specialty,
         yearsPractice: Number(values.yearsPractice),
-        visitDurationMinutes: values.visitDurationMinutes as VisitDurationMinutes,
+        visitDurationMinutes,
         licenseFile: values.licenseFile ?? null,
       });
       const session = await completeMutation.mutateAsync({

@@ -124,6 +124,4 @@ export type {
   DoctorDashboardResponse,
   DoctorDashboardVisit,
   DoctorDashboardMetrics,
-  ProposeAppointmentBody,
-  ProposeAppointmentResponse,
 } from '@/api/doctors/dashboard.types';

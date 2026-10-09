@@ -8,6 +8,7 @@
 import type { GetDoctorSchedule200FrozenInZoneA } from './getDoctorSchedule200FrozenInZoneA';
 import type { GetDoctorSchedule200SupportedFormatsItem } from './getDoctorSchedule200SupportedFormatsItem';
 import type { GetDoctorSchedule200WeeklyTemplate } from './getDoctorSchedule200WeeklyTemplate';
+import type { GetDoctorSchedule200ZoneBOverridesItem } from './getDoctorSchedule200ZoneBOverridesItem';
 
 export type GetDoctorSchedule200 = {
   doctorUserId: string;
@@ -19,6 +20,7 @@ export type GetDoctorSchedule200 = {
   supportedFormats: typeof GetDoctorSchedule200SupportedFormatsItem[keyof typeof GetDoctorSchedule200SupportedFormatsItem][];
   weeklyTemplate: GetDoctorSchedule200WeeklyTemplate;
   vacationDates: string[];
+  zoneBOverrides: GetDoctorSchedule200ZoneBOverridesItem[];
   visibleInSearch: boolean;
   visitDurationMinutes: number;
   specialty?: string;

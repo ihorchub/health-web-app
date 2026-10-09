@@ -11,4 +11,5 @@ export type GetDoctorMeDashboard200Metrics = {
   pendingCount: number;
   freeSlotsToday: number;
   cancellationsLast7Days: number;
+  pastVisitsThisMonth: number;
 };

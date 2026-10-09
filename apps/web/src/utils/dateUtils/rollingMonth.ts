@@ -10,7 +10,7 @@ export const parseIsoDate = (iso: string): Date => {
   return new Date(y, m - 1, day);
 };
 
-export const startOfLocalDay = (d: Date): Date =>
+const startOfLocalDay = (d: Date): Date =>
   new Date(d.getFullYear(), d.getMonth(), d.getDate());
 
 /** Today … one calendar month later minus one day (inclusive). */
@@ -20,11 +20,6 @@ export const getZoneARange = (today: Date = new Date()) => {
   zoneAEnd.setMonth(zoneAEnd.getMonth() + 1);
   zoneAEnd.setDate(zoneAEnd.getDate() - 1);
   return { zoneAStart, zoneAEnd };
-};
-
-export const isDateInRange = (iso: string, start: Date, end: Date): boolean => {
-  const d = parseIsoDate(iso);
-  return d >= startOfLocalDay(start) && d <= startOfLocalDay(end);
 };
 
 export const addMonths = (d: Date, months: number): Date => {

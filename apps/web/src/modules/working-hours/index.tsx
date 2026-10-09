@@ -1,5 +1,6 @@
 import { IconChevronLeft, IconInfoCircle } from '@tabler/icons-react';
 import { CircularProgress } from '@mui/material';
+import { useQuery } from '@tanstack/react-query';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -203,8 +204,8 @@ export const WorkingHoursPage = () => {
   const [workingDays, setWorkingDays] = useState<WorkingDaysSelection>(DEFAULT_WORKING_DAYS);
   const [workingDaysHydrated, setWorkingDaysHydrated] = useState(false);
   const [exceptionPickMode, setExceptionPickMode] = useState(false);
-  const [bulkCount, setBulkCount] = useState(0);
 
+  // Adjust state during render when schedule first loads (React-recommended; eslint forbids setState-in-effect).
   if (settings) {
     if (zoneAFrozen === null) {
       setZoneAFrozen(settings.zoneA);
@@ -222,27 +223,17 @@ export const WorkingHoursPage = () => {
     setWorkingDaysHydrated(true);
   }
 
-  useEffect(() => {
-    if (modal !== 'bulk') {
-      return;
-    }
-    let cancelled = false;
-    const body = resolveBulkCancelBody(bulkScope, selection, todayYmd, false);
-    void postBulkCancel(body)
-      .then((result) => {
-        if (!cancelled) {
-          setBulkCount(result.matchedCount);
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setBulkCount(0);
-        }
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [modal, bulkScope, selection.startYmd, selection.endYmd, todayYmd]);
+  const bulkPreviewBody = useMemo(
+    () => resolveBulkCancelBody(bulkScope, selection, todayYmd, false),
+    [bulkScope, selection.startYmd, selection.endYmd, todayYmd],
+  );
+
+  const bulkPreviewQuery = useQuery({
+    queryKey: ['doctorSchedule', 'bulkCancelPreview', bulkPreviewBody],
+    queryFn: () => postBulkCancel(bulkPreviewBody),
+    enabled: modal === 'bulk',
+  });
+  const bulkCount = bulkPreviewQuery.data?.matchedCount ?? 0;
 
   const monthOptions = useMemo(() => {
     if (!scheduleQuery.data) {
@@ -351,7 +342,6 @@ export const WorkingHoursPage = () => {
     );
   }
 
-  const zoneBStartLabel = formatDisplayDate(settings.zoneBStartYmd, i18n.language);
   const zoneBShortLabel = shortDayMonth(settings.zoneBStartYmd, i18n.language);
   const todayShort = shortDayMonth(todayYmd, i18n.language);
   const bulkRangeLabel = bulkRangeForScope(bulkScope, i18n.language, selection, todayYmd);
@@ -856,7 +846,6 @@ export const WorkingHoursPage = () => {
 
       <WorkingHoursModals
         kind={modal}
-        zoneBStartLabel={zoneBStartLabel}
         zoneBShortLabel={zoneBShortLabel}
         bulkRangeLabel={bulkRangeLabel}
         bulkCount={bulkCount}

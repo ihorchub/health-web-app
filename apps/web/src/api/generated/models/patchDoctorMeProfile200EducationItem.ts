@@ -16,4 +16,6 @@ export type PatchDoctorMeProfile200EducationItem = {
   yearFrom: number;
   /** @nullable */
   yearTo: number | null;
+  /** @nullable */
+  imageUrl: string | null;
 };

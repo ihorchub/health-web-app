@@ -85,6 +85,7 @@
     "lunchEnd": "Break to",
     "duration": "Appointment duration",
     "durationCustom": "or custom",
+    "durationCustomPlaceholder": "—",
     "durationUnit": "min",
     "durationCustomHint": "if you need another value",
     "workingDaysTitle": "Working days",

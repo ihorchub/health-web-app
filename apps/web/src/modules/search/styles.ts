@@ -504,16 +504,6 @@ export const ResultsWrap = styled('div')(({ theme }) => ({
   width: '100%',
 }));
 
-export const SortBar = styled('div')(({ theme }) => ({
-  display: 'flex',
-  justifyContent: 'flex-end',
-  width: '100%',
-
-  [theme.breakpoints.down('sm')]: {
-    justifyContent: 'stretch',
-  },
-}));
-
 export const ShowMoreRow = styled('div')(({ theme }) => ({
   display: 'grid',
   gridTemplateColumns: '1fr',

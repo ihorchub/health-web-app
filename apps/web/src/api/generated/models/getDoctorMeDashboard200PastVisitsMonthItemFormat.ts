@@ -6,7 +6,6 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type PostBulkCancel200 = {
-  cancelledIds: string[];
-  matchedCount: number;
-};
+export const GetDoctorMeDashboard200PastVisitsMonthItemFormat = {  offline: 'offline',
+  online: 'online',
+} as const

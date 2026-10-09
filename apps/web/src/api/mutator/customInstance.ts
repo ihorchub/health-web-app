@@ -27,7 +27,7 @@ export const customInstance = <T>(
   if (signal) {
     if (signal.aborted) {
       source.cancel('Query was cancelled');
-    } else {
+    } else if (typeof signal.addEventListener === 'function') {
       signal.addEventListener(
         'abort',
         () => {

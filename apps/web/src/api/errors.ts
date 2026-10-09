@@ -31,11 +31,3 @@ export const getApiErrorCode = (error: unknown): string | null => {
 
   return error.response?.data?.error?.code ?? null;
 };
-
-export const getApiErrorFields = (error: unknown): Record<string, string> | null => {
-  if (!Axios.isAxiosError<ApiErrorBody>(error)) {
-    return null;
-  }
-
-  return error.response?.data?.error?.fields ?? null;
-};

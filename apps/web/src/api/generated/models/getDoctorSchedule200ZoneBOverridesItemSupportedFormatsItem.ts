@@ -6,6 +6,6 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export const PostProposeAppointment200AppointmentCancelledBy = {  patient: 'patient',
-  doctor: 'doctor',
+export const GetDoctorSchedule200ZoneBOverridesItemSupportedFormatsItem = {  offline: 'offline',
+  online: 'online',
 } as const

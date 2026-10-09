@@ -6,7 +6,7 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export const PostProposeAppointment200AppointmentStatus = {  Upcoming: 'Upcoming',
+export const GetDoctorMeDashboard200CancellationsLast7DaysItemStatus = {  Upcoming: 'Upcoming',
   Reschedule_Pending: 'Reschedule Pending',
   Completed: 'Completed',
   Cancelled: 'Cancelled',

@@ -6,7 +6,10 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type PostBulkCancel200 = {
-  cancelledIds: string[];
-  matchedCount: number;
+export type PatchDoctorMeProfile200ReviewsItem = {
+  id: string;
+  rating: number;
+  text: string;
+  patientDisplayName: string;
+  createdAt: string;
 };

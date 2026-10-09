@@ -99,70 +99,6 @@ export const DateLine = styled('p')(({ theme }) => ({
   },
 }));
 
-export const MetricsRow = styled('div')(({ theme }) => ({
-  display: 'grid',
-  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-  gap: theme.spacing(1.5),
-  width: '100%',
-
-  [theme.breakpoints.up('md')]: {
-    gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
-  },
-}));
-
-export const MetricCard = styled('div')(({ theme }) => ({
-  display: 'flex',
-  alignItems: 'center',
-  gap: theme.spacing(1.5),
-  padding: theme.spacing(2),
-  borderRadius: 16,
-  backgroundColor: theme.palette.background.paper,
-  border: `1px solid ${theme.palette.divider}`,
-  boxShadow:
-    theme.palette.mode === 'light'
-      ? '0 1px 2px rgba(22, 62, 82, 0.06)'
-      : 'none',
-}));
-
-export const MetricIcon = styled('span')<{ $tone: 'green' | 'orange' | 'teal' | 'red' }>(
-  ({ theme, $tone }) => {
-    const colors = {
-      green: theme.palette.primary.main,
-      orange: '#E6A23C',
-      teal: theme.palette.primary.light,
-      red: theme.palette.error.main,
-    };
-
-    return {
-      display: 'inline-flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      width: 40,
-      height: 40,
-      borderRadius: 12,
-      backgroundColor: theme.palette.action.hover,
-      color: colors[$tone],
-      flexShrink: 0,
-    };
-  },
-);
-
-export const MetricValue = styled('span')(({ theme }) => ({
-  fontFamily: theme.typography.fontFamily,
-  fontSize: 24,
-  lineHeight: '28px',
-  fontWeight: 700,
-  color: theme.palette.text.primary,
-}));
-
-export const MetricLabel = styled('span')(({ theme }) => ({
-  display: 'block',
-  fontFamily: theme.typography.fontFamily,
-  fontSize: 12,
-  lineHeight: '16px',
-  color: theme.palette.text.secondary,
-}));
-
 export const NextVisitCard = styled('div')(({ theme }) => ({
   display: 'flex',
   flexDirection: 'column',
@@ -711,24 +647,6 @@ export const CompleteTooltipTarget = styled('span')({
   alignSelf: 'stretch',
 });
 
-export const WaitingLabel = styled('span')(({ theme }) => ({
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'flex-start',
-  width: '100%',
-  fontFamily: theme.typography.fontFamily,
-  fontSize: 13,
-  lineHeight: '18px',
-  fontWeight: 500,
-  color: theme.palette.text.secondary,
-  flexShrink: 0,
-
-  [theme.breakpoints.up('md')]: {
-    width: 220,
-    justifyContent: 'flex-end',
-  },
-}));
-
 export const WidgetCard = styled('div')(({ theme }) => ({
   display: 'flex',
   flexDirection: 'column',
@@ -890,38 +808,6 @@ export const WeekLegendItem = styled('span')(({ theme }) => ({
   gap: theme.spacing(0.5),
 }));
 
-export const PendingAvatar = styled('span')(({ theme }) => ({
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  width: 40,
-  height: 40,
-  flexShrink: 0,
-  borderRadius: 999,
-  overflow: 'hidden',
-  backgroundColor: theme.palette.mode === 'light' ? '#163E52' : '#0E2430',
-  color: theme.palette.mode === 'light' ? '#F3F7F8' : theme.palette.text.primary,
-  fontFamily: theme.typography.fontFamily,
-  fontSize: 12,
-  lineHeight: '16px',
-  fontWeight: 600,
-  letterSpacing: '0.02em',
-}));
-
-export const PendingAvatarImage = styled('img')({
-  width: '100%',
-  height: '100%',
-  objectFit: 'cover',
-  display: 'block',
-});
-
-export const PendingList = styled('div')(({ theme }) => ({
-  display: 'flex',
-  flexDirection: 'column',
-  gap: theme.spacing(1.5),
-  width: '100%',
-}));
-
 export const FreeHint = styled('p')(({ theme }) => ({
   margin: 0,
   fontFamily: theme.typography.fontFamily,
@@ -1015,36 +901,6 @@ export const FreeShowMore = styled('button')(({ theme }) => ({
   '&:hover': {
     color: theme.palette.primary.main,
   },
-}));
-
-export const PendingRow = styled('div')(({ theme }) => ({
-  display: 'flex',
-  alignItems: 'center',
-  gap: theme.spacing(1.5),
-  width: '100%',
-}));
-
-export const PendingCopy = styled('div')({
-  display: 'flex',
-  flexDirection: 'column',
-  gap: 2,
-  flex: 1,
-  minWidth: 0,
-});
-
-export const PendingName = styled('span')(({ theme }) => ({
-  fontFamily: theme.typography.fontFamily,
-  fontSize: 14,
-  lineHeight: '20px',
-  fontWeight: 600,
-  color: theme.palette.text.primary,
-}));
-
-export const PendingMeta = styled('span')(({ theme }) => ({
-  fontFamily: theme.typography.fontFamily,
-  fontSize: 13,
-  lineHeight: '18px',
-  color: theme.palette.text.secondary,
 }));
 
 export const QuickLink = styled('button')(({ theme }) => ({
@@ -1144,13 +1000,6 @@ export const ShowMore = styled('button')(({ theme }) => ({
     boxShadow: `0 2px 8px ${alpha(theme.palette.text.primary, theme.palette.mode === 'light' ? 0.08 : 0.28)}`,
     transform: 'translateY(-1px)',
   },
-}));
-
-export const SlotPicker = styled('div')(({ theme }) => ({
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: theme.spacing(1),
-  paddingTop: theme.spacing(0.5),
 }));
 
 export const SlotChip = styled('button')<{ $active?: boolean }>(({ theme, $active }) => ({
@@ -1256,51 +1105,6 @@ export const ModalOverline = styled('span')(({ theme }) => ({
   color: theme.palette.primary.main,
 }));
 
-export const ProposeSummary = styled('div')(({ theme }) => ({
-  display: 'flex',
-  alignItems: 'center',
-  gap: 14,
-  width: '100%',
-  padding: theme.spacing(1.75, 2),
-  borderRadius: 12,
-  backgroundColor: theme.palette.slotReservedBg,
-  boxSizing: 'border-box',
-}));
-
-export const ProposeSummaryIcon = styled('span')(({ theme }) => ({
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  width: 40,
-  height: 40,
-  flexShrink: 0,
-  borderRadius: 8,
-  backgroundColor: theme.palette.primary.main,
-  color: theme.palette.primary.contrastText,
-}));
-
-export const ProposeSummaryCopy = styled('div')({
-  display: 'flex',
-  flexDirection: 'column',
-  gap: 2,
-  minWidth: 0,
-});
-
-export const ProposeSummaryTitle = styled('span')(({ theme }) => ({
-  fontFamily: theme.typography.fontFamily,
-  fontSize: 16,
-  lineHeight: '24px',
-  fontWeight: 600,
-  color: theme.palette.text.primary,
-}));
-
-export const ProposeSummaryMeta = styled('span')(({ theme }) => ({
-  fontFamily: theme.typography.fontFamily,
-  fontSize: 13,
-  lineHeight: '18px',
-  color: theme.palette.text.secondary,
-}));
-
 export const FieldBlock = styled('div')(({ theme }) => ({
   display: 'flex',
   flexDirection: 'column',
@@ -1318,23 +1122,6 @@ export const FieldLabel = styled('span')(({ theme }) => ({
   color: theme.palette.text.secondary,
 }));
 
-export const DateTimePanel = styled('div')(({ theme }) => ({
-  display: 'flex',
-  flexDirection: 'column',
-  gap: theme.spacing(1.25),
-  padding: 14,
-  borderRadius: 12,
-  backgroundColor: theme.palette.background.default,
-  border: `1px solid ${theme.palette.divider}`,
-  boxSizing: 'border-box',
-}));
-
-export const MonthNav = styled('div')({
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-});
-
 export const MonthLabel = styled('span')(({ theme }) => ({
   fontFamily: theme.typography.fontFamily,
   fontSize: 16,
@@ -1342,25 +1129,6 @@ export const MonthLabel = styled('span')(({ theme }) => ({
   fontWeight: 600,
   color: theme.palette.text.primary,
   textTransform: 'capitalize',
-}));
-
-export const MonthNavButtons = styled('div')(({ theme }) => ({
-  display: 'flex',
-  gap: theme.spacing(0.5),
-}));
-
-export const MonthNavButton = styled('button')(({ theme }) => ({
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  width: 28,
-  height: 28,
-  borderRadius: 8,
-  border: `1px solid ${theme.palette.divider}`,
-  backgroundColor: theme.palette.background.paper,
-  color: theme.palette.text.secondary,
-  cursor: 'pointer',
-  padding: 0,
 }));
 
 export const DayChips = styled('div')(({ theme }) => ({
@@ -1393,43 +1161,6 @@ export const DayChip = styled('button')<{ $active?: boolean; $disabled?: boolean
   }),
 );
 
-export const LockedField = styled('div')(({ theme }) => ({
-  display: 'flex',
-  alignItems: 'center',
-  gap: 10,
-  padding: theme.spacing(1.5, 1.75),
-  borderRadius: 12,
-  border: `1px solid ${theme.palette.divider}`,
-  backgroundColor: theme.palette.background.paper,
-  color: theme.palette.text.disabled,
-  fontFamily: theme.typography.fontFamily,
-  fontSize: 16,
-  lineHeight: '24px',
-  boxSizing: 'border-box',
-}));
-
-export const FormatRow = styled('div')(({ theme }) => ({
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'flex-start',
-  gap: theme.spacing(1.5),
-  width: '100%',
-
-  [theme.breakpoints.up('sm')]: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: theme.spacing(2),
-  },
-}));
-
-export const FormatSwitchGroup = styled('div')(({ theme }) => ({
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'flex-end',
-  gap: theme.spacing(2),
-}));
-
 export const FormatSideLabel = styled('span')<{ $active?: boolean }>(({ theme, $active }) => ({
   fontFamily: theme.typography.fontFamily,
   fontSize: 16,
@@ -1437,43 +1168,6 @@ export const FormatSideLabel = styled('span')<{ $active?: boolean }>(({ theme, $
   fontWeight: $active ? 600 : 500,
   color: $active ? theme.palette.primary.main : theme.palette.text.secondary,
   flexShrink: 0,
-}));
-
-export const FormatTrack = styled('button')<{ $online?: boolean }>(({ theme, $online }) => ({
-  position: 'relative',
-  width: 58,
-  height: 38,
-  border: 'none',
-  background: 'transparent',
-  cursor: 'pointer',
-  flexShrink: 0,
-  padding: 0,
-
-  '&::before': {
-    content: '""',
-    position: 'absolute',
-    top: '50%',
-    left: 12,
-    width: 34,
-    height: 14,
-    borderRadius: 7,
-    transform: 'translateY(-50%)',
-    backgroundColor: `${theme.palette.primary.main}80`,
-  },
-
-  '&::after': {
-    content: '""',
-    position: 'absolute',
-    top: '50%',
-    left: $online ? 26 : 12,
-    width: 20,
-    height: 20,
-    borderRadius: 999,
-    transform: 'translateY(-50%)',
-    backgroundColor: theme.palette.background.paper,
-    boxShadow: '0 2px 1px rgba(22, 62, 82, 0.16), 0 1px 1px rgba(22, 62, 82, 0.12)',
-    transition: 'left 120ms ease',
-  },
 }));
 
 export const ModalActions = styled('div')(({ theme }) => ({

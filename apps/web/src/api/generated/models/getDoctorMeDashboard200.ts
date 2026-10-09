@@ -5,8 +5,10 @@
  * Medicly MVP HTTP API. Cookie session: medicly_sid.
  * OpenAPI spec version: 1.0.0
  */
+import type { GetDoctorMeDashboard200CancellationsLast7DaysItem } from './getDoctorMeDashboard200CancellationsLast7DaysItem';
 import type { GetDoctorMeDashboard200Metrics } from './getDoctorMeDashboard200Metrics';
 import type { GetDoctorMeDashboard200NextVisit } from './getDoctorMeDashboard200NextVisit';
+import type { GetDoctorMeDashboard200PastVisitsMonthItem } from './getDoctorMeDashboard200PastVisitsMonthItem';
 import type { GetDoctorMeDashboard200PendingPatientsItem } from './getDoctorMeDashboard200PendingPatientsItem';
 import type { GetDoctorMeDashboard200VisitsItem } from './getDoctorMeDashboard200VisitsItem';
 import type { GetDoctorMeDashboard200WeekStripItem } from './getDoctorMeDashboard200WeekStripItem';
@@ -18,6 +20,8 @@ export type GetDoctorMeDashboard200 = {
   /** @nullable */
   nextVisit: GetDoctorMeDashboard200NextVisit;
   pendingPatients: GetDoctorMeDashboard200PendingPatientsItem[];
+  pastVisitsMonth: GetDoctorMeDashboard200PastVisitsMonthItem[];
+  cancellationsLast7Days: GetDoctorMeDashboard200CancellationsLast7DaysItem[];
   freeWindowsToday: string[];
   weekStrip: GetDoctorMeDashboard200WeekStripItem[];
 };

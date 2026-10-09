@@ -6,6 +6,6 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export const PostProposeAppointmentBodyFormat = {  offline: 'offline',
+export const GetDoctorMeDashboard200CancellationsLast7DaysItemFormat = {  offline: 'offline',
   online: 'online',
 } as const

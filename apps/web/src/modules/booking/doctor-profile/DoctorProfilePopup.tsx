@@ -95,7 +95,7 @@ import {
 } from '@/modules/patient-room/utils/pendingRescheduleEvents';
 import { resolveMediaUrl } from '@/utils/mediaUrl';
 import { pickLocalizedDescription } from '@/utils/pickLocalizedDescription';
-import { Popups, type DoctorProfilePopupPayload } from '@/utils/popupUtils/popupTypes';
+import { Popups, isDoctorProfilePopupPayload } from '@/utils/popupUtils/popupTypes';
 import { AppRoute, doctorProfilePath } from '@/utils/routeUtils/routes';
 
 const formatEducationYears = (yearFrom: number, yearTo: number | null) =>
@@ -158,10 +158,11 @@ export const DoctorProfilePopup = () => {
   const { role, isSession } = useAppRole();
   const isPatient = role === AppRole.PATIENT && isSession;
 
-  const doctorId =
-    activePopup === Popups.DOCTOR_PROFILE
-      ? (payload as DoctorProfilePopupPayload | undefined)?.doctorId
+  const popupPayload =
+    activePopup === Popups.DOCTOR_PROFILE && isDoctorProfilePopupPayload(payload)
+      ? payload
       : undefined;
+  const doctorId = popupPayload?.doctorId;
 
   const open = activePopup === Popups.DOCTOR_PROFILE && Boolean(doctorId);
 
@@ -174,7 +175,6 @@ export const DoctorProfilePopup = () => {
   const [selection, setSelection] = useState<BookingSelection | null>(null);
   const [confirmError, setConfirmError] = useState<string | null>(null);
 
-  const popupPayload = payload as DoctorProfilePopupPayload | undefined;
   const sessionKey = open
     ? `${doctorId ?? ''}:${popupPayload?.initialStep ?? 'profile'}`
     : 'closed';

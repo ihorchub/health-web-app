@@ -6,6 +6,7 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { GetDoctorMeProfile200EducationItem } from './getDoctorMeProfile200EducationItem';
+import type { GetDoctorMeProfile200ReviewsItem } from './getDoctorMeProfile200ReviewsItem';
 
 export type GetDoctorMeProfile200 = {
   id: string;
@@ -33,4 +34,7 @@ export type GetDoctorMeProfile200 = {
   theme: string | null;
   education: GetDoctorMeProfile200EducationItem[];
   consultationCount: number;
+  ratingAverage: number;
+  reviewCount: number;
+  reviews: GetDoctorMeProfile200ReviewsItem[];
 };

@@ -8,6 +8,7 @@
 import type { PatchDoctorSchedule200FrozenInZoneA } from './patchDoctorSchedule200FrozenInZoneA';
 import type { PatchDoctorSchedule200SupportedFormatsItem } from './patchDoctorSchedule200SupportedFormatsItem';
 import type { PatchDoctorSchedule200WeeklyTemplate } from './patchDoctorSchedule200WeeklyTemplate';
+import type { PatchDoctorSchedule200ZoneBOverridesItem } from './patchDoctorSchedule200ZoneBOverridesItem';
 
 export type PatchDoctorSchedule200 = {
   doctorUserId: string;
@@ -19,6 +20,7 @@ export type PatchDoctorSchedule200 = {
   supportedFormats: typeof PatchDoctorSchedule200SupportedFormatsItem[keyof typeof PatchDoctorSchedule200SupportedFormatsItem][];
   weeklyTemplate: PatchDoctorSchedule200WeeklyTemplate;
   vacationDates: string[];
+  zoneBOverrides: PatchDoctorSchedule200ZoneBOverridesItem[];
   visibleInSearch: boolean;
   visitDurationMinutes: number;
   specialty?: string;

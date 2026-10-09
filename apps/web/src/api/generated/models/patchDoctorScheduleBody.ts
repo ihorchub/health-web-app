@@ -6,6 +6,7 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { PatchDoctorScheduleBodySupportedFormatsItem } from './patchDoctorScheduleBodySupportedFormatsItem';
+import type { PatchDoctorScheduleBodyZoneBOverride } from './patchDoctorScheduleBodyZoneBOverride';
 import type { PatchDoctorScheduleBodyZoneBWeeklyTemplate } from './patchDoctorScheduleBodyZoneBWeeklyTemplate';
 
 export type PatchDoctorScheduleBody = {
@@ -19,4 +20,5 @@ export type PatchDoctorScheduleBody = {
   promoPriceUah?: number | null;
   /** @nullable */
   promoValidUntil?: string | null;
+  zoneBOverride?: PatchDoctorScheduleBodyZoneBOverride;
 };

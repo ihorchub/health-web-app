@@ -5,11 +5,11 @@
  * Medicly MVP HTTP API. Cookie session: medicly_sid.
  * OpenAPI spec version: 1.0.0
  */
-import type { GetDoctorMeProfile200EducationItemKind } from './getDoctorMeProfile200EducationItemKind';
+import type { GetDoctorById200EducationItemKind } from './getDoctorById200EducationItemKind';
 
-export type GetDoctorMeProfile200EducationItem = {
+export type GetDoctorById200EducationItem = {
   id: string;
-  kind: typeof GetDoctorMeProfile200EducationItemKind[keyof typeof GetDoctorMeProfile200EducationItemKind];
+  kind: typeof GetDoctorById200EducationItemKind[keyof typeof GetDoctorById200EducationItemKind];
   title: string;
   /** @nullable */
   subtitle: string | null;

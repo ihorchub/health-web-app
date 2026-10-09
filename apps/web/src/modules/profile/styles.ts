@@ -628,14 +628,6 @@ export const PreviewIdentity = styled('div')(({ theme }) => ({
   },
 }));
 
-export const PreviewPhoto = styled('img')({
-  width: 140,
-  height: 140,
-  borderRadius: 20,
-  objectFit: 'cover',
-  flexShrink: 0,
-});
-
 export const PreviewIdentityMain = styled('div')({
   display: 'flex',
   flexDirection: 'column',
@@ -979,12 +971,12 @@ export const ReviewsMeta = styled('span')(({ theme }) => ({
   color: theme.palette.text.secondary,
 }));
 
-export const ReviewsEmpty = styled('div')(({ theme }) => ({
+export const ReviewsEmpty = styled('div')({
   display: 'flex',
   flexDirection: 'column',
   gap: 6,
   paddingBlock: 8,
-}));
+});
 
 export const ReviewsEmptyTitle = styled('p')(({ theme }) => ({
   margin: 0,
@@ -1102,13 +1094,6 @@ export const SavingDialog = styled('div')(({ theme }) => ({
   backgroundColor: theme.palette.background.paper,
   border: `1px solid ${theme.palette.divider}`,
 }));
-
-export const SavingLika = styled('img')({
-  width: 70,
-  height: 120,
-  objectFit: 'contain',
-  flexShrink: 0,
-});
 
 export const SavingTitle = styled('p')(({ theme }) => ({
   margin: 0,

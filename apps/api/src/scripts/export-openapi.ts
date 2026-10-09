@@ -70,6 +70,10 @@ const spec = fixNullSchemas(app.swagger()) as {
 if (spec.paths) {
   const rewritten: Record<string, unknown> = {};
   for (const [url, def] of Object.entries(spec.paths)) {
+    // Wildcard static uploads break Orval (`/uploads/{*}` → invalid TS). Served as files, not API hooks.
+    if (url.includes("/uploads")) {
+      continue;
+    }
     const next = url.startsWith("/api/") ? url.slice("/api".length) : url;
     rewritten[next.length > 0 ? next : "/"] = def;
   }

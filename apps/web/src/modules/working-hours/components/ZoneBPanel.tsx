@@ -253,7 +253,7 @@ export const ZoneBPanel = ({
           <DurationCustomField
             size="small"
             type="number"
-            placeholder="—"
+            placeholder={t('zoneB.durationCustomPlaceholder')}
             slotProps={{
               input: {
                 endAdornment: (
